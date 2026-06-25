@@ -5484,8 +5484,8 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
   };
 
   // EXPERT_DATA — données de l'expert connecté
-  // Use newly created profile if exists, otherwise find in EXPERTS array
   const [sbExpertData, setSbExpertData] = useState(null);
+  const [realStats, setRealStats] = useState({ sessions: 0, clients: 0, revenu: 0, rating: null, reviewCount: 0 });
   useEffect(() => {
     if (!authUser?.real || !authUser?.isExpert) return;
     supabase.from("experts").select("*").eq("user_id", authUser.id).single()
@@ -5494,6 +5494,19 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           setSbExpertData(data);
           const offers = data.offres || data.phases || [];
           if (offers.length > 0) setExpOffres(offers);
+          // Load real stats
+          Promise.all([
+            supabase.from("bookings").select("id, phase_price, client_id", { count: "exact" }).eq("expert_id", data.id).eq("status", "confirmed"),
+            supabase.from("reviews").select("stars").eq("expert_id", data.id),
+          ]).then(([bookRes, revRes]) => {
+            const bookings = bookRes.data || [];
+            const reviews = revRes.data || [];
+            const sessions = bookings.length;
+            const clients = new Set(bookings.map(b => b.client_id)).size;
+            const revenu = bookings.reduce((s, b) => s + Math.round((b.phase_price || 0) * 0.8), 0);
+            const rating = reviews.length > 0 ? +(reviews.reduce((s, r) => s + r.stars, 0) / reviews.length).toFixed(1) : null;
+            setRealStats({ sessions, clients, revenu, rating, reviewCount: reviews.length });
+          });
         }
       });
   }, [authUser?.id, authUser?.isExpert]);
@@ -5515,11 +5528,13 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
     domain:    (expertUser?.role || "Industrie").split("·")[0].trim(),
     probleme:  expertUser?.tagline || "",
     impact:{
-      sessions:    expertUser?.reviews || 0,
-      clients:     Math.floor((expertUser?.reviews || 0) * .87),
-      satisfaction: expertUser?.rating ? Math.round(expertUser.rating/5*100) : 0,
-      revenu:      (expertUser?.reviews || 0) * Math.round((expertUser?.phases?.[0]?.price || 50) * .8),
+      sessions:    authUser?.real ? realStats.sessions : (expertUser?.reviews || 0),
+      clients:     authUser?.real ? realStats.clients  : Math.floor((expertUser?.reviews || 0) * .87),
+      satisfaction: authUser?.real ? (realStats.rating ? Math.round(realStats.rating/5*100) : 0) : (expertUser?.rating ? Math.round(expertUser.rating/5*100) : 0),
+      revenu:      authUser?.real ? realStats.revenu   : (expertUser?.reviews || 0) * Math.round((expertUser?.phases?.[0]?.price || 50) * .8),
     },
+    rating:      authUser?.real ? realStats.rating : (expertUser?.rating || null),
+    reviewCount: authUser?.real ? realStats.reviewCount : (expertUser?.reviews || 0),
     offres: (expertUser?.offres || expertUser?.phases || []).map(p => ({
       name:    p.name,
       price:   p.price,
@@ -8773,10 +8788,25 @@ function AuthModal({ onClose, onSuccess, initialRegister }) {
 }
 
 // ─── PublicProfileScreen ───────────────────────────────────────────────────────
-function PublicProfileScreen({ onBack, onBook, onMsg, expertId }) {
-  // Use passed expertId or default to first expert
-  const e = (expertId !== undefined ? EXPERTS.find(x=>x.id===expertId) : null) || EXPERTS[0];
-  const extras = EXPERT_EXTRAS[e.id] || { resout:[], reviews:[], preuves:[] };
+function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) {
+  const [sbExpert, setSbExpert] = useState(null);
+  const [sbReviews, setSbReviews] = useState([]);
+  const [sbStats, setSbStats] = useState(null);
+  useEffect(() => {
+    if (!realExpertId) return;
+    supabase.from("experts").select("*").eq("id", realExpertId).single().then(({ data }) => { if (data) setSbExpert(data); });
+    supabase.from("reviews").select("*").eq("expert_id", realExpertId).order("created_at", { ascending: false }).limit(10).then(({ data }) => { if (data) setSbReviews(data); });
+    supabase.from("bookings").select("id, client_id").eq("expert_id", realExpertId).eq("status", "confirmed").then(({ data }) => {
+      if (data) setSbStats({ sessions: data.length, clients: new Set(data.map(b=>b.client_id)).size });
+    });
+  }, [realExpertId]);
+  // Use real data if available, else demo
+  const e = realExpertId && sbExpert
+    ? { ...sbExpert, name: sbExpert.name, initials: sbExpert.initials || sbExpert.name?.[0] || "?", bg: sbExpert.bg || C.cream2, color: sbExpert.color || C.ink, rating: sbReviews.length > 0 ? +(sbReviews.reduce((s,r)=>s+r.stars,0)/sbReviews.length).toFixed(1) : null, reviews: sbStats?.sessions || 0, phases: sbExpert.phases || sbExpert.offres || [], photo_url: sbExpert.photo_url || null }
+    : (expertId !== undefined ? EXPERTS.find(x=>x.id===expertId) : null) || EXPERTS[0];
+  const extras = realExpertId && sbReviews.length > 0
+    ? { resout: [], reviews: sbReviews.map(r=>({ name: r.client_name||"Client", stars: r.stars, text: r.text||"", date: new Date(r.created_at).toLocaleDateString("fr-FR",{month:"long",year:"numeric"}) })), preuves: [] }
+    : EXPERT_EXTRAS[e.id] || { resout:[], reviews:[], preuves:[] };
   return (
     <div style={{ flex:1, overflowY:"auto", paddingBottom:80, background:C.cream }}>
       <div style={{ background:`linear-gradient(160deg,#1C1917 0%,#3D2B1F 100%)`, padding:"20px 20px 0", overflow:"hidden" }}>
@@ -8784,7 +8814,10 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId }) {
           <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.white} strokeWidth={2}><path d="m15 18-6-6 6-6"/></svg>
         </button>
         <div style={{ textAlign:"center", marginBottom:16 }}>
-          <div style={{ width:96,height:96,borderRadius:"50%",background:`linear-gradient(135deg,${C.goldL},#FDE68A)`,color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:34,border:`4px solid ${C.goldB}`,boxShadow:`0 0 0 6px rgba(185,134,74,.2)`,fontFamily:SERIF,margin:"0 auto 14px" }}>{e.initials}</div>
+          {e.photo_url || e.photoUrl
+            ? <img src={e.photo_url||e.photoUrl} alt="" style={{width:96,height:96,borderRadius:"50%",objectFit:"cover",border:`4px solid ${C.goldB}`,boxShadow:`0 0 0 6px rgba(185,134,74,.2)`,margin:"0 auto 14px",display:"block"}}/>
+            : <div style={{ width:96,height:96,borderRadius:"50%",background:`linear-gradient(135deg,${C.goldL},#FDE68A)`,color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:34,border:`4px solid ${C.goldB}`,boxShadow:`0 0 0 6px rgba(185,134,74,.2)`,fontFamily:SERIF,margin:"0 auto 14px" }}>{e.initials}</div>
+          }
           <div style={{ fontSize:24,fontWeight:700,color:C.white,fontFamily:SERIF,letterSpacing:"-.5px" }}>{e.name}</div>
           <div style={{ fontSize:13,color:"rgba(253,252,248,.55)",marginTop:4 }}>📍 {e.location} · {e.country}</div>
           <div style={{ display:"flex",gap:6,justifyContent:"center",marginTop:10,flexWrap:"wrap" }}>
@@ -9168,7 +9201,7 @@ export default function App() {
       {screen==="search"       && <div key="search" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><SearchScreen initQ={searchQ} initCat={searchCat} onExpert={goExpert} onBack={()=>{setScreen("home");setNav("home");}} experts={dbExperts} expertsLoaded={expertsLoaded}/></div>}
       {screen==="messages"     && <div key="messages" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><MessagesListScreen onConv={e=>goMsg(e)} isLoggedIn={isLoggedIn} onLogin={()=>setShowAuth(true)} readMsgIds={readMsgIds} onMarkMsgRead={id=>setReadMsgIds(p=>p.includes(id)?p:[...p,id])} appMode={appMode} isNewExpert={!!newExpertProfile} isRealUser={!!authUser?.real} authUser={authUser}/></div>}
       {screen==="reservations" && <div key="reservations" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><ReservationsScreen onExpert={goExpert} onMsg={goMsg} isLoggedIn={isLoggedIn} onLogin={()=>setShowAuth(true)} onNavigate={handleNav} onPendingChange={n=>setClientPendingCount(n)} isRealUser={!!authUser?.real} authUser={authUser}/></div>}
-      {screen==="public"        && <PublicProfileScreen onBack={()=>{setScreen("profile");setNav("profile");}} onBook={goBook} onMsg={goMsg} expertId={authUser?.isExpert?(EXPERTS.find(ex=>ex.initials===DEMO_USERS.expert.initials)||EXPERTS[7])?.id:undefined}/>}
+      {screen==="public"        && <PublicProfileScreen onBack={()=>{setScreen("profile");setNav("profile");}} onBook={goBook} onMsg={goMsg} expertId={authUser?.isExpert?(EXPERTS.find(ex=>ex.initials===DEMO_USERS.expert.initials)||EXPERTS[7])?.id:undefined} realExpertId={authUser?.real && authUser?.isExpert ? authUser?.expertId : null}/>}
       {screen==="profile"      && <ProfileScreen key={expInitSection||"profile"} authUser={authUser} isLoggedIn={isLoggedIn} onLogin={()=>setShowAuth(true)} onNavigate={(s)=>handleNav(s)} newExpertProfile={newExpertProfile}
           isExpert={isExpert}
           appMode={appMode}
