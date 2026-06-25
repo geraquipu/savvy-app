@@ -1067,13 +1067,18 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
               ))}
             </>}
             {legalModal==="privacy" && <>
-              <div style={{ fontSize:11, color:C.muted, marginBottom:16 }}>Conforme au RGPD · Mis à jour le 1er janvier 2025</div>
+              <div style={{ fontSize:11, color:C.muted, marginBottom:16 }}>Conforme au RGPD · Mis à jour le 25 juin 2026</div>
               {[
-                {title:"Données collectées",text:"Savvy collecte uniquement les données nécessaires au fonctionnement du service : nom, email, numéro de téléphone (optionnel), données de paiement (chiffrées), et historique des sessions."},
-                {title:"Utilisation des données",text:"Tes données sont utilisées exclusivement pour : l\'accès à ton compte, le traitement des paiements, la communication avec les Conseillers, et l\'amélioration de l\'expérience Savvy."},
-                {title:"Partage des données",text:"Savvy ne vend jamais tes données à des tiers. Les données de paiement sont traitées par notre prestataire certifié PCI-DSS. Seul le nom et la photo de profil sont visibles par les Conseillers."},
-                {title:"Tes droits",text:"Conformément au RGPD, tu disposes d\'un droit d\'accès, de rectification, de suppression et de portabilité de tes données. Pour exercer ces droits : privacy@savvy.fr"},
-                {title:"Conservation",text:"Tes données sont conservées pendant la durée de ton compte + 3 ans après sa suppression, conformément aux obligations légales françaises."},
+                {title:"1. Responsable du traitement",text:"Savvy (auto-entrepreneur, France). Contact : privacy@getsavvy.fr"},
+                {title:"2. Données collectées",text:"Savvy collecte uniquement les données nécessaires au service : nom et prénom, adresse email, photo de profil (optionnelle), données de paiement (traitées et chiffrées par Stripe — Savvy ne stocke jamais les numéros de carte), historique des réservations et sessions, messages échangés avec les Conseillers."},
+                {title:"3. Finalités du traitement",text:"Tes données sont utilisées pour : (a) créer et gérer ton compte, (b) traiter les paiements et remboursements, (c) te mettre en relation avec des Conseillers, (d) t\'envoyer des confirmations de réservation par email, (e) améliorer la qualité du service, (f) respecter nos obligations légales et fiscales."},
+                {title:"4. Base légale",text:"Le traitement est fondé sur l\'exécution du contrat (art. 6.1.b RGPD) pour les données nécessaires au service, et sur notre intérêt légitime (art. 6.1.f RGPD) pour l\'amélioration du service."},
+                {title:"5. Destinataires des données",text:"Savvy ne vend jamais tes données. Elles sont partagées uniquement avec nos sous-traitants certifiés : Stripe (paiements, certifié PCI-DSS), Supabase (hébergement base de données, serveurs en Europe), Resend (envoi d\'emails transactionnels). Les Conseillers voient uniquement ton prénom et ta photo de profil."},
+                {title:"6. Transferts hors UE",text:"Certains sous-traitants (Stripe, Supabase) peuvent traiter des données hors de l\'UE avec des garanties appropriées (clauses contractuelles types de la Commission européenne)."},
+                {title:"7. Durée de conservation",text:"Données de compte : durée de vie du compte + 3 ans. Données de paiement : 5 ans (obligation légale fiscale). Messages : 2 ans après la dernière activité. Tu peux demander la suppression anticipée à privacy@getsavvy.fr."},
+                {title:"8. Tes droits (RGPD)",text:"Tu disposes des droits suivants : accès, rectification, suppression (\"droit à l\'oubli\"), portabilité, limitation du traitement, opposition. Pour exercer ces droits : privacy@getsavvy.fr. Réponse sous 30 jours. Tu peux également déposer une réclamation auprès de la CNIL (cnil.fr)."},
+                {title:"9. Cookies",text:"Savvy n\'utilise pas de cookies publicitaires ni de trackers tiers. Un cookie de session est utilisé uniquement pour maintenir ta connexion."},
+                {title:"10. Contact",text:"Responsable du traitement : Savvy — privacy@getsavvy.fr"},
               ].map(s=>(
                 <div key={s.title} style={{ marginBottom:18 }}>
                   <div style={{ fontSize:14, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:6 }}>{s.title}</div>
