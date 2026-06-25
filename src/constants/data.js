@@ -306,3 +306,14 @@ export const DEMO_MSGS = [
   { id:2, eid:1, lastMsg:"Pour le macaron, la clé c\'est la tant-pour-tant bien tamisée.",         time:"Hier",  unread:0, session:{format:"📹 Vidéo",dur:"1h",price:"25€",date:"Mar. 3 juin 11h00"} },
   { id:3, eid:2, lastMsg:"Votre labo peut gagner 30% de productivité avec 3 ajustements simples.", time:"Lun",   unread:1, session:{format:"📹 Vidéo",dur:"2h",price:"150€",date:"Sam. 31 mai 14h00"} },
 ];
+
+
+export function getCountdown(hoursUntil) {
+  if (hoursUntil == null) return null;
+  if (hoursUntil <= 0)   return { label:"En cours ●", color:"#10B981", pulse:true };
+  if (hoursUntil < 1)    return { label:"Dans moins d'1h", color:"#EF4444", pulse:true };
+  if (hoursUntil < 3)    return { label:`Dans ${Math.round(hoursUntil)}h`, color:"#EF4444", pulse:false };
+  if (hoursUntil < 24)   return { label:"Aujourd'hui", color:"#F59E0B", pulse:false };
+  if (hoursUntil < 48)   return { label:"Demain", color:"#6366F1", pulse:false };
+  return null;
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
 import { C, SERIF } from '../constants/colors';
-import { EXPERTS, getBookings, updateBooking, addBooking } from '../constants/data';
+import { EXPERTS, getBookings, updateBooking, addBooking, getCountdown } from '../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../constants/sessionData';
 import { LoginGate } from '../components/ui';
 import { MENU_ICONS } from '../constants/menuIcons.jsx';
@@ -484,15 +484,6 @@ function ReviewModal({ session, onClose, authUser }) {
   );
 }
 
-function getCountdown(hoursUntil) {
-  if (hoursUntil == null) return null;
-  if (hoursUntil <= 0)   return { label:"En cours ●", color:"#10B981", pulse:true };
-  if (hoursUntil < 1)    return { label:"Dans moins d'1h", color:"#EF4444", pulse:true };
-  if (hoursUntil < 3)    return { label:`Dans ${Math.round(hoursUntil)}h`, color:"#EF4444", pulse:false };
-  if (hoursUntil < 24)   return { label:"Aujourd'hui", color:"#F59E0B", pulse:false };
-  if (hoursUntil < 48)   return { label:"Demain", color:"#6366F1", pulse:false };
-  return null;
-}
 
 function downloadICS({ expertName, topic, date, slot, durationH=1 }) {
   // date can be a Date object or a label string — we build a best-effort date
