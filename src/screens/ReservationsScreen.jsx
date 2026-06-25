@@ -518,21 +518,13 @@ function downloadICS({ expertName, topic, date, slot, durationH=1 }) {
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
 
-function PaymentModal({ session, expert, onClose, onPaid }) {
-  const [cardNum, setCardNum] = useState("");
-  const [cardExp, setCardExp] = useState("");
-  const [cardCvv, setCardCvv] = useState("");
-  const [cardName, setCardName] = useState("");
+function PaymentModal({ session, expert, onClose }) {
   const [paying, setPaying] = useState(false);
-  const [done, setDone] = useState(false);
-
-  const formatCard = v => v.replace(/\D/g,"").slice(0,16).replace(/(.{4})/g,"$1 ").trim();
-  const formatExp  = v => { const d=v.replace(/\D/g,"").slice(0,4); return d.length>2?d.slice(0,2)+"/"+d.slice(2):d; };
-  const isValid = cardNum.replace(/\s/g,"").length>=15 && cardExp.length===5 && cardCvv.length>=3 && cardName.length>2;
+  const [err, setErr] = useState(null);
 
   const handlePay = async () => {
-    if (!isValid) return;
     setPaying(true);
+    setErr(null);
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
         body: {
@@ -544,74 +536,40 @@ function PaymentModal({ session, expert, onClose, onPaid }) {
       });
       if (error || !data?.url) throw new Error(error?.message || "Erreur paiement");
       window.location.href = data.url;
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      setErr(e.message);
       setPaying(false);
     }
   };
 
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(28,31,23,0.6)",zIndex:9000,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div style={{background:C.white,borderRadius:"22px 22px 0 0",width:"100%",maxWidth:430,padding:"20px 20px 36px",boxShadow:"0 -4px 32px rgba(0,0,0,0.2)",maxHeight:"90vh",overflowY:"auto"}}>
-        {done ? (
-          <div style={{textAlign:"center",padding:"30px 10px"}}>
-            <div style={{width:64,height:64,borderRadius:"50%",background:C.sageL,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}>
-              <svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke={C.sage} strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <div style={{fontSize:18,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:8}}>Paiement confirmé !</div>
-            <div style={{fontSize:13,color:C.muted}}>Votre session avec {expert.name.split(" ")[0]} est réservée.</div>
+      <div style={{background:C.white,borderRadius:"22px 22px 0 0",width:"100%",maxWidth:430,padding:"24px 20px 40px",boxShadow:"0 -4px 32px rgba(0,0,0,0.2)"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
+          <div>
+            <div style={{fontSize:16,fontWeight:700,color:C.ink,fontFamily:SERIF}}>Confirmer le paiement</div>
+            <div style={{fontSize:12,color:C.muted,marginTop:3}}>Session avec {expert.name.split(" ")[0]}</div>
           </div>
-        ) : (
-          <>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18}}>
-              <div>
-                <div style={{fontSize:15,fontWeight:700,color:C.ink,fontFamily:SERIF}}>Procéder au paiement</div>
-                <div style={{fontSize:11,color:C.muted,marginTop:2}}>Session avec {expert.name.split(" ")[0]} · {session.price}€</div>
-              </div>
-              <button onClick={onClose} style={{background:C.cream2,border:`1px solid ${C.border}`,borderRadius:20,padding:"5px 12px",fontSize:12,color:C.muted,cursor:"pointer",fontFamily:"inherit"}}>Annuler</button>
-            </div>
+          <button onClick={onClose} style={{background:C.cream2,border:`1px solid ${C.border}`,borderRadius:20,padding:"5px 12px",fontSize:12,color:C.muted,cursor:"pointer",fontFamily:"inherit"}}>Annuler</button>
+        </div>
 
-            {/* Apple Pay */}
-            <button onClick={()=>{ setPaying(true); setTimeout(()=>{ updateBooking(session.id,{paid:true}); try{localStorage.setItem(`savvy_paid_${session.id}`,"1");}catch{} setDone(true); setPaying(false); setTimeout(()=>onPaid&&onPaid(),1800); },1200); }}
-              style={{width:"100%",padding:"13px",borderRadius:13,border:"none",background:"#000",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-              <svg width={20} height={20} viewBox="0 0 24 24" fill="white"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.37c1.29.07 2.18.74 2.93.8 1.11-.23 2.18-.95 3.37-.86 1.42.14 2.49.68 3.19 1.73-2.93 1.73-2.24 5.54.51 6.61-.57 1.55-1.32 3.08-2 3.63zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
-              Apple Pay
-            </button>
+        <div style={{background:C.cream2,borderRadius:14,padding:"14px 16px",marginBottom:20}}>
+          <div style={{fontSize:13,color:C.muted,marginBottom:4}}>{session.topic || session.phase_name || "Session"}</div>
+          <div style={{fontSize:26,fontWeight:800,color:C.ink,fontFamily:SERIF}}>{session.price}€</div>
+        </div>
 
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-              <div style={{flex:1,height:1,background:C.border}}/>
-              <span style={{fontSize:11,color:C.faint}}>ou carte bancaire</span>
-              <div style={{flex:1,height:1,background:C.border}}/>
-            </div>
+        {err && <div style={{fontSize:12,color:"#EF4444",marginBottom:12,textAlign:"center"}}>{err}</div>}
 
-            <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
-              <input placeholder="Nom sur la carte" value={cardName} onChange={e=>setCardName(e.target.value)}
-                style={{padding:"11px 14px",borderRadius:11,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"inherit",outline:"none",background:C.cream2}}/>
-              <input placeholder="1234 5678 9012 3456" value={cardNum} onChange={e=>setCardNum(formatCard(e.target.value))}
-                inputMode="numeric"
-                style={{padding:"11px 14px",borderRadius:11,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"inherit",outline:"none",background:C.cream2,letterSpacing:2}}/>
-              <div style={{display:"flex",gap:10}}>
-                <input placeholder="MM/AA" value={cardExp} onChange={e=>setCardExp(formatExp(e.target.value))}
-                  inputMode="numeric"
-                  style={{flex:1,padding:"11px 14px",borderRadius:11,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"inherit",outline:"none",background:C.cream2}}/>
-                <input placeholder="CVV" value={cardCvv} onChange={e=>setCardCvv(e.target.value.replace(/\D/g,"").slice(0,4))}
-                  inputMode="numeric"
-                  style={{width:80,padding:"11px 14px",borderRadius:11,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"inherit",outline:"none",background:C.cream2}}/>
-              </div>
-            </div>
+        <button onClick={handlePay} disabled={paying}
+          style={{width:"100%",padding:"15px",borderRadius:13,border:"none",cursor:paying?"default":"pointer",fontWeight:700,fontSize:15,fontFamily:SERIF,
+            background:paying?C.cream3:C.ink,color:paying?C.muted:C.white,transition:"all .2s",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          {paying ? "Connexion à Stripe…" : `Payer ${session.price}€ →`}
+        </button>
 
-            <button onClick={handlePay} disabled={!isValid||paying}
-              style={{width:"100%",padding:"14px",borderRadius:13,border:"none",cursor:isValid&&!paying?"pointer":"default",fontWeight:700,fontSize:15,fontFamily:SERIF,
-                background:isValid&&!paying?C.ink:C.cream3,color:isValid&&!paying?C.white:C.muted,transition:"all .2s"}}>
-              {paying ? "Traitement en cours…" : `Payer ${session.price}€ →`}
-            </button>
-
-            <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:5,marginTop:10}}>
-              <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.faint} strokeWidth={2}><rect x={3} y={11} width={18} height={11} rx={2}/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <span style={{fontSize:10,color:C.faint}}>Paiement sécurisé SSL · Powered by Stripe</span>
-            </div>
-          </>
-        )}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:5,marginTop:12}}>
+          <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.faint} strokeWidth={2}><rect x={3} y={11} width={18} height={11} rx={2}/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span style={{fontSize:10,color:C.faint}}>Paiement 100% sécurisé · Powered by Stripe</span>
+        </div>
       </div>
     </div>
   );
