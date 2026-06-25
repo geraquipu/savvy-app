@@ -261,7 +261,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
   const saveOffres = async (newOffres) => {
     setExpOffres(newOffres);
     if (authUser?.real && authUser?.id) {
-      await supabase.from("experts").update({ offres: newOffres }).eq("user_id", authUser.id);
+      await supabase.from("experts").update({ phases: newOffres, offres: newOffres }).eq("user_id", authUser.id);
     }
   };
   // dispoKey must be defined before _lsBookingsForExpert which uses it in useState initializers
