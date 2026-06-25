@@ -9048,11 +9048,20 @@ export default function App() {
   const [dbExperts, setDbExperts] = useState([]);
   const [expertsLoaded, setExpertsLoaded] = useState(false);
 
-  // ── Supabase : charger les experts (fallback sur EXPERTS démo si vide) ──
+  // ── Supabase : charger les experts ──
+  // Si hay 3+ expertos reales → solo reales. Si hay 1-2 → reales + demos.
+  // Si hay 0 → solo demos (fase de lanzamiento).
   useEffect(() => {
     supabase.from("experts").select("*").eq("active", true).order("created_at", { ascending: false })
       .then(({ data }) => {
-        setDbExperts(data && data.length > 0 ? data : EXPERTS);
+        const real = data || [];
+        if (real.length >= 3) {
+          setDbExperts(real); // suficientes reales → ocultar demos
+        } else if (real.length > 0) {
+          setDbExperts([...real, ...EXPERTS]); // mezclar hasta tener suficientes
+        } else {
+          setDbExperts(EXPERTS); // sin reales → solo demos
+        }
         setExpertsLoaded(true);
       })
       .catch(() => { setDbExperts(EXPERTS); setExpertsLoaded(true); });
