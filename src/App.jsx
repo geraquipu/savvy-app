@@ -3521,12 +3521,21 @@ function PaymentModal({ session, expert, onClose, onPaid }) {
   const handlePay = async () => {
     if (!isValid) return;
     setPaying(true);
-    await new Promise(r=>setTimeout(r,1400));
-    updateBooking(session.id, { paid: true });
-    try { localStorage.setItem(`savvy_paid_${session.id}`, "1"); } catch {}
-    setDone(true);
-    setPaying(false);
-    setTimeout(() => onPaid && onPaid(), 3000);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout-session", {
+        body: {
+          amount: session.price,
+          expertName: expert.name,
+          phaseName: session.topic || session.phase_name || "Session",
+          bookingId: session.id,
+        },
+      });
+      if (error || !data?.url) throw new Error(error?.message || "Erreur paiement");
+      window.location.href = data.url;
+    } catch (err) {
+      console.error(err);
+      setPaying(false);
+    }
   };
 
   return (
@@ -8966,6 +8975,16 @@ export default function App() {
       try { if (localStorage.getItem(`savvy_setup_done_${u.id}`)) return false; } catch {}
       return !profil.name || profil.name === u.email?.split("@")[0];
     };
+    // Handle Stripe payment return
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get("payment");
+    const bookingId = urlParams.get("booking");
+    if (paymentStatus === "success" && bookingId) {
+      supabase.from("bookings").update({ paid: true }).eq("id", bookingId).then(() => {});
+      try { localStorage.setItem(`savvy_paid_${bookingId}`, "1"); } catch {}
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
     supabase.auth.getSession().then(async ({ data:{ session } }) => {
       if (session?.user) {
         const profil = await loadProfile(session.user);
