@@ -40,9 +40,18 @@ function MessagingScreen({ e, onBack, authUser }) {
   const [sugg, setSugg] = useState(null);
   const bottomRef = useRef(null);
 
-  // Charger l'historique Supabase au montage (utilisateur réel + expert réel)
+  // Charger l'historique + Realtime
   useEffect(() => {
     if (!isRealUser || !expertSbId) return;
+
+    const toMsg = m => ({
+      id: m.id,
+      from: m.sender_id === authUser.id ? "client" : "expert",
+      text: m.content,
+      time: new Date(m.created_at).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}),
+      _fromSB: true,
+    });
+
     supabase.from("messages")
       .select("*")
       .eq("expert_id", expertSbId)
@@ -50,20 +59,32 @@ function MessagingScreen({ e, onBack, authUser }) {
       .order("created_at", { ascending: true })
       .then(({ data }) => {
         if (!data || data.length === 0) return;
-        const sbMsgs = data.map(m => ({
-          id: m.id,
-          from: m.sender_id === authUser.id ? "client" : "expert",
-          text: m.content,
-          time: new Date(m.created_at).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}),
-          _fromSB: true,
-        }));
-        // Fusionner avec localStorage (Supabase prioritaire)
+        const sbMsgs = data.map(toMsg);
         setMsgs(prev => {
           const sbIds = new Set(sbMsgs.map(m=>m.id));
           const localOnly = prev.filter(m=>!m._fromSB && !sbIds.has(m.id));
           return [..._defaultMsg, ...sbMsgs, ...localOnly].slice(0,200);
         });
       });
+
+    const channel = supabase
+      .channel(`chat-${expertSbId}-${authUser.id}`)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "messages",
+        filter: `expert_id=eq.${expertSbId}`,
+      }, ({ new: m }) => {
+        if (m.sender_id === authUser.id) return; // ya lo agregamos optimistamente
+        setMsgs(prev => {
+          if (prev.some(x => x.id === m.id)) return prev;
+          return [...prev, toMsg(m)].slice(0,200);
+        });
+        setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),50);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
