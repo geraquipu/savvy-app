@@ -8916,6 +8916,7 @@ export default function App() {
   const [searchQ,   setSearchQ]   = useState("");
   const [searchCat, setSearchCat] = useState(null);
   const [showNotif, setShowNotif] = useState(false);
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [readNotifIds, setReadNotifIds] = useState([]);
   const [readMsgIds, setReadMsgIds] = useState([]);
   const [expRequestsCount, setExpRequestsCount] = useState(() => (newExpertProfile || authUser?.real) ? 0 : 2); // synced from ProfileScreen
@@ -8983,6 +8984,8 @@ export default function App() {
       supabase.from("bookings").update({ paid: true }).eq("id", bookingId).then(() => {});
       try { localStorage.setItem(`savvy_paid_${bookingId}`, "1"); } catch {}
       window.history.replaceState({}, "", window.location.pathname);
+      setShowPaymentSuccess(true);
+      setTimeout(() => setShowPaymentSuccess(false), 5000);
     }
 
     supabase.auth.getSession().then(async ({ data:{ session } }) => {
@@ -9056,6 +9059,15 @@ export default function App() {
     : DEMO_MSGS.reduce((s,m)=>s+(readMsgIds.includes("exp-"+m.id)?0:m.unread),0);
 
   return <div style={{fontFamily:SANS}}>
+    {showPaymentSuccess && (
+      <div style={{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",zIndex:99999,background:"#1C1917",color:"#fff",borderRadius:14,padding:"14px 22px",display:"flex",alignItems:"center",gap:10,boxShadow:"0 4px 24px rgba(0,0,0,0.25)",fontFamily:SANS,fontSize:14,fontWeight:600,maxWidth:360,animation:"fadeSlideUp .3s ease-out"}}>
+        <span style={{fontSize:20}}>✅</span>
+        <div>
+          <div>Paiement confirmé !</div>
+          <div style={{fontSize:11,fontWeight:400,opacity:0.7,marginTop:2}}>Votre session est réservée avec succès.</div>
+        </div>
+      </div>
+    )}
     <style>{`
       *{box-sizing:border-box}
       body,button,input,textarea,select{font-family:\'DM Sans\',-apple-system,BlinkMacSystemFont,\'Inter\',sans-serif}
