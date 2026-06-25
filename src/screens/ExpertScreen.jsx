@@ -5,8 +5,16 @@ import { supabase } from '../supabase';
 
 function ExpertScreen({ e: eProp, onBack, onBook, onMsg }) {
   const e = {
-    langs: [], nda: false, bg: C.cream2, color: C.gold, role: "", initials: "?",
     ...eProp,
+    name:     eProp?.name     ?? "Expert",
+    role:     eProp?.role     ?? "",
+    initials: eProp?.initials ?? "?",
+    bg:       eProp?.bg       ?? C.cream2,
+    color:    eProp?.color    ?? C.gold,
+    langs:    eProp?.langs    ?? [],
+    nda:      eProp?.nda      ?? false,
+    tagline:  eProp?.tagline  ?? "",
+    phases:   eProp?.phases   ?? eProp?.offres ?? [],
   };
   const [openPhase, setOpenPhase] = useState(null);
   const _favKey = "savvy_favs";
