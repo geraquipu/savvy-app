@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, lazy, Suspense } from "react";
 import { supabase } from "./supabase";
 import { C, SERIF, SANS } from "./constants/colors";
 import { DEMO_USERS, CATS, SUBCATS, TRUST_LEVELS, getTrustLevel, BOOKINGS_KEY, THREADS_KEY, getBookings, saveBookings, addBooking, updateBooking, getThreads, addThread, EXPERTS, CAT_MAP, DEMO_MSGS } from "./constants/data";
@@ -6,21 +6,23 @@ import { EXPERT_EXTRAS, EXPERT_STYLE_TAGS, EXPERT_FIRST_SESSION } from "./consta
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from "./constants/sessionData";
 import { Stars, Av, LoginGate, ExpertCard } from "./components/ui";
 import { HomeScreen, ExpertScreen } from "./screens";
-import MessagingScreen from "./screens/MessagingScreen";
-import BookingScreen from "./screens/BookingScreen";
-import MessagesListScreen from "./screens/MessagesListScreen";
-import OnboardingScreen from "./screens/OnboardingScreen";
-import SplashScreen from "./screens/SplashScreen";
-import HowItWorksScreen from "./screens/HowItWorksScreen";
-import MatchScreen from "./screens/MatchScreen";
-import SearchScreen from "./screens/SearchScreen";
-import SuccessScreen from "./screens/SuccessScreen";
-import ReservationsScreen from "./screens/ReservationsScreen";
-import SignupScreen from "./screens/SignupScreen";
-import ProfileScreen from "./screens/ProfileScreen";
-import NotificationPanel from "./screens/NotificationPanel";
-import AuthModal from "./screens/AuthModal";
-import PublicProfileScreen from "./screens/PublicProfileScreen";
+
+// Lazy-loaded screens — only downloaded when first visited
+const MessagingScreen     = lazy(() => import("./screens/MessagingScreen"));
+const BookingScreen       = lazy(() => import("./screens/BookingScreen"));
+const MessagesListScreen  = lazy(() => import("./screens/MessagesListScreen"));
+const OnboardingScreen    = lazy(() => import("./screens/OnboardingScreen"));
+const SplashScreen        = lazy(() => import("./screens/SplashScreen"));
+const HowItWorksScreen    = lazy(() => import("./screens/HowItWorksScreen"));
+const MatchScreen         = lazy(() => import("./screens/MatchScreen"));
+const SearchScreen        = lazy(() => import("./screens/SearchScreen"));
+const SuccessScreen       = lazy(() => import("./screens/SuccessScreen"));
+const ReservationsScreen  = lazy(() => import("./screens/ReservationsScreen"));
+const SignupScreen         = lazy(() => import("./screens/SignupScreen"));
+const ProfileScreen        = lazy(() => import("./screens/ProfileScreen"));
+const NotificationPanel    = lazy(() => import("./screens/NotificationPanel"));
+const AuthModal            = lazy(() => import("./screens/AuthModal"));
+const PublicProfileScreen  = lazy(() => import("./screens/PublicProfileScreen"));
 
 // ── Upload photo vers Supabase Storage ──────────────────────────────────────
 async function uploadPhoto(file, userId) {
@@ -452,7 +454,8 @@ export default function App() {
     : appMode==="expert" ? (isExpert && !newExpertProfile ? EXPERT_CLIENT_CONVS.reduce((s,c)=>s+(readMsgIds.includes("cli-"+c.id)?0:c.unread),0) : 0)
     : DEMO_MSGS.reduce((s,m)=>s+(readMsgIds.includes("exp-"+m.id)?0:m.unread),0);
 
-  return <div style={{fontFamily:SANS}}>
+  return <Suspense fallback={<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100svh",background:C.cream,fontFamily:SANS,color:C.muted,fontSize:13}}>Chargement…</div>}>
+  <div style={{fontFamily:SANS}}>
     {showPaymentSuccess && (
       <div style={{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",zIndex:99999,background:"#1C1917",color:"#fff",borderRadius:14,padding:"14px 22px",display:"flex",alignItems:"center",gap:10,boxShadow:"0 4px 24px rgba(0,0,0,0.25)",fontFamily:SANS,fontSize:14,fontWeight:600,maxWidth:360,animation:"fadeSlideUp .3s ease-out"}}>
         <span style={{fontSize:20}}>✅</span>
@@ -525,5 +528,6 @@ export default function App() {
 />}
       {main && <BottomNav nav={nav} onChange={handleNav} unreadCount={unread} appMode={appMode} sessionsCount={newExpertProfile ? 0 : expRequestsCount} reservationsCount={(isLoggedIn && appMode==="client" && !authUser?.real) ? clientPendingCount : 0}/>}
     </div>
-  </div>;
+  </div>
+  </Suspense>;
 }

@@ -617,11 +617,6 @@ function PaymentModal({ session, expert, onClose, onPaid }) {
   );
 }
 
-const AVIS_DONNES = [
-  { id:1, eid:1, date:"15 mai 2025", stars:5, text:"Marie est extraordinaire — pédagogue, patiente et très pro. Mes macarons sont enfin réussis !" },
-  { id:2, eid:4, date:"8 mai 2025",  stars:5, text:"Lucas connaît chaque détail de la douane colombienne. Rapport livré en 24h, impeccable." },
-];
-
 function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
   const expert = s.expertData || EXPERTS[s.eid] || EXPERTS.find(x=>x.initials===s.expertInitials);
   if (!expert) return null;
