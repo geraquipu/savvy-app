@@ -7,6 +7,11 @@ import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../constan
 import { Stars, Av } from '../components/ui';
 import { MENU_ICONS } from '../constants/menuIcons.jsx';
 
+const AVIS_DONNES = [
+  { id:1, eid:1, date:"15 mai 2025", stars:5, text:"Marie est extraordinaire — pédagogue, patiente et très pro. Mes macarons sont enfin réussis !" },
+  { id:2, eid:4, date:"8 mai 2025",  stars:5, text:"Lucas connaît chaque détail de la douane colombienne. Rapport livré en 24h, impeccable." },
+];
+
 const openPDF = (title, bodyHTML) => {
   const html = '<html><head><meta charset="UTF-8"><title>' + title + '</title>'
     + '<style>body{font-family:-apple-system,sans-serif;padding:40px;max-width:700px;margin:0 auto;color:#1C1917}'
