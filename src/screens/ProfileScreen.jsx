@@ -91,7 +91,7 @@ function TrustBadge({ score, size="sm" }) {
 }
 
 
-function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLogout, authUser, isLoggedIn, onLogin, onNavigate, newExpertProfile, initExpSection, appMode, onRequestsChange, uploadPhoto }) {
+function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLogout, authUser, isLoggedIn, onLogin, onNavigate, newExpertProfile, initExpSection, appMode, onRequestsChange, uploadPhoto, dbExperts=[] }) {
   const [mode, setMode] = useState(initExpSection ? "expert" : (appMode==="expert"&&isExpert ? "expert" : "client"));
   // ── Navigation sections lifted here to survive parent re-renders ──
   const [clientSection, setClientSection] = useState(null);

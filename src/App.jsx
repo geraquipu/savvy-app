@@ -502,6 +502,7 @@ export default function App() {
           onViewPublic={() => { setPrevScreen("profile"); setScreen("public"); }}
           onLogout={() => { supabase.auth.signOut(); setIsLoggedIn(false); setAuthUser(null); setIsExpert(false); setScreen("home"); setNav("home"); setAppMode("client"); }}
           uploadPhoto={uploadPhoto}
+          dbExperts={dbExperts}
         />}
       {screen==="expert"       && expert && <ExpertScreen e={expert} onBack={()=>{setScreen(prevScreen);}} onBook={goBook} onMsg={goMsg}/>}
       {screen==="message"      && expert && <MessagingScreen e={expert} onBack={()=>{setScreen(prevMsgScreen);setNav(prevMsgScreen);}} authUser={authUser}/>}
