@@ -4,6 +4,7 @@ import { C, SERIF, SANS } from "./constants/colors";
 import { DEMO_USERS, CATS, SUBCATS, TRUST_LEVELS, getTrustLevel, BOOKINGS_KEY, THREADS_KEY, getBookings, saveBookings, addBooking, updateBooking, getThreads, addThread, EXPERTS, CAT_MAP, DEMO_MSGS } from "./constants/data";
 import { EXPERT_EXTRAS, EXPERT_STYLE_TAGS, EXPERT_FIRST_SESSION } from "./constants/expertExtras";
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from "./constants/sessionData";
+import { Stars, Av, LoginGate } from "./components/ui";
 
 // ── Upload photo vers Supabase Storage ──────────────────────────────────────
 async function uploadPhoto(file, userId) {
@@ -91,17 +92,6 @@ function SkeletonCard() {
   );
 }
 
-function Av({ e, size=44 }) {
-  const r = Math.round(size * .28);
-  return <div style={{ width:size, height:size, borderRadius:r, background:e.bg||C.goldL, color:e.color||C.gold, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:Math.round(size*.34), flexShrink:0, fontFamily:SANS, letterSpacing:"-.5px" }}>{e.initials}</div>;
-}
-
-function Stars({ n, count }) {
-  return <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-    <span style={{ fontSize:12, fontWeight:700, color:"#D97706" }}>★ {n}</span>
-    {count !== undefined && <span style={{ fontSize:11, color:C.faint }}>· {count} avis</span>}
-  </div>;
-}
 
 function VerBadge({ small }) {
   return <span style={{ display:"inline-flex", alignItems:"center", gap:4, background:C.sageL, borderRadius:20, padding:small?"2px 8px":"4px 11px" }}>
@@ -213,27 +203,7 @@ function ExpertCard({ e, onClick, onBook }) {
   );
 }
 
-// ─── LoginGate ─────────────────────────────────────────────────────────────────
-function LoginGate({ icon, title, sub, onLogin }) {
-  return (
-    <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"40px 28px", background:C.cream, textAlign:"center" }}>
-      <div style={{ width:80, height:80, borderRadius:"50%", background:C.cream2, border:`1.5px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:36, marginBottom:20 }}>
-        {icon}
-      </div>
-      <h2 style={{ fontSize:20, fontWeight:700, color:C.ink, margin:"0 0 10px", fontFamily:SERIF, letterSpacing:"-.3px" }}>{title}</h2>
-      <p style={{ fontSize:14, color:C.muted, lineHeight:1.7, margin:"0 0 28px", maxWidth:260 }}>{sub}</p>
-      <button onClick={onLogin} style={{ width:"100%", maxWidth:280, padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:15, background:C.ink, color:C.white, fontFamily:SERIF, marginBottom:12 }}>
-        Se connecter →
-      </button>
-      <button onClick={onLogin} style={{ width:"100%", maxWidth:280, padding:"13px", borderRadius:13, border:`1.5px solid ${C.border}`, cursor:"pointer", fontWeight:600, fontSize:14, background:C.white, color:C.ink, fontFamily:"inherit" }}>
-        Créer un compte gratuitement
-      </button>
-      <p style={{ fontSize:11, color:C.faint, marginTop:16, lineHeight:1.6 }}>
-        Tu peux explorer les experts et les profils sans te connecter.
-      </p>
-    </div>
-  );
-}
+// ─── LoginGate → moved to src/components/ui/LoginGate.jsx ─────────────────────
 
 // ─── ProfileSetupModal ─────────────────────────────────────────────────────────
 function ProfileSetupModal({ authUser, onDone }) {
