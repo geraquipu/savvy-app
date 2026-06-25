@@ -1753,7 +1753,16 @@ function ExpertScreen({ e, onBack, onBook, onMsg }) {
   };
   const [bioExpanded, setBioExpanded] = useState(false);
   const [sessionExpanded, setSessionExpanded] = useState(false);
+  const [dbReviews, setDbReviews] = useState([]);
+  useEffect(() => {
+    if (!e?.id) return;
+    supabase.from("reviews").select("*").eq("expert_id", e.id).order("created_at", { ascending: false }).limit(20)
+      .then(({ data }) => { if (data?.length) setDbReviews(data); });
+  }, [e?.id]);
   const extras = EXPERT_EXTRAS[e.id] || { resout:[], reviews:[], preuves:[] };
+  const allReviews = dbReviews.length > 0
+    ? dbReviews.map(r => ({ name: r.client_name || "Client", stars: r.stars, text: r.text || "", date: new Date(r.created_at).toLocaleDateString("fr-FR", { month:"long", year:"numeric" }) }))
+    : extras.reviews;
   const styleTags = EXPERT_STYLE_TAGS[e.cat] || ["Humain","Direct","Pratique"];
   const firstSession = EXPERT_FIRST_SESSION[e.id] || `Dans notre première session, je commence par comprendre précisément votre situation. On va droit au but — vous repartez avec des réponses concrètes basées sur mon expérience réelle.`;
   const bio = e.bio || e.tagline || "";
@@ -1976,8 +1985,8 @@ function ExpertScreen({ e, onBack, onBook, onMsg }) {
                 <span style={{ fontSize:12, color:C.muted, marginLeft:4 }}>{e.rating} · {e.reviews} avis</span>
               </div>
             </div>
-            {extras.reviews.map((r,i) => (
-              <div key={i} style={{ padding:"0 0 16px", borderBottom:i<extras.reviews.length-1?`1px solid ${C.border}`:"none", marginBottom:i<extras.reviews.length-1?16:0 }}>
+            {allReviews.map((r,i) => (
+              <div key={i} style={{ padding:"0 0 16px", borderBottom:i<allReviews.length-1?`1px solid ${C.border}`:"none", marginBottom:i<allReviews.length-1?16:0 }}>
                 <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
                   <div>
                     <div style={{ fontSize:13, fontWeight:700, color:C.ink }}>{r.name}</div>
@@ -1987,7 +1996,7 @@ function ExpertScreen({ e, onBack, onBook, onMsg }) {
                     {[1,2,3,4,5].map(s => <svg key={s} width={11} height={11} viewBox="0 0 12 12" fill={s<=r.stars?"#B8864A":"#D6D0C8"}><path d="M6 1l1.5 3H11l-2.5 2 1 3L6 7.5 2.5 9l1-3L1 4h3.5z"/></svg>)}
                   </div>
                 </div>
-                <div style={{ fontSize:13, color:C.soft, lineHeight:1.7, fontStyle:"italic" }}>"{r.text}"</div>
+                {r.text && <div style={{ fontSize:13, color:C.soft, lineHeight:1.7, fontStyle:"italic" }}>"{r.text}"</div>}
               </div>
             ))}
           </div>
@@ -3330,15 +3339,33 @@ function CancelModal({ session, onClose, onMsg }) {
 }
 
 // ─── ReviewModal — 3 questions stratégiques Savvy ──────────────────────────────
-function ReviewModal({ session, onClose }) {
+function ReviewModal({ session, onClose, authUser }) {
   const [q1, setQ1] = useState(null); // "oui" | "partiel" | "non"
   const [q2, setQ2] = useState(null); // "oui" | "non"
   const [q3, setQ3] = useState(0);   // 1–5
   const [hovered, setHovered] = useState(0);
   const [text, setText] = useState("");
   const [done, setDone] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const isComplete = q1 !== null && q2 !== null && q3 > 0;
+
+  const handleSubmit = async () => {
+    if (!isComplete) { alert("Réponds aux 3 questions pour continuer."); return; }
+    setSaving(true);
+    if (authUser?.real && session.expert?.id) {
+      await supabase.from("reviews").insert({
+        expert_id: session.expert.id,
+        client_id: authUser.id,
+        booking_id: session.bookingId || null,
+        stars: q3,
+        text: text.trim() || null,
+        client_name: authUser.name || "Client",
+      });
+    }
+    setSaving(false);
+    setDone(true);
+  };
 
   if (done) return (
     <>
@@ -3450,9 +3477,9 @@ function ReviewModal({ session, onClose }) {
 
           <div style={{ display:"flex", gap:9 }}>
             <button onClick={onClose} style={{ flex:1, padding:"13px", borderRadius:12, border:`1px solid ${C.border}`, background:C.white, color:C.ink, fontWeight:600, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Plus tard</button>
-            <button onClick={()=>{ if(!isComplete){alert("Réponds aux 3 questions pour continuer."); return;} setDone(true); }}
+            <button onClick={handleSubmit} disabled={saving}
               style={{ flex:2, padding:"13px", borderRadius:12, border:"none", background:isComplete?C.ink:C.cream3, color:isComplete?C.white:C.muted, fontWeight:700, fontSize:14, cursor:isComplete?"pointer":"not-allowed", fontFamily:SERIF, transition:"all .2s" }}>
-              Publier mon évaluation ✦
+              {saving ? "Envoi…" : "Publier mon évaluation ✦"}
             </button>
           </div>
         </div>
@@ -4001,9 +4028,15 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           )}
           {/* Passées */}
           {tab === "passees" && (
-            (!isRealUser && SESSIONS_PASSEES.length > 0)
-              ? SESSIONS_PASSEES.map(s => <PastCard key={s.id} s={s} onExpert={onExpert} onResume={setResumeSession} onReview={setReviewSession}/>)
-              : <div style={{ textAlign:"center", padding:"48px 0", color:C.muted }}>Aucune session passée.</div>
+            authUser?.real
+              ? sbBookings.filter(b=>b.status==="confirmed" && b.paid).length > 0
+                ? sbBookings.filter(b=>b.status==="confirmed" && b.paid).map(s => (
+                    <PastCard key={s.id} s={{...s, expert: s.expert || {name:s.expertName, initials:(s.expertName||"?")[0], bg:C.cream2, color:C.ink, id:s.expertId}}} onExpert={onExpert} onResume={setResumeSession} onReview={setReviewSession}/>
+                  ))
+                : <div style={{ textAlign:"center", padding:"48px 0", color:C.muted }}>Aucune session passée.</div>
+              : (!isRealUser && SESSIONS_PASSEES.length > 0)
+                ? SESSIONS_PASSEES.map(s => <PastCard key={s.id} s={s} onExpert={onExpert} onResume={setResumeSession} onReview={setReviewSession}/>)
+                : <div style={{ textAlign:"center", padding:"48px 0", color:C.muted }}>Aucune session passée.</div>
           )}
           {/* Annulées */}
           {tab === "annulees" && (
@@ -4055,7 +4088,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
       </div>
 
       {/* Modals */}
-      {reviewSession && <ReviewModal session={reviewSession} onClose={()=>setReviewSession(null)}/>}
+      {reviewSession && <ReviewModal session={reviewSession} onClose={()=>setReviewSession(null)} authUser={authUser}/>}
       {paySession && (
         <PaymentModal
           session={paySession}
