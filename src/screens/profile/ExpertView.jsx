@@ -514,137 +514,101 @@ export function ExpertView({
       );
     }
 
-    // ── Disponibilités (shortcut direct)
+    // ── Disponibilités — planning hebdomadaire récurrent
     if (section === "disponibilidades") {
-      const yr = dispoMonth.getFullYear();
-      const mo = dispoMonth.getMonth();
-      const daysInMonth = new Date(yr, mo+1, 0).getDate();
-      const firstDow = new Date(yr, mo, 1).getDay();
-      const MONTHS_FR = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
-      const DAYS_FR = ["L","M","M","J","V","S","D"];
-      const isWeekend = d => { const dow = new Date(yr,mo,d).getDay(); return dow===0||dow===6; };
-      const fmtKey = d => yr+"-"+String(mo+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
-      const getStart = key => (dispoHours[key]||"09:00-18:00").split("-")[0];
-      const getEnd   = key => (dispoHours[key]||"09:00-18:00").split("-")[1];
-      const jours = Object.keys(dispoSelected).filter(k=>dispoSelected[k]).sort();
-      const offset = firstDow===0 ? 6 : firstDow-1;
+      const JOURS = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+      // weekSchedule: { 0: {active,start,end}, …, 6: {…} } (0=lundi, 6=dimanche)
+      const [weekSchedule, setWeekSchedule] = React.useState(() => {
+        const def = {};
+        for (let i = 0; i < 7; i++) def[i] = { active: false, start: "09:00", end: "18:00" };
+        // Init from existing dispoSelected/dispoHours (date-based → derive dow)
+        Object.keys(dispoSelected).filter(k => dispoSelected[k]).forEach(dateKey => {
+          const dow = new Date(dateKey).getDay();
+          const dowMon = dow === 0 ? 6 : dow - 1;
+          const hrs = dispoHours[dateKey] || "09:00-18:00";
+          const [start, end] = hrs.split("-");
+          def[dowMon] = { active: true, start, end };
+        });
+        return def;
+      });
+
+      const activeDays = Object.values(weekSchedule).filter(d => d.active).length;
+
+      const toggle = (i) => setWeekSchedule(s => ({ ...s, [i]: { ...s[i], active: !s[i].active } }));
+      const setStart = (i, v) => setWeekSchedule(s => ({ ...s, [i]: { ...s[i], start: v } }));
+      const setEnd = (i, v) => setWeekSchedule(s => ({ ...s, [i]: { ...s[i], end: v } }));
+
       return (
         <div>
-          <BackHeaderExp title="Disponibilités" sub="Sélectionne tes jours et horaires" onBack={()=>setSection(null)}/>
+          <BackHeaderExp title="Disponibilités" sub="Planning hebdomadaire récurrent" onBack={()=>setSection(null)}/>
           <div style={{background:`linear-gradient(135deg,${C.ink},#2C2825)`,borderRadius:13,padding:"13px 16px",marginBottom:14,display:"flex",alignItems:"center",gap:11}}>
-            <div style={{flexShrink:0,color:C.goldB}}><svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg></div>
+            <div style={{flexShrink:0,color:C.goldB}}>
+              <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>
+            </div>
             <div>
-              <div style={{fontSize:13,fontWeight:700,color:C.white,fontFamily:SERIF,marginBottom:2}}>Définis quand les clients peuvent réserver avec toi</div>
-              <div style={{fontSize:11,color:"rgba(253,252,248,.65)",lineHeight:1.5}}>Les clients peuvent uniquement réserver pendant les créneaux que tu ouvres.</div>
+              <div style={{fontSize:13,fontWeight:700,color:C.white,fontFamily:SERIF,marginBottom:2}}>Ton planning se répète chaque semaine</div>
+              <div style={{fontSize:11,color:"rgba(253,252,248,.65)",lineHeight:1.5}}>Active les jours et définis tes horaires — les clients voient tes créneaux disponibles.</div>
             </div>
           </div>
-          <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"14px 16px",marginBottom:12}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-              <button onClick={()=>setDispoMonth(new Date(yr,mo-1,1))} style={{background:C.cream2,border:`1px solid ${C.border}`,borderRadius:10,width:36,height:36,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={C.soft} strokeWidth={2.5}><path d="m15 18-6-6 6-6"/></svg>
-              </button>
-              <div style={{fontSize:16,fontWeight:700,color:C.ink,fontFamily:SERIF}}>{MONTHS_FR[mo]} {yr}</div>
-              <button onClick={()=>setDispoMonth(new Date(yr,mo+1,1))} style={{background:C.cream2,border:`1px solid ${C.border}`,borderRadius:10,width:36,height:36,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={C.soft} strokeWidth={2.5}><path d="m9 18 6-6-6-6"/></svg>
-              </button>
-            </div>
-            <div style={{display:"flex",gap:6,marginBottom:12}}>
-              <button onClick={()=>{ const s={}; for(let d=1;d<=daysInMonth;d++) if(!isWeekend(d)) s[fmtKey(d)]=true; setDispoSelected(s); }}
-                style={{flex:1,padding:"7px",borderRadius:20,border:`1px solid ${C.border}`,background:C.white,color:C.ink,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Lun-Ven</button>
-              <button onClick={()=>{ const s={}; for(let d=1;d<=daysInMonth;d++) s[fmtKey(d)]=true; setDispoSelected(s); }}
-                style={{flex:1,padding:"7px",borderRadius:20,border:`1px solid ${C.border}`,background:C.white,color:C.ink,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Tout le mois</button>
-              <button onClick={()=>setDispoSelected({})}
-                style={{flex:1,padding:"7px",borderRadius:20,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Effacer</button>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3,marginBottom:4}}>
-              {DAYS_FR.map((d,i)=>(
-                <div key={i} style={{textAlign:"center",fontSize:10,fontWeight:700,color:i>=5?C.faint:C.muted,padding:"3px 0"}}>{d}</div>
-              ))}
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3}}>
-              {Array(offset).fill(null).map((_,i)=><div key={"e"+i}/>)}
-              {Array.from({length:daysInMonth},(_,i)=>i+1).map(d=>{
-                const key=fmtKey(d);
-                const sel=!!dispoSelected[key];
-                const wkd=isWeekend(d);
-                const hasH=!!dispoHours[key];
-                const now=new Date(); now.setHours(0,0,0,0);
-                const isPast=new Date(yr,mo,d)<now;
-                return (
-                  <button key={d}
-                    onClick={()=>{ if(wkd||isPast) return; setDispoSelected(s=>({...s,[key]:!s[key]})); }}
-                    style={{aspectRatio:"1",padding:2,borderRadius:9,border:`2px solid ${sel?C.sage:(wkd||isPast)?"transparent":C.borderF}`,background:sel?(hasH?"#059669":C.sageL):(wkd||isPast)?C.cream2:C.white,color:sel?(hasH?C.white:C.sage):(wkd||isPast)?C.faint:C.ink,fontSize:13,fontWeight:sel?700:400,cursor:(wkd||isPast)?"default":"pointer",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",transition:"all .15s",opacity:isPast?.4:1}}>
-                    {d}
-                    {sel&&<div style={{fontSize:5.5,lineHeight:1.2,marginTop:1,opacity:.9,whiteSpace:"nowrap",textAlign:"center"}}>{hasH?(getStart(key).replace(":","h").slice(0,4)+"–"+getEnd(key).replace(":","h").slice(0,4)):"9h–18h"}</div>}
+
+          <div style={{display:"flex",gap:8,marginBottom:12}}>
+            <button onClick={()=>setWeekSchedule(s=>{const n={...s};for(let i=0;i<5;i++)n[i]={...n[i],active:true};return n;})}
+              style={{flex:1,padding:"8px",borderRadius:20,border:`1px solid ${C.border}`,background:C.white,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Lun–Ven</button>
+            <button onClick={()=>setWeekSchedule(s=>{const n={...s};for(let i=0;i<7;i++)n[i]={...n[i],active:true};return n;})}
+              style={{flex:1,padding:"8px",borderRadius:20,border:`1px solid ${C.border}`,background:C.white,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Tous les jours</button>
+            <button onClick={()=>setWeekSchedule(s=>{const n={...s};for(let i=0;i<7;i++)n[i]={...n[i],active:false};return n;})}
+              style={{flex:1,padding:"8px",borderRadius:20,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Effacer</button>
+          </div>
+
+          <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"6px 0",marginBottom:14}}>
+            {JOURS.map((label, i) => {
+              const day = weekSchedule[i];
+              const isWkd = i >= 5;
+              return (
+                <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",borderBottom:i<6?`1px solid ${C.borderF}`:"none",opacity:!day.active&&isWkd?0.5:1}}>
+                  <button onClick={()=>toggle(i)}
+                    style={{width:44,height:26,borderRadius:13,border:"none",cursor:"pointer",flexShrink:0,background:day.active?"#10B981":C.cream3,transition:"background .2s",position:"relative"}}>
+                    <div style={{position:"absolute",top:3,left:day.active?21:3,width:20,height:20,borderRadius:"50%",background:C.white,transition:"left .2s",boxShadow:"0 1px 4px rgba(0,0,0,.2)"}}/>
                   </button>
-                );
-              })}
-            </div>
-            <div style={{marginTop:10,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-              <div style={{fontSize:11,fontWeight:700,color:jours.length>0?C.sage:C.faint}}>{jours.length} jour{jours.length!==1?"s":""} ouvert{jours.length!==1?"s":""} à la réservation</div>
-              {jours.length>0 && <div style={{fontSize:10,color:C.muted}}>≈ {jours.length*9}h disponibles</div>}
-            </div>
-          </div>
-          {jours.length>0 && (
-            <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"14px 16px",marginBottom:14}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                <div style={{fontSize:13,fontWeight:700,color:C.ink}}>Horaires par jour</div>
-                <button onClick={()=>{ const h={}; jours.forEach(k=>{h[k]="09:00-18:00";}); setDispoHours(h); }}
-                  style={{fontSize:10,fontWeight:700,color:C.gold,background:C.goldL,border:`1px solid ${C.goldB}`,borderRadius:20,padding:"4px 10px",cursor:"pointer",fontFamily:"inherit"}}>
-                  9h–18h pour tous
-                </button>
-              </div>
-              {jours.map((key,i)=>{
-                const d = parseInt(key.split("-")[2]);
-                return (
-                  <div key={key} style={{borderBottom:i<jours.length-1?`1px solid ${C.borderF}`:"none",paddingBottom:i<jours.length-1?8:0,marginBottom:i<jours.length-1?8:0}}>
-                    <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <div style={{fontSize:13,fontWeight:600,color:C.ink,minWidth:28}}>{d}</div>
-                      <input type="time" value={getStart(key)} onChange={e=>setDispoHours(h=>({...h,[key]:e.target.value+"-"+getEnd(key)}))}
-                        style={{flex:1,padding:"6px 8px",borderRadius:8,border:`1px solid ${C.border}`,fontSize:12,fontFamily:"inherit",color:C.ink}}/>
-                      <span style={{fontSize:12,color:C.muted}}>à</span>
-                      <input type="time" value={getEnd(key)} onChange={e=>setDispoHours(h=>({...h,[key]:getStart(key)+"-"+e.target.value}))}
-                        style={{flex:1,padding:"6px 8px",borderRadius:8,border:`1px solid ${C.border}`,fontSize:12,fontFamily:"inherit",color:C.ink}}/>
-                      <button onClick={()=>setDispoSelected(s=>{const n={...s};delete n[key];return n;})} style={{width:28,height:28,borderRadius:8,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#DC2626",fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
+                  <div style={{fontSize:13,fontWeight:600,color:day.active?C.ink:C.muted,minWidth:80}}>{label}</div>
+                  {day.active ? (
+                    <div style={{display:"flex",alignItems:"center",gap:6,flex:1}}>
+                      <input type="time" value={day.start} onChange={e=>setStart(i,e.target.value)}
+                        style={{flex:1,padding:"5px 8px",borderRadius:8,border:`1px solid ${C.border}`,fontSize:12,fontFamily:"inherit",color:C.ink}}/>
+                      <span style={{fontSize:11,color:C.muted}}>→</span>
+                      <input type="time" value={day.end} onChange={e=>setEnd(i,e.target.value)}
+                        style={{flex:1,padding:"5px 8px",borderRadius:8,border:`1px solid ${C.border}`,fontSize:12,fontFamily:"inherit",color:C.ink}}/>
                     </div>
-                    {jours.length>1 && <button onClick={()=>{ const hrs=dispoHours[key]||"09:00-18:00"; const h={}; jours.forEach(k=>{h[k]=hrs;}); setDispoHours(prev=>({...prev,...h})); }}
-                      style={{marginTop:5,fontSize:10,color:C.muted,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",padding:"0 0 0 28px",textDecoration:"underline"}}>
-                      Appliquer à tous les jours
-                    </button>}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  ) : (
+                    <div style={{fontSize:11,color:C.faint,flex:1}}>Fermé</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{fontSize:12,fontWeight:700,color:activeDays>0?C.sage:C.faint,textAlign:"center",marginBottom:14}}>
+            {activeDays > 0 ? `✓ ${activeDays} jour${activeDays>1?"s":""} ouverts à la réservation chaque semaine` : "Aucun jour sélectionné"}
+          </div>
+
           <button onClick={async ()=>{
-            localStorage.setItem(`savvy_dispo_days_${dispoKey}`, JSON.stringify(dispoSelected));
-            localStorage.setItem(`savvy_dispo_hours_${dispoKey}`, JSON.stringify(dispoHours));
-            // Save to Supabase if real expert
-            if (resolvedExpertId) {
-              const rows = Object.keys(dispoSelected).filter(k=>dispoSelected[k]).map(dateKey => {
-                const dow = new Date(dateKey).getDay(); // 0=Sun..6=Sat → convert to 0=Mon
-                const dowMon = dow === 0 ? 6 : dow - 1;
-                const hrs = dispoHours[dateKey] || "09:00-18:00";
-                const [start, end] = hrs.split("-");
-                return { expert_id: resolvedExpertId, day_of_week: dowMon, start_time: start, end_time: end };
-              });
-              // Deduplicate by day_of_week (keep last)
-              const byDow = {};
-              rows.forEach(r => { byDow[r.day_of_week] = r; });
-              const upsertRows = Object.values(byDow);
-              if (upsertRows.length > 0) {
-                await supabase.from("availability").delete().eq("expert_id", resolvedExpertId);
-                await supabase.from("availability").insert(upsertRows);
-              }
-            }
+            if (!resolvedExpertId) { setDispoSaved(true); setTimeout(()=>setDispoSaved(false),3000); return; }
+            const rows = Object.entries(weekSchedule)
+              .filter(([,d]) => d.active)
+              .map(([dow, d]) => ({ expert_id: resolvedExpertId, day_of_week: Number(dow), start_time: d.start, end_time: d.end }));
+            await supabase.from("availability").delete().eq("expert_id", resolvedExpertId);
+            if (rows.length > 0) await supabase.from("availability").insert(rows);
             setDispoSaved(true); setTimeout(()=>setDispoSaved(false), 3000);
           }} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:dispoSaved?"#10B981":C.ink,color:C.white,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:SERIF,transition:"background .3s"}}>
-            {dispoSaved ? "✓ Disponibilités enregistrées" : "Enregistrer mes disponibilités"}
+            {dispoSaved ? "✓ Planning enregistré" : "Enregistrer mon planning"}
           </button>
+
           <div style={{marginTop:12,background:`linear-gradient(135deg,${C.goldL},#FFF9F0)`,borderRadius:12,padding:"12px 14px",border:`1px solid ${C.goldB}`,display:"flex",alignItems:"flex-start",gap:10}}>
             <span style={{fontSize:18,flexShrink:0}}>✦</span>
-            <div style={{fontSize:12,color:C.ink,fontWeight:700,marginBottom:4}}>✦ Plus tu es disponible, plus tu peux recevoir de demandes.</div>
-            <div style={{fontSize:12,color:C.muted,lineHeight:1.6}}>Les experts disponibles apparaissent davantage dans les résultats de recherche.</div>
+            <div>
+              <div style={{fontSize:12,color:C.ink,fontWeight:700,marginBottom:4}}>Plus tu es disponible, plus tu reçois de demandes.</div>
+              <div style={{fontSize:12,color:C.muted,lineHeight:1.6}}>Les experts avec un planning complet apparaissent davantage dans les résultats.</div>
+            </div>
           </div>
         </div>
       );
