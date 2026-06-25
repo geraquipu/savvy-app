@@ -5412,6 +5412,29 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
   const [dispoMonth, setDispoMonth] = useState(()=>{ const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),1); });
   const [dispoSelected, setDispoSelected] = useState(()=>{ try{ return JSON.parse(localStorage.getItem(`savvy_dispo_days_${dispoKey}`))||{}; }catch{ return {}; } });
   const [dispoHours, setDispoHours] = useState(()=>{ try{ return JSON.parse(localStorage.getItem(`savvy_dispo_hours_${dispoKey}`))||{}; }catch{ return {}; } });
+  // Load availability from Supabase on mount
+  useEffect(() => {
+    if (!resolvedExpertId) return;
+    supabase.from("availability").select("*").eq("expert_id", resolvedExpertId).then(({ data }) => {
+      if (!data?.length) return;
+      // Build day-of-week map → expand to next 60 days
+      const dowMap = {};
+      data.forEach(r => { dowMap[r.day_of_week] = { start: r.start_time, end: r.end_time }; });
+      const sel = {}, hrs = {};
+      const today = new Date(); today.setHours(0,0,0,0);
+      for (let i = 0; i < 60; i++) {
+        const d = new Date(today); d.setDate(today.getDate() + i);
+        const dow = d.getDay() === 0 ? 6 : d.getDay() - 1;
+        if (dowMap[dow]) {
+          const key = d.toISOString().slice(0,10);
+          sel[key] = true;
+          hrs[key] = dowMap[dow].start + "-" + dowMap[dow].end;
+        }
+      }
+      setDispoSelected(sel);
+      setDispoHours(hrs);
+    });
+  }, [resolvedExpertId]);
   const [dispoEditDay, setDispoEditDay] = useState(null);
   const [dispoSaved, setDispoSaved] = useState(false);
   const _photoKey = `savvy_photo_${dispoKey}`;
@@ -6820,9 +6843,27 @@ const ExpertView = () => {
               })}
             </div>
           )}
-          <button onClick={()=>{
+          <button onClick={async ()=>{
             localStorage.setItem(`savvy_dispo_days_${dispoKey}`, JSON.stringify(dispoSelected));
             localStorage.setItem(`savvy_dispo_hours_${dispoKey}`, JSON.stringify(dispoHours));
+            // Save to Supabase if real expert
+            if (resolvedExpertId) {
+              const rows = Object.keys(dispoSelected).filter(k=>dispoSelected[k]).map(dateKey => {
+                const dow = new Date(dateKey).getDay(); // 0=Sun..6=Sat → convert to 0=Mon
+                const dowMon = dow === 0 ? 6 : dow - 1;
+                const hrs = dispoHours[dateKey] || "09:00-18:00";
+                const [start, end] = hrs.split("-");
+                return { expert_id: resolvedExpertId, day_of_week: dowMon, start_time: start, end_time: end };
+              });
+              // Deduplicate by day_of_week (keep last)
+              const byDow = {};
+              rows.forEach(r => { byDow[r.day_of_week] = r; });
+              const upsertRows = Object.values(byDow);
+              if (upsertRows.length > 0) {
+                await supabase.from("availability").delete().eq("expert_id", resolvedExpertId);
+                await supabase.from("availability").insert(upsertRows);
+              }
+            }
             setDispoSaved(true); setTimeout(()=>setDispoSaved(false), 3000);
           }} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:dispoSaved?"#10B981":C.ink,color:C.white,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:SERIF,transition:"background .3s"}}>
             {dispoSaved ? "✓ Disponibilités enregistrées" : "Enregistrer mes disponibilités"}
