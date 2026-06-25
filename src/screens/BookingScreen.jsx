@@ -52,11 +52,45 @@ function CalendarPicker({ expert, onDone, onSelect }) {
   const MONTHS = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
   const DAYS = ["Lu","Ma","Me","Je","Ve","Sa","Di"];
 
-  const _readDispo = (suffix) => { try { const v = localStorage.getItem(`savvy_dispo_days_${suffix}`); return v ? JSON.parse(v) : null; } catch { return null; } };
-  const _readDispoH = (suffix) => { try { const v = localStorage.getItem(`savvy_dispo_hours_${suffix}`); return v ? JSON.parse(v) : null; } catch { return null; } };
-  const savedDays  = _readDispo(expert?.initials) || _readDispo(expert?.id) || {};
-  const savedHours = _readDispoH(expert?.initials) || _readDispoH(expert?.id) || {};
-  const hasDispo = Object.values(savedDays).some(v=>v);
+  const [savedDays, setSavedDays] = useState({});
+  const [savedHours, setSavedHours] = useState({});
+  const [hasDispo, setHasDispo] = useState(false);
+
+  // Load availability from Supabase (real experts) or localStorage (demo)
+  useEffect(() => {
+    const expertId = expert?.id;
+    if (!expertId) return;
+
+    // Try Supabase first
+    supabase.from("availability").select("*").eq("expert_id", expertId)
+      .then(({ data }) => {
+        if (data?.length) {
+          const days = {}, hours = {};
+          const today2 = new Date(); today2.setHours(0,0,0,0);
+          for (let i = 1; i <= 90; i++) {
+            const d = new Date(today2); d.setDate(today2.getDate() + i);
+            const dow = d.getDay() === 0 ? 6 : d.getDay() - 1;
+            const row = data.find(r => r.day_of_week === dow);
+            if (row) {
+              const key = d.toISOString().slice(0,10);
+              days[key] = true;
+              hours[key] = row.start_time + "-" + row.end_time;
+            }
+          }
+          setSavedDays(days);
+          setSavedHours(hours);
+          setHasDispo(true);
+          return;
+        }
+        // Fallback: localStorage (demo experts)
+        const _r = (k) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch { return null; } };
+        const lsDays = _r(`savvy_dispo_days_${expert?.initials}`) || _r(`savvy_dispo_days_${expertId}`) || {};
+        const lsHours = _r(`savvy_dispo_hours_${expert?.initials}`) || _r(`savvy_dispo_hours_${expertId}`) || {};
+        setSavedDays(lsDays);
+        setSavedHours(lsHours);
+        setHasDispo(Object.values(lsDays).some(v => v));
+      });
+  }, [expert?.id]);
 
   const fmtKey = (d) => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 
