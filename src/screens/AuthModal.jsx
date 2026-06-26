@@ -3,7 +3,7 @@ import { supabase } from '../supabase';
 import { C, SERIF } from '../constants/colors';
 import { DEMO_USERS } from '../constants/data';
 
-function AuthModal({ onClose, onSuccess, initialRegister }) {
+function AuthModal({ onClose, onSuccess, initialRegister, isAdmin }) {
   const [step, setStep] = useState(initialRegister?"register_method":"choice");
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -69,7 +69,7 @@ function AuthModal({ onClose, onSuccess, initialRegister }) {
               </button>
             : <div/>}
           <div style={{width:44,height:44,borderRadius:13,background:C.ink,display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <span style={{fontSize:20,fontWeight:900,color:C.white,fontFamily:SERIF,letterSpacing:"-1px"}}>sv</span>
+            <span style={{fontSize:20,fontWeight:900,fontFamily:SERIF,letterSpacing:"-1px"}}><span style={{color:C.white}}>sa</span><span style={{color:C.goldB,fontStyle:"italic"}}>vv</span><span style={{color:C.white}}>y</span></span>
           </div>
           <button onClick={onClose} style={{background:C.cream2,border:`1px solid ${C.border}`,borderRadius:9,width:32,height:32,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color:C.muted}}>×</button>
         </div>
@@ -116,8 +116,8 @@ function AuthModal({ onClose, onSuccess, initialRegister }) {
             <button onClick={()=>{ setEmail(""); setPassword(""); setConfirmPassword(""); setFirstName(""); setLastName(""); setStep("register_method"); }} style={{background:"none",border:"none",cursor:"pointer",color:C.gold,fontWeight:700,fontFamily:"inherit",fontSize:12}}>S\'inscrire gratuitement</button>
           </div>
 
-          {/* ── Mode démo ─────────────────────────────────────────────── */}
-          <div style={{borderTop:`1px solid ${C.border}`,paddingTop:16}}>
+          {/* ── Mode démo — solo admin ────────────────────────────────── */}
+          {isAdmin && <div style={{borderTop:`1px solid ${C.border}`,paddingTop:16}}>
             <div style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.6,textAlign:"center",marginBottom:12}}>
               ✦ Mode démo — tester l\'app
             </div>
@@ -134,7 +134,7 @@ function AuthModal({ onClose, onSuccess, initialRegister }) {
             <div style={{fontSize:10,color:C.faint,textAlign:"center",marginTop:10}}>
               Comptes de démonstration — aucun vrai compte créé
             </div>
-          </div>
+          </div>}
         </>}
 
         {/* ── REGISTER METHOD ──────────────────────────────────────── */}

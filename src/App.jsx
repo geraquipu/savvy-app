@@ -1,3 +1,4 @@
+import AppLoader from "./screens/AppLoader";
 import { useState, useRef, useCallback, useEffect, lazy, Suspense } from "react";
 import { supabase } from "./supabase";
 import { C, SERIF, SANS } from "./constants/colors";
@@ -287,6 +288,7 @@ function BottomNav({nav, onChange, unreadCount, appMode, sessionsCount=0, reserv
 export default function App() {
   // Onboarding: toujours montré en démo (1 fois par session)
   // En production: utiliser localStorage.getItem("savvy_onboarded")
+  const [showLoader, setShowLoader] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [showSplash, setShowSplash] = useState(false);
   const [showLanding, setShowLanding] = useState(false); // LandingScreen desactivado — guardado para web marketing
@@ -457,7 +459,8 @@ export default function App() {
     : appMode==="expert" ? (isExpert && !newExpertProfile ? EXPERT_CLIENT_CONVS.reduce((s,c)=>s+(readMsgIds.includes("cli-"+c.id)?0:c.unread),0) : 0)
     : DEMO_MSGS.reduce((s,m)=>s+(readMsgIds.includes("exp-"+m.id)?0:m.unread),0);
 
-  return <Suspense fallback={<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100svh",background:C.cream,fontFamily:SANS,color:C.muted,fontSize:13}}>Chargement…</div>}>
+  return <Suspense fallback={<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100svh",background:C.ink}}/>}>
+  {showLoader && <AppLoader onDone={()=>setShowLoader(false)}/>}
   <div style={{fontFamily:SANS}}>
     {showPaymentSuccess && (
       <div style={{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",zIndex:99999,background:"#1C1917",color:"#fff",borderRadius:14,padding:"14px 22px",display:"flex",alignItems:"center",gap:10,boxShadow:"0 4px 24px rgba(0,0,0,0.25)",fontFamily:SANS,fontSize:14,fontWeight:600,maxWidth:360,animation:"fadeSlideUp .3s ease-out"}}>
@@ -491,7 +494,7 @@ export default function App() {
       {showOnboarding && !isLoggedIn && <OnboardingScreen onDone={()=>{ setShowOnboarding(false); setShowSplash(true); }}/>}
       {!showOnboarding && showSplash && !isLoggedIn && <SplashScreen isAdmin={authUser?.email==="geraquipu@hotmail.com"} onSkip={()=>{ setShowSplash(false); setScreen("home"); setNav("home"); }} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowSplash(false); setScreen("home"); setNav("home"); }} onRegister={()=>{ setShowSplash(false); setShowAuth(true); setAuthIntent("register"); }}/>}
       {main && <TopBar onNotif={()=>setShowNotif(v=>!v)} notifCount={isLoggedIn?(authUser?.real?(authUser?.isExpert&&appMode==="expert"?expRequestsCount:0):Math.max(0,(newExpertProfile?3:4)-readNotifIds.length)):0} isLoggedIn={isLoggedIn} onLogin={()=>setShowSplash(true)} isExpert={isExpert} appMode={appMode} onToggleMode={m=>{ setAppMode(m); if(m==="expert"){ setNav("exp-dashboard"); setExpInitSection("dashboard"); setScreen("profile"); } else { setNav("home"); setExpInitSection(null); setScreen("home"); } }}/>}
-      {showAuth && <AuthModal onClose={()=>setShowAuth(false)} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowAuth(false); setShowSplash(false); setAuthIntent(null); }} initialRegister={authIntent==="register"}/>}
+      {showAuth && <AuthModal onClose={()=>setShowAuth(false)} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowAuth(false); setShowSplash(false); setAuthIntent(null); }} initialRegister={authIntent==="register"} isAdmin={authUser?.email==="geraquipu@hotmail.com"}/>}
       {showProfileSetup && authUser?.real && <ProfileSetupModal authUser={authUser} onDone={updated=>{ setAuthUser(updated); setShowProfileSetup(false); }}/>}
       {showNotif && <NotificationPanel onClose={()=>setShowNotif(false)} onNavigate={(s)=>{ setShowNotif(false); handleNav(s); }} readNotifIds={readNotifIds} onMarkRead={setReadNotifIds} isExpert={isExpert&&appMode==="expert"} isNewExpert={!!newExpertProfile} expRequestsCount={expRequestsCount} unreadMsgsCount={unread}/>}
       {screen==="home"         && <div key="home" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><HomeScreen onExpert={goExpert} onSearch={q=>goSearch(q)} onCat={id=>goSearch("",id)} onMatch={()=>{setScreen("match");setNav("home");}} isLoggedIn={isLoggedIn} authUser={authUser} isExpert={isExpert} experts={dbExperts}/></div>}
