@@ -206,7 +206,7 @@ function ProfileSetupModal({ authUser, onDone }) {
 // ─── TopBar ────────────────────────────────────────────────────────────────────
 function TopBar({ onNotif, notifCount, isLoggedIn, onLogin, isExpert, appMode, onToggleMode }) {
   return (
-    <div style={{paddingTop:"calc(env(safe-area-inset-top) + 12px)",paddingBottom:"11px",paddingLeft:"16px",paddingRight:"16px",background:C.white,borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,gap:8}}>
+    <div style={{position:"fixed",top:0,left:0,right:0,zIndex:200,paddingTop:"calc(env(safe-area-inset-top) + 12px)",paddingBottom:"11px",paddingLeft:"16px",paddingRight:"16px",background:C.white,borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
       {/* Logo */}
       <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
         <div style={{width:8,height:8,borderRadius:"50%",background:C.gold}}/>
@@ -266,7 +266,7 @@ function BottomNav({nav, onChange, unreadCount, appMode, sessionsCount=0, reserv
   const items = appMode === "expert" ? expertItems : clientItems;
 
   return (
-    <div style={{background:C.white,borderTop:`1px solid ${C.border}`,display:"flex",justifyContent:"space-around",paddingTop:"8px",paddingBottom:"calc(env(safe-area-inset-bottom) + 8px)",paddingLeft:0,paddingRight:0,flexShrink:0}}>
+    <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:200,background:C.white,borderTop:`1px solid ${C.border}`,display:"flex",justifyContent:"space-around",paddingTop:"8px",paddingBottom:"calc(env(safe-area-inset-bottom) + 8px)"}}>
       {items.map(item=>{
         const a = nav===item.id;
         return (
@@ -288,7 +288,7 @@ function BottomNav({nav, onChange, unreadCount, appMode, sessionsCount=0, reserv
 export default function App() {
   // Onboarding: toujours montré en démo (1 fois par session)
   // En production: utiliser localStorage.getItem("savvy_onboarded")
-  const [showLoader, setShowLoader] = useState(true);
+  const [showLoader, setShowLoader] = useState(()=>!sessionStorage.getItem("savvy_loaded"));
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [showSplash, setShowSplash] = useState(false);
   const [showLanding, setShowLanding] = useState(false); // LandingScreen desactivado — guardado para web marketing
@@ -460,7 +460,7 @@ export default function App() {
     : DEMO_MSGS.reduce((s,m)=>s+(readMsgIds.includes("exp-"+m.id)?0:m.unread),0);
 
   return <Suspense fallback={<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100svh",background:C.ink}}/>}>
-  {showLoader && <AppLoader onDone={()=>setShowLoader(false)}/>}
+  {showLoader && <AppLoader onDone={()=>{ sessionStorage.setItem("savvy_loaded","1"); setShowLoader(false); }}/>}
   <div style={{fontFamily:SANS}}>
     {showPaymentSuccess && (
       <div style={{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",zIndex:99999,background:"#1C1917",color:"#fff",borderRadius:14,padding:"14px 22px",display:"flex",alignItems:"center",gap:10,boxShadow:"0 4px 24px rgba(0,0,0,0.25)",fontFamily:SANS,fontSize:14,fontWeight:600,maxWidth:360,animation:"fadeSlideUp .3s ease-out"}}>
@@ -485,7 +485,7 @@ export default function App() {
       select:focus{border-color:#8B6330!important;outline:none}
       button:active{opacity:.82} button{transition:opacity .15s}
     `}</style>
-    <div style={{width:"100%",maxWidth:430,margin:"0 auto",background:C.cream,minHeight:"100vh",display:"flex",flexDirection:"column",boxShadow:"0 0 40px rgba(0,0,0,.1)",...(["message"].includes(screen)?{height:"100vh",overflow:"hidden"}:{})}}>
+    <div style={{width:"100%",maxWidth:430,margin:"0 auto",background:C.cream,minHeight:"100vh",display:"flex",flexDirection:"column",boxShadow:"0 0 40px rgba(0,0,0,.1)",paddingTop:`calc(env(safe-area-inset-top) + 56px)`,paddingBottom:`calc(env(safe-area-inset-bottom) + 64px)`,...(["message"].includes(screen)?{height:"100vh",overflow:"hidden"}:{})}}>
       {showLanding && !isLoggedIn && <LandingScreen
         onStart={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowOnboarding(false); setShowSplash(true); }}
         onExplore={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowOnboarding(false); setScreen("home"); setNav("home"); }}
