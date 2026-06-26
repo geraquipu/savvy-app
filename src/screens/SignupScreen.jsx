@@ -304,6 +304,10 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
       {/* Hero */}
       <div style={{ background:`linear-gradient(165deg,${C.ink} 0%,#2C2825 100%)`, padding:"40px 24px 36px", position:"relative", overflow:"hidden", textAlign:"center" }}>
         <div style={{ position:"absolute", top:-40, right:-40, width:180, height:180, borderRadius:"50%", background:"rgba(185,134,74,.05)" }}/>
+        {/* Botón atrás */}
+        <button onClick={onBack} style={{position:"absolute",top:14,left:16,width:34,height:34,borderRadius:10,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}><path d="m15 18-6-6 6-6"/></svg>
+        </button>
         {/* lang toggle en landing */}
         <button onClick={()=>setLang(l=>l==="fr"?"es":"fr")} style={{position:"absolute",top:14,right:16,padding:"4px 12px",borderRadius:20,border:"1px solid rgba(255,255,255,.25)",background:"rgba(255,255,255,.1)",fontSize:12,fontWeight:700,color:"rgba(253,252,248,.8)",cursor:"pointer",fontFamily:"inherit",letterSpacing:.3}}>{T.langBtn}</button>
         <div style={{ position:"relative" }}>

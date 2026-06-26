@@ -684,19 +684,16 @@ export function ClientView({
           <div style={{background:`linear-gradient(135deg,${C.ink},#2C2825)`,padding:"18px 20px",marginBottom:8}}>
             <div style={{fontSize:13,fontWeight:700,color:C.white,fontFamily:SERIF,marginBottom:4}}>Bienvenue sur Savvy, {USER.prenom} 👋</div>
             <div style={{fontSize:11,color:"rgba(253,252,248,.6)",marginBottom:14,lineHeight:1.5}}>Trouve ton premier expert et réserve une session en moins de 2 minutes.</div>
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            <div style={{display:"flex",gap:8}}>
               {[
-                {n:"1", t:"Explore les experts", sub:"Parcours notre sélection vérifiée", done:false, nav:"search"},
-                {n:"2", t:"Réserve une session", sub:"Choisis ton format · Vidéo, Appel ou Chat", done:false, nav:"search"},
-                {n:"3", t:"Deviens conseiller", sub:"Partage ton expertise · Gagne 80%", done:false, nav:"expert"},
+                {icon:"🔍", t:"Explorer", nav:"search"},
+                {icon:"📅", t:"Réserver", nav:"search"},
+                {icon:"✦",  t:"Devenir expert", nav:"expert"},
               ].map(s=>(
-                <div key={s.n} onClick={()=>{ if(s.nav==="expert"){onBecomeExpert&&onBecomeExpert();onSignup&&onSignup();}else{onNavigate&&onNavigate(s.nav);}}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"rgba(253,252,248,.07)",borderRadius:10,cursor:"pointer",border:`1px solid rgba(253,252,248,.1)`}}>
-                  <div style={{width:24,height:24,borderRadius:"50%",background:"rgba(185,134,74,.25)",border:`1.5px solid ${C.goldB}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:C.goldB,flexShrink:0}}>{s.n}</div>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:12,fontWeight:700,color:C.white}}>{s.t}</div>
-                    <div style={{fontSize:10,color:"rgba(253,252,248,.5)",marginTop:1}}>{s.sub}</div>
-                  </div>
-                  <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2.5}><polyline points="9 18 15 12 9 6"/></svg>
+                <div key={s.t} onClick={()=>{ if(s.nav==="expert"){onBecomeExpert&&onBecomeExpert();onSignup&&onSignup();}else{onNavigate&&onNavigate(s.nav);}}}
+                  style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:6,padding:"12px 8px",background:"rgba(253,252,248,.08)",borderRadius:12,cursor:"pointer",border:"1px solid rgba(253,252,248,.12)",textAlign:"center"}}>
+                  <span style={{fontSize:20}}>{s.icon}</span>
+                  <span style={{fontSize:11,fontWeight:700,color:C.white,lineHeight:1.3}}>{s.t}</span>
                 </div>
               ))}
             </div>
