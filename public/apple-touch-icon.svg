@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
-  <rect width="180" height="180" rx="40" fill="#1C1917"/>
-  <text x="90" y="115" font-family="Georgia, serif" font-size="72" font-weight="900" font-style="italic" text-anchor="middle" fill="#B8864A">vy</text>
-  <text x="46" y="115" font-family="Georgia, serif" font-size="72" font-weight="900" text-anchor="middle" fill="#FDFCF8">sa</text>
+<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'>
+  <rect width='512' height='512' rx='110' fill='#1C1917'/>
+  <text font-family='Georgia, serif' font-size='168' font-weight='900' y='310' x='256' text-anchor='middle'>
+    <tspan fill='#FDFCF8'>sav</tspan><tspan fill='#4A5E2A' font-style='italic'>vy</tspan>
+  </text>
 </svg>
