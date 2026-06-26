@@ -1128,7 +1128,7 @@ export function ExpertView({
       // Completion % for new expert
       const completionSteps = isNewExpert ? [
         { done: true,  label: "Profil créé", icon:"✅" },
-        { done: !!newExpertProfile?.photo, label: "Photo ajoutée", icon:"📸" },
+        { done: !!(newExpertProfile?.photo || photoUrl), label: "Photo ajoutée", icon:"📸" },
         { done: !!newExpertProfile?.phases?.length, label: "Offre créée", icon:"💼" },
         { done: !!newExpertProfile?.creds?.length, label: "Preuves ajoutées", icon:"🏆" },
         { done: Object.values(dispoSelected||{}).some(Boolean), label: "Disponibilités", icon:"🗓" },
