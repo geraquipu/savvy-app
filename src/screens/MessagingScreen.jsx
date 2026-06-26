@@ -100,6 +100,7 @@ function MessagingScreen({ e, onBack, authUser }) {
       // Experto real → guardar mensaje y esperar respuesta real (no Claude)
       await supabase.from("messages").insert({
         sender_id: authUser.id,
+        receiver_id: expertSbId,
         expert_id: expertSbId,
         content: t,
       });
