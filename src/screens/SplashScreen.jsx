@@ -3,7 +3,7 @@ import { supabase } from '../supabase';
 import { C, SERIF } from '../constants/colors';
 import { DEMO_USERS } from '../constants/data';
 
-function SplashScreen({ onSkip, onSuccess, onRegister }) {
+function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
   const [mode, setMode] = useState("choice"); // choice | phone | otp | email_otp
   const [contact, setContact] = useState("");
   const [isPhone, setIsPhone] = useState(true);
@@ -149,8 +149,8 @@ function SplashScreen({ onSkip, onSuccess, onRegister }) {
           Explorer sans compte →
         </button>
 
-        {/* Mode démo */}
-        <div style={{width:"100%",maxWidth:320,borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:16,marginBottom:8}}>
+        {/* Mode démo — solo visible para admin */}
+        {isAdmin && <div style={{width:"100%",maxWidth:320,borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:16,marginBottom:8}}>
           <div style={{fontSize:11,fontWeight:700,color:"rgba(253,252,248,.4)",textTransform:"uppercase",letterSpacing:.8,textAlign:"center",marginBottom:12}}>
             ✦ Mode démo — tester l\'app
           </div>
@@ -169,7 +169,7 @@ function SplashScreen({ onSkip, onSuccess, onRegister }) {
           <div style={{fontSize:10,color:"rgba(253,252,248,.25)",textAlign:"center",marginTop:10}}>
             Aucun compte créé — données de démonstration
           </div>
-        </div>
+        </div>}
 
         <p style={{fontSize:11,color:"rgba(253,252,248,.25)",textAlign:"center",lineHeight:1.6,maxWidth:280,marginTop:8}}>
           En continuant, tu acceptes les{" "}
