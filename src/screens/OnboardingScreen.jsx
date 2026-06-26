@@ -39,6 +39,8 @@ function OnboardingScreen({ onDone }) {
         <div style={{ display:"flex", flexDirection:"column", gap:12, width:"100%", maxWidth:300, marginBottom:40 }}>
           {[
             { icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, label:"Une expérience réellement vécue" },
+            { icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx={12} cy={7} r={4}/></svg>, label:"Des conseils adaptés à votre situation" },
+            { icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>, label:"Gagnez des mois d'erreurs" },
           ].map((p,i)=>(
             <div key={i} style={{ display:"flex", alignItems:"center", gap:13, background:"rgba(255,255,255,.06)", borderRadius:13, padding:"13px 16px", border:"1px solid rgba(185,134,74,.15)" }}>
               <div style={{ flexShrink:0 }}>{p.icon}</div>
