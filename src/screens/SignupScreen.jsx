@@ -954,7 +954,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
                 creds:builtProfile.creds, metrics:[],
                 photo_url:form.photoUrl?.startsWith("http")?form.photoUrl:null,
               };
-              const{error}=await supabase.from("experts").insert(expertData);
+              const{error}=await supabase.from("experts").upsert(expertData,{onConflict:"user_id"});
               if(error) console.warn("Expert non sauvegardé:",error.message);
             }
             patch({submitted:true});
