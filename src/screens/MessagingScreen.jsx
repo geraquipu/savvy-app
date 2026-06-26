@@ -96,15 +96,19 @@ function MessagingScreen({ e, onBack, authUser }) {
     const userMsg={id:Date.now(),from:"client",text:t,time:new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})};
     const updated=[...msgs,userMsg]; setMsgs(updated); saveMsgs(updated); setLoading(true);
 
-    // Sauvegarder dans Supabase si utilisateur réel
     if (isRealUser && expertSbId) {
-      supabase.from("messages").insert({
+      // Experto real → guardar mensaje y esperar respuesta real (no Claude)
+      await supabase.from("messages").insert({
         sender_id: authUser.id,
         expert_id: expertSbId,
         content: t,
-      }).then(({error}) => { if(error) console.warn("Message Supabase:", error.message); });
+      });
+      setLoading(false);
+      setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),50);
+      return;
     }
 
+    // Experto demo → Claude responde
     const reply=await callClaude(updated.map(m=>({role:m.from==="client"?"user":"assistant",content:m.text})),e.sys);
     const final=[...updated,{id:Date.now()+1,from:"expert",text:reply,time:new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}];
     setMsgs(final); saveMsgs(final); setLoading(false);
@@ -123,12 +127,18 @@ function MessagingScreen({ e, onBack, authUser }) {
       <div style={{flex:1,minWidth:0}}>
         <div style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF}}>{e.name}</div>
         <div style={{fontSize:11,color:C.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.role.split("·")[0].trim()}</div>
-        <div style={{fontSize:10,color:C.sageMid,fontWeight:600,display:"flex",alignItems:"center",gap:4,marginTop:1}}>
-          <div style={{width:5,height:5,borderRadius:"50%",background:C.sageMid}}/>IA Savvy active
-        </div>
+        {isRealUser && expertSbId ? (
+          <div style={{fontSize:10,color:"#5B8A5B",fontWeight:600,display:"flex",alignItems:"center",gap:4,marginTop:1}}>
+            <div style={{width:5,height:5,borderRadius:"50%",background:"#5B8A5B"}}/>Expert disponible
+          </div>
+        ) : (
+          <div style={{fontSize:10,color:C.sageMid,fontWeight:600,display:"flex",alignItems:"center",gap:4,marginTop:1}}>
+            <div style={{width:5,height:5,borderRadius:"50%",background:C.sageMid}}/>IA Savvy active
+          </div>
+        )}
       </div>
       <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4,flexShrink:0}}>
-        <span style={{fontSize:10,padding:"3px 9px",borderRadius:20,background:C.goldL,color:C.gold,fontWeight:700,border:`1px solid ${C.goldB}`}}>✦ Claude</span>
+        {!(isRealUser && expertSbId) && <span style={{fontSize:10,padding:"3px 9px",borderRadius:20,background:C.goldL,color:C.gold,fontWeight:700,border:`1px solid ${C.goldB}`}}>✦ Claude</span>}
         <div style={{display:"flex",gap:2}}>{[1,2,3,4,5].map(s=><svg key={s} width={8} height={8} viewBox="0 0 12 12" fill="#B8864A"><path d="M6 1l1.5 3H11l-2.5 2 1 3L6 7.5 2.5 9l1-3L1 4h3.5z"/></svg>)}</div>
       </div>
     </div>

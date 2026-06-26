@@ -191,6 +191,153 @@ function downloadICS({ expertName, topic, date, slot, durationH=1 }) {
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
 
+// ── Inbox messages pour l'expert ────────────────────────────────────────────
+function ExpertInbox({ authUser, onBack }) {
+  const [threads, setThreads] = React.useState([]);
+  const [activeThread, setActiveThread] = React.useState(null);
+  const [replyText, setReplyText] = React.useState("");
+  const [sending, setSending] = React.useState(false);
+  const [msgs, setMsgs] = React.useState([]);
+  const bottomRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!authUser?.id) return;
+    supabase.from("messages")
+      .select("*")
+      .eq("expert_id", authUser.id)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (!data) return;
+        // Group by client (messages where sender is client, expert_id is this expert)
+        const byClient = {};
+        data.forEach(m => {
+          // Client is whoever is NOT the expert
+          const clientId = m.sender_id !== authUser.id ? m.sender_id : null;
+          if (!clientId) return;
+          if (!byClient[clientId]) byClient[clientId] = { clientId, messages: [] };
+          byClient[clientId].messages.push(m);
+        });
+        setThreads(Object.values(byClient).map(t => ({
+          ...t,
+          latest: t.messages[0],
+          unread: t.messages.filter(m => m.sender_id !== authUser.id && !m.read_at).length,
+        })));
+      });
+  }, [authUser?.id]);
+
+  const openThread = (thread) => {
+    setActiveThread(thread);
+    const sorted = [...thread.messages].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+    setMsgs(sorted);
+    setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),100);
+
+    // Subscribe to new messages in real time
+    const ch = supabase.channel(`expert-inbox-${thread.clientId}`)
+      .on("postgres_changes", { event:"INSERT", schema:"public", table:"messages",
+        filter:`expert_id=eq.${authUser.id}` }, ({ new: m }) => {
+        const cid = m.sender_id === authUser.id ? m.receiver_id : m.sender_id;
+        if (cid !== thread.clientId) return;
+        setMsgs(prev => prev.some(x=>x.id===m.id) ? prev : [...prev,m]);
+        setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),50);
+      }).subscribe();
+    return () => supabase.removeChannel(ch);
+  };
+
+  const sendReply = async () => {
+    if (!replyText.trim() || sending || !activeThread) return;
+    setSending(true);
+    const { data, error } = await supabase.from("messages").insert({
+      sender_id: authUser.id,
+      expert_id: authUser.id,
+      content: replyText.trim(),
+    }).select().single();
+    if (!error && data) {
+      setMsgs(prev => [...prev, data]);
+      setReplyText("");
+      setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),50);
+    }
+    setSending(false);
+  };
+
+  if (activeThread) {
+    const initials = activeThread.clientId.slice(0,2).toUpperCase();
+    return (
+      <div style={{display:"flex",flexDirection:"column",height:"100vh",background:C.cream}}>
+        <div style={{background:C.white,padding:"12px 16px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:11,flexShrink:0}}>
+          <button onClick={()=>setActiveThread(null)} style={{background:C.cream2,border:`1px solid ${C.border}`,borderRadius:9,width:34,height:34,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={C.soft} strokeWidth={2}><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div style={{width:40,height:40,borderRadius:"50%",background:"#EDE9FE",color:"#7C3AED",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,flexShrink:0}}>{initials}</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF}}>Client</div>
+            <div style={{fontSize:11,color:C.muted}}>Conversation privée</div>
+          </div>
+        </div>
+        <div style={{flex:1,overflowY:"auto",padding:"16px 14px"}}>
+          {msgs.map(m => {
+            const isMe = m.sender_id === authUser.id;
+            return (
+              <div key={m.id} style={{display:"flex",flexDirection:"column",alignItems:isMe?"flex-end":"flex-start",marginBottom:10}}>
+                <div style={{maxWidth:"82%",padding:"11px 15px",borderRadius:isMe?"18px 18px 5px 18px":"18px 18px 18px 5px",background:isMe?`linear-gradient(135deg,${C.ink},#2C2825)`:C.white,color:isMe?C.white:C.ink,fontSize:13,lineHeight:1.6,boxShadow:!isMe?`0 2px 10px ${C.sh}`:`0 1px 4px rgba(28,25,23,.12)`}}>
+                  {m.content}
+                </div>
+                <div style={{fontSize:10,color:C.faint,marginTop:3}}>{new Date(m.created_at).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</div>
+              </div>
+            );
+          })}
+          <div ref={bottomRef}/>
+        </div>
+        <div style={{padding:"10px 14px 22px",background:C.white,borderTop:`1px solid ${C.border}`,flexShrink:0}}>
+          <div style={{display:"flex",gap:9,alignItems:"center"}}>
+            <input value={replyText} onChange={e=>setReplyText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendReply()} placeholder="Votre réponse..." style={{flex:1,padding:"11px 15px",borderRadius:13,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"inherit",color:C.ink,outline:"none",background:C.cream2}}/>
+            <button onClick={sendReply} disabled={!replyText.trim()||sending} style={{width:44,height:44,borderRadius:"50%",background:replyText.trim()&&!sending?C.ink:C.cream3,border:"none",cursor:replyText.trim()&&!sending?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke={C.white} strokeWidth={2.5}><line x1={22} y1={2} x2={11} y2={13}/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{background:C.cream,minHeight:"100vh"}}>
+      <div style={{background:C.white,padding:"12px 16px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:11}}>
+        <button onClick={onBack} style={{background:C.cream2,border:`1px solid ${C.border}`,borderRadius:9,width:34,height:34,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={C.soft} strokeWidth={2}><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <div style={{flex:1}}>
+          <div style={{fontSize:16,fontWeight:700,color:C.ink,fontFamily:SERIF}}>Messages clients</div>
+          <div style={{fontSize:11,color:C.muted}}>{threads.length} conversation{threads.length!==1?"s":""}</div>
+        </div>
+      </div>
+      <div style={{padding:"12px 14px"}}>
+        {threads.length === 0 ? (
+          <div style={{textAlign:"center",padding:"60px 20px",color:C.muted}}>
+            <div style={{fontSize:48,marginBottom:12}}>💬</div>
+            <div style={{fontSize:15,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:6}}>Aucun message</div>
+            <div style={{fontSize:13,color:C.muted}}>Les messages de tes clients apparaîtront ici.</div>
+          </div>
+        ) : threads.map(t => {
+          const initials = t.clientId.slice(0,2).toUpperCase();
+          return (
+            <div key={t.clientId} onClick={()=>openThread(t)} style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"13px 15px",marginBottom:10,display:"flex",alignItems:"center",gap:12,cursor:"pointer",boxShadow:`0 1px 4px ${C.sh}`}}>
+              <div style={{position:"relative",flexShrink:0}}>
+                <div style={{width:44,height:44,borderRadius:"50%",background:"#EDE9FE",color:"#7C3AED",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14}}>{initials}</div>
+                {t.unread>0&&<div style={{position:"absolute",top:-2,right:-2,width:16,height:16,borderRadius:"50%",background:C.ink,color:C.white,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,border:`2px solid ${C.white}`}}>{t.unread}</div>}
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:13,fontWeight:t.unread>0?700:500,color:C.ink,marginBottom:2}}>Client</div>
+                <div style={{fontSize:12,color:C.muted,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{t.latest?.content||""}</div>
+              </div>
+              <div style={{fontSize:10,color:C.faint,flexShrink:0}}>{t.latest?new Date(t.latest.created_at).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"}):""}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function ExpertView({
   USER, EXPERT_DATA, isExpert, authUser, newExpertProfile, isNewExpert,
   onNavigate, onSignup, onBecomeExpert, onLogout,
@@ -295,6 +442,11 @@ export function ExpertView({
         </div>
       </div>
     );
+
+    // ── Messages (boîte de réception expert) ────────────────────────────────
+    if (section === "messages") {
+      return <ExpertInbox authUser={authUser} onBack={()=>{setSection(null);setSubSection(null);}} />;
+    }
 
     // ── Sesiones (shortcut direct)
     if (section === "sesiones") {
@@ -1339,6 +1491,7 @@ export function ExpertView({
         <div style={{background:C.white,overflow:"hidden",marginBottom:8}}>
           <div style={{padding:"18px 20px 6px",fontSize:13,fontWeight:600,color:C.muted,letterSpacing:".4px",textTransform:"uppercase"}}>Activité</div>
           <MenuRowExp icon="📋" title="Mes sessions" sub="Demandes en attente · Planning" badge={expRequests.length>0?expRequests.length:undefined} onClick={()=>setSection("sesiones")}/>
+          <MenuRowExp icon="💬" title="Messages clients" sub="Répondre aux clients" onClick={()=>setSection("messages")}/>
           <MenuRowExp icon="🗓️" title="Disponibilités" sub={(()=>{const n=Object.keys(dispoSelected).filter(k=>dispoSelected[k]).length; return n>0?`${n} jour${n>1?"s":""} ouvert${n>1?"s":""} à la réservation`:"Aucun jour configuré";})()}  onClick={()=>setSection("disponibilidades")}/>
           <MenuRowExp icon="💼" title="Mes offres" sub={(expOffres||EXPERT_DATA.offres).length===0?"Aucune offre · Créer la première":`${(expOffres||EXPERT_DATA.offres).length} offre(s) active(s)`} onClick={()=>setOffresOpen(v=>!v)}/>
         </div>
