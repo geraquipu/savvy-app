@@ -205,7 +205,7 @@ function ProfileSetupModal({ authUser, onDone }) {
 // ─── TopBar ────────────────────────────────────────────────────────────────────
 function TopBar({ onNotif, notifCount, isLoggedIn, onLogin, isExpert, appMode, onToggleMode }) {
   return (
-    <div style={{padding:"12px 16px 11px",background:C.white,borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,gap:8}}>
+    <div style={{paddingTop:"calc(env(safe-area-inset-top) + 12px)",paddingBottom:"11px",paddingLeft:"16px",paddingRight:"16px",background:C.white,borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,gap:8}}>
       {/* Logo */}
       <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
         <div style={{width:8,height:8,borderRadius:"50%",background:C.gold}}/>
@@ -265,7 +265,7 @@ function BottomNav({nav, onChange, unreadCount, appMode, sessionsCount=0, reserv
   const items = appMode === "expert" ? expertItems : clientItems;
 
   return (
-    <div style={{background:C.white,borderTop:`1px solid ${C.border}`,display:"flex",justifyContent:"space-around",padding:"8px 0 22px",flexShrink:0}}>
+    <div style={{background:C.white,borderTop:`1px solid ${C.border}`,display:"flex",justifyContent:"space-around",paddingTop:"8px",paddingBottom:"calc(env(safe-area-inset-bottom) + 8px)",paddingLeft:0,paddingRight:0,flexShrink:0}}>
       {items.map(item=>{
         const a = nav===item.id;
         return (
