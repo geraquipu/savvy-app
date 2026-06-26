@@ -1352,7 +1352,7 @@ export function ExpertView({
           </div>
 
           {/* ── Graphique sessions (expert établi only) ── */}
-          {!isNewExpert && (() => {
+          {!isNewExpert && !authUser?.real && (() => {
             const weeks = ["S-3","S-2","S-1","Cette sem."];
             const vals = [3,5,4,sessionsThisWeek||2];
             const maxV = Math.max(...vals,1);
@@ -1380,7 +1380,7 @@ export function ExpertView({
           })()}
 
           {/* ── Dernier avis reçu (expert établi only) ── */}
-          {!isNewExpert && (
+          {!isNewExpert && !authUser?.real && (
             <div style={{background:C.white,borderRadius:16,border:`1px solid ${C.border}`,padding:"16px 18px",marginBottom:14,boxShadow:`0 2px 8px ${C.sh}`}}>
               <div style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.7,marginBottom:10}}>Dernier avis reçu</div>
               <div style={{display:"flex",gap:5,marginBottom:8}}>
