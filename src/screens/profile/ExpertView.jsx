@@ -1492,6 +1492,7 @@ export function ExpertView({
           <div style={{padding:"18px 20px 6px",fontSize:13,fontWeight:600,color:C.muted,letterSpacing:".4px",textTransform:"uppercase"}}>Activité</div>
           <MenuRowExp icon="📋" title="Mes sessions" sub="Demandes en attente · Planning" badge={expRequests.length>0?expRequests.length:undefined} onClick={()=>setSection("sesiones")}/>
           <MenuRowExp icon="💬" title="Messages clients" sub="Répondre aux clients" onClick={()=>setSection("messages")}/>
+          {["geraquipu@hotmail.com","german@savvy.fr"].includes(authUser?.email) && <MenuRowExp icon="⚙️" title="Admin Savvy" sub="Utilisateurs · Réservations · Revenue" onClick={()=>onNavigate&&onNavigate("admin")}/>}
           <MenuRowExp icon="🗓️" title="Disponibilités" sub={(()=>{const n=Object.keys(dispoSelected).filter(k=>dispoSelected[k]).length; return n>0?`${n} jour${n>1?"s":""} ouvert${n>1?"s":""} à la réservation`:"Aucun jour configuré";})()}  onClick={()=>setSection("disponibilidades")}/>
           <MenuRowExp icon="💼" title="Mes offres" sub={(expOffres||EXPERT_DATA.offres).length===0?"Aucune offre · Créer la première":`${(expOffres||EXPERT_DATA.offres).length} offre(s) active(s)`} onClick={()=>setOffresOpen(v=>!v)}/>
         </div>

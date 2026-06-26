@@ -13,6 +13,7 @@ const BookingScreen       = lazy(() => import("./screens/BookingScreen"));
 const MessagesListScreen  = lazy(() => import("./screens/MessagesListScreen"));
 const OnboardingScreen    = lazy(() => import("./screens/OnboardingScreen"));
 const SplashScreen        = lazy(() => import("./screens/SplashScreen"));
+const LandingScreen       = lazy(() => import("./screens/LandingScreen"));
 const HowItWorksScreen    = lazy(() => import("./screens/HowItWorksScreen"));
 const MatchScreen         = lazy(() => import("./screens/MatchScreen"));
 const SearchScreen        = lazy(() => import("./screens/SearchScreen"));
@@ -23,6 +24,7 @@ const ProfileScreen        = lazy(() => import("./screens/ProfileScreen"));
 const NotificationPanel    = lazy(() => import("./screens/NotificationPanel"));
 const AuthModal            = lazy(() => import("./screens/AuthModal"));
 const PublicProfileScreen  = lazy(() => import("./screens/PublicProfileScreen"));
+const AdminScreen          = lazy(() => import("./screens/AdminScreen"));
 
 // ── Upload photo vers Supabase Storage ──────────────────────────────────────
 async function uploadPhoto(file, userId) {
@@ -287,6 +289,7 @@ export default function App() {
   // En production: utiliser localStorage.getItem("savvy_onboarded")
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [showSplash, setShowSplash] = useState(false);
+  const [showLanding, setShowLanding] = useState(() => !localStorage.getItem("savvy_visited"));
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authUser, setAuthUser] = useState(null);
   const [isExpert, setIsExpert] = useState(false);
@@ -480,8 +483,13 @@ export default function App() {
       button:active{opacity:.82} button{transition:opacity .15s}
     `}</style>
     <div style={{width:"100%",maxWidth:430,margin:"0 auto",background:C.cream,minHeight:"100vh",display:"flex",flexDirection:"column",boxShadow:"0 0 40px rgba(0,0,0,.1)",...(["message"].includes(screen)?{height:"100vh",overflow:"hidden"}:{})}}>
+      {showLanding && !isLoggedIn && !showOnboarding && <LandingScreen
+        onStart={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowSplash(true); }}
+        onExplore={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setScreen("home"); setNav("home"); }}
+        onExpert={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowAuth(true); setAuthIntent("register"); }}
+      />}
       {showOnboarding && !isLoggedIn && <OnboardingScreen onDone={()=>{ setShowOnboarding(false); setShowSplash(true); }}/>}
-      {!showOnboarding && showSplash && !isLoggedIn && <SplashScreen onSkip={()=>{ setShowSplash(false); setScreen("home"); setNav("home"); }} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowSplash(false); setScreen("home"); setNav("home"); }} onRegister={()=>{ setShowSplash(false); setShowAuth(true); setAuthIntent("register"); }}/>}
+      {!showOnboarding && showSplash && !isLoggedIn && !showLanding && <SplashScreen onSkip={()=>{ setShowSplash(false); setScreen("home"); setNav("home"); }} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowSplash(false); setScreen("home"); setNav("home"); }} onRegister={()=>{ setShowSplash(false); setShowAuth(true); setAuthIntent("register"); }}/>}
       {main && <TopBar onNotif={()=>setShowNotif(v=>!v)} notifCount={isLoggedIn?(authUser?.real?(authUser?.isExpert&&appMode==="expert"?expRequestsCount:0):Math.max(0,(newExpertProfile?3:4)-readNotifIds.length)):0} isLoggedIn={isLoggedIn} onLogin={()=>setShowSplash(true)} isExpert={isExpert} appMode={appMode} onToggleMode={m=>{ setAppMode(m); if(m==="expert"){ setNav("exp-dashboard"); setExpInitSection("dashboard"); setScreen("profile"); } else { setNav("home"); setExpInitSection(null); setScreen("home"); } }}/>}
       {showAuth && <AuthModal onClose={()=>setShowAuth(false)} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowAuth(false); setShowSplash(false); setAuthIntent(null); }} initialRegister={authIntent==="register"}/>}
       {showProfileSetup && authUser?.real && <ProfileSetupModal authUser={authUser} onDone={updated=>{ setAuthUser(updated); setShowProfileSetup(false); }}/>}
@@ -504,6 +512,7 @@ export default function App() {
           uploadPhoto={uploadPhoto}
           dbExperts={dbExperts}
         />}
+      {screen==="admin"        && <AdminScreen authUser={authUser} onBack={()=>{ setScreen("profile"); setNav("profile"); }}/>}
       {screen==="expert"       && expert && <ExpertScreen e={expert} onBack={()=>{setScreen(prevScreen);}} onBook={goBook} onMsg={goMsg}/>}
       {screen==="message"      && expert && <MessagingScreen e={expert} onBack={()=>{setScreen(prevMsgScreen);setNav(prevMsgScreen);}} authUser={authUser}/>}
       {screen==="booking"      && expert && phase && <BookingScreen e={expert} ph={phase} onBack={()=>setScreen("expert")} onConfirm={(info)=>{ setBookingInfo(info); setScreen("success"); }}/>}
