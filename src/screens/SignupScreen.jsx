@@ -184,7 +184,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
     email:    authUser?.email || "",
     pays: "France", langs: [],
     category:"", subcats:[], tagline:"", yearsExp:"",
-    formats: { video:{on:false,dur:"1h",price:""}, audio:{on:false,dur:"30min",price:""}, chat:{on:false,dur:"30min",price:""}, doc:{on:false,dur:"48h",price:""} },
+    formats: { video:{on:false,dur:"1h",price:"",name:"",desc:""}, audio:{on:false,dur:"30min",price:"",name:"",desc:""}, chat:{on:false,dur:"30min",price:"",name:"",desc:""}, doc:{on:false,dur:"48h",price:"",name:"",desc:""} },
     result1:"", proof1:"", bio:"",
     dispoJours:{}, dispoStart:"09:00", dispoEnd:"18:00", dispoChoice:"", dispoMode:"recurrent",
     proof1Type:"lien",
@@ -568,62 +568,86 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
         <p style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF,margin:"0 0 4px"}}>{T.step3H}</p>
         <p style={{fontSize:12,color:C.muted,margin:"0 0 20px",lineHeight:1.6}}>{T.step3Sub}</p>
 
-        {/* Format cards avec durée par format */}
+        {/* Conseil */}
+        <div style={{background:`linear-gradient(135deg,${C.goldL},#FFF9F0)`,borderRadius:12,padding:"12px 14px",marginBottom:16,border:`1px solid ${C.goldB}`}}>
+          <div style={{fontSize:12,fontWeight:700,color:C.gold,marginBottom:3}}>✦ Donne un nom qui parle</div>
+          <div style={{fontSize:11,color:"#92400E",lineHeight:1.6}}>Pas "Vidéocall 30min" — mais <em>"Session d'orientation pour immigrant"</em>. Tes clients cherchent une solution, pas un format.</div>
+        </div>
+
+        {/* Format cards */}
         <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:20}}>
           {FMT.map(f=>{
             const on=form.formats[f.id]?.on;
             const curDur=form.formats[f.id]?.dur || f.durs[1] || f.durs[0];
+            const curPrice=form.formats[f.id]?.price||"";
+            const curName=form.formats[f.id]?.name||"";
+            const curDesc=form.formats[f.id]?.desc||"";
             return (
-              <div key={f.id} style={{borderRadius:14,border:on?`2px solid ${C.ink}`:`1px solid ${C.border}`,background:on?C.ink:C.white,transition:"all .15s",overflow:"hidden"}}>
+              <div key={f.id} style={{borderRadius:14,border:on?`2px solid ${C.ink}`:`1px solid ${C.border}`,background:C.white,transition:"all .15s",overflow:"hidden"}}>
+                {/* Header — click to toggle */}
                 <button onClick={()=>patchFmt(f.id,"on",!on)}
-                  style={{width:"100%",padding:"14px 16px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",background:"transparent",border:"none",display:"flex",alignItems:"center",gap:14}}>
-                  <div style={{fontSize:24,flexShrink:0}}>{f.icon}</div>
+                  style={{width:"100%",padding:"14px 16px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",background:on?C.ink:"transparent",border:"none",display:"flex",alignItems:"center",gap:14}}>
+                  <div style={{fontSize:22,flexShrink:0}}>{f.icon}</div>
                   <div style={{flex:1}}>
                     <div style={{fontSize:13,fontWeight:700,color:on?C.white:C.ink}}>{f.label}</div>
-                    <div style={{fontSize:11,color:on?"rgba(253,252,248,.6)":C.muted,marginTop:1}}>{f.sub}</div>
+                    <div style={{fontSize:11,color:on?"rgba(253,252,248,.55)":C.muted}}>{f.sub}</div>
                   </div>
                   <div style={{width:20,height:20,borderRadius:"50%",border:`2px solid ${on?C.white:C.border}`,background:on?C.white:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                     {on&&<svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke={C.ink} strokeWidth={3}><polyline points="20 6 9 17 4 12"/></svg>}
                   </div>
                 </button>
+
+                {/* Detail panel */}
                 {on&&(
-                  <div style={{padding:"0 16px 14px",borderTop:`1px solid rgba(253,252,248,.15)`}}>
-                    <div style={{fontSize:10,color:"rgba(253,252,248,.6)",marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>{T.durLabel}</div>
-                    <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
-                      {f.durs.map(d=>(
-                        <button key={d} onClick={()=>patchFmt(f.id,"dur",d)}
-                          style={{padding:"6px 12px",borderRadius:20,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:600,border:`1.5px solid ${curDur===d?"rgba(253,252,248,1)":"rgba(253,252,248,.3)"}`,background:curDur===d?"rgba(253,252,248,.2)":"transparent",color:C.white,transition:"all .15s"}}>
-                          {d}
-                        </button>
-                      ))}
+                  <div style={{padding:"14px 16px 16px",borderTop:`1px solid ${C.border}`,display:"flex",flexDirection:"column",gap:10}}>
+
+                    {/* Nom de l'offre */}
+                    <div>
+                      <div style={{fontSize:10,fontWeight:700,color:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:.5}}>Nom de ton offre *</div>
+                      <input value={curName} onChange={e=>patchFmt(f.id,"name",e.target.value)}
+                        placeholder={f.id==="video"?"Ex : Appel bilan pour reconversion pro":f.id==="audio"?"Ex : Conseil rapide logement étudiant":f.id==="chat"?"Ex : Questions-réponses immigrer en France":"Ex : Guide complet CAF + logement PDF"}
+                        style={{width:"100%",padding:"10px 13px",borderRadius:10,border:`1.5px solid ${curName?C.ink:C.border}`,fontSize:13,fontFamily:"inherit",color:C.ink,outline:"none",boxSizing:"border-box",background:C.cream}}/>
+                    </div>
+
+                    {/* Description courte */}
+                    <div>
+                      <div style={{fontSize:10,fontWeight:700,color:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:.5}}>Description courte</div>
+                      <input value={curDesc} onChange={e=>patchFmt(f.id,"desc",e.target.value)}
+                        placeholder="Ce que le client va obtenir concrètement"
+                        style={{width:"100%",padding:"10px 13px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:13,fontFamily:"inherit",color:C.ink,outline:"none",boxSizing:"border-box",background:C.cream}}/>
+                    </div>
+
+                    {/* Durée + Prix */}
+                    <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:10,fontWeight:700,color:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:.5}}>Durée</div>
+                        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                          {f.durs.map(d=>(
+                            <button key={d} onClick={()=>patchFmt(f.id,"dur",d)}
+                              style={{padding:"6px 11px",borderRadius:18,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:600,border:`1.5px solid ${curDur===d?C.ink:C.border}`,background:curDur===d?C.ink:"transparent",color:curDur===d?C.white:C.ink,transition:"all .15s"}}>
+                              {d}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{flexShrink:0}}>
+                        <div style={{fontSize:10,fontWeight:700,color:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:.5}}>Prix *</div>
+                        <div style={{display:"flex",alignItems:"center",gap:6}}>
+                          <div style={{position:"relative"}}>
+                            <input type="number" min={1} value={curPrice} onChange={e=>patchFmt(f.id,"price",e.target.value)}
+                              placeholder="20"
+                              style={{width:80,padding:"8px 28px 8px 10px",borderRadius:10,border:`1.5px solid ${curPrice?C.ink:C.border}`,fontSize:16,fontFamily:SERIF,fontWeight:700,color:C.ink,outline:"none",boxSizing:"border-box"}}/>
+                            <span style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",fontSize:14,fontWeight:700,color:C.muted,fontFamily:SERIF}}>€</span>
+                          </div>
+                          {curPrice>0&&<div style={{fontSize:10,color:C.sage,fontWeight:700}}>{Math.round(curPrice*.8)}€<br/>pour toi</div>}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
             );
           })}
-        </div>
-
-        {/* Prix orientatif — un seul champ global */}
-        <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"16px",marginBottom:8}}>
-          <div style={{fontSize:10,fontWeight:700,color:C.muted,marginBottom:4,textTransform:"uppercase",letterSpacing:.5}}>{T.priceLabel}</div>
-          <div style={{fontSize:11,color:C.muted,marginBottom:12}}>{T.priceNote}</div>
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <div style={{position:"relative",flex:1}}>
-              <input type="number" min={1} value={form.formats.video?.price||""} onChange={e=>{
-                const v=e.target.value;
-                patch({formats:Object.fromEntries(FMT.map(f=>[f.id,{...form.formats[f.id],price:v}]))});
-              }} placeholder="50"
-                style={{width:"100%",padding:"12px 44px 12px 16px",borderRadius:12,border:`1px solid ${C.border}`,fontSize:22,fontFamily:SERIF,fontWeight:700,color:C.ink,outline:"none",boxSizing:"border-box"}}/>
-              <span style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",fontSize:18,fontWeight:700,color:C.muted,fontFamily:SERIF}}>€</span>
-            </div>
-            {(form.formats.video?.price||0)>0&&(
-              <div style={{background:C.sageL,borderRadius:11,padding:"10px 14px",textAlign:"center",flexShrink:0}}>
-                <div style={{fontSize:16,fontWeight:700,color:C.sage,fontFamily:SERIF}}>{Math.round((form.formats.video?.price||0)*.8)}€</div>
-                <div style={{fontSize:9,color:C.sage}}>pour toi</div>
-              </div>
-            )}
-          </div>
         </div>
 
         {!Object.values(form.formats).some(f=>f.on)&&(
@@ -633,9 +657,12 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
         <div style={{display:"flex",gap:9,marginTop:16}}>
           <button onClick={()=>setStep(2)} style={{flex:1,padding:"13px",borderRadius:13,border:`1.5px solid ${C.border}`,cursor:"pointer",fontWeight:700,fontSize:13,background:C.white,color:C.ink,fontFamily:"inherit"}}>{T.backBtn}</button>
           <button onClick={()=>{
-            const price=Number(form.formats.video?.price||0);
-            if(!Object.values(form.formats).some(f=>f.on)){alert(T.errFormat); return;}
-            if(price<=0){alert(T.errPrice); return;}
+            const activeF=FMT.filter(f=>form.formats[f.id]?.on);
+            if(activeF.length===0){alert(T.errFormat); return;}
+            const missingName=activeF.find(f=>!form.formats[f.id]?.name?.trim());
+            if(missingName){alert(`Donne un nom à ton offre "${missingName.label}" — c'est ce que voient tes clients.`); return;}
+            const missingPrice=activeF.find(f=>!(Number(form.formats[f.id]?.price)>0));
+            if(missingPrice){alert(`Ajoute un prix pour "${form.formats[missingPrice.id]?.name||missingPrice.label}".`); return;}
             setStep(4);
           }} style={{flex:2,padding:"13px",borderRadius:13,border:"none",background:C.ink,color:C.white,fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:SERIF}}>{T.continueBtn}</button>
         </div>
@@ -909,7 +936,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
               tagline:form.tagline, bio:form.bio||"",
               location:form.pays, langs:form.langs||["FR"], cat:form.category,
               photoUrl:form.photoUrl||null,
-              phases:activeFormats.map((f,i)=>({id:i+1,name:f.label,what:`${f.label} ${form.formats[f.id].dur}`,format:f.id,price:Number(form.formats[f.id].price)||0,inc:[]})),
+              phases:activeFormats.map((f,i)=>({id:i+1,name:form.formats[f.id].name||f.label,what:form.formats[f.id].desc||`${f.label} ${form.formats[f.id].dur}`,format:f.id,price:Number(form.formats[f.id].price)||0,inc:[]})),
               creds:[form.result1,form.proof1].filter(Boolean),
               rating:null, impact:{sessions:0,clients:0,revenu:0},
               since:"2026", verified:false, active:true,

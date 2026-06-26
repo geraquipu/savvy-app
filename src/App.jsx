@@ -443,6 +443,7 @@ export default function App() {
     if (id === "exp-sessions")  { setNav(id); setExpInitSection("sesiones"); setScreen("profile"); return; }
     if (id === "exp-dispo")     { setNav(id); setExpInitSection("disponibilidades"); setScreen("profile"); return; }
     if (id === "exp-compte")    { setNav(id); setExpInitSection(null); setScreen("profile"); return; }
+    if (id === "admin")         { setScreen("admin"); return; }
     // Normal nav
     setNav(id);
     setExpInitSection(null);
@@ -530,6 +531,15 @@ export default function App() {
   onDone={(expertProfile) => {
     setNewExpertProfile(expertProfile);
     setIsExpert(true);
+    // Mettre à jour authUser avec la photo et le nom du profil expert
+    if (expertProfile?.photoUrl || expertProfile?.prenom) {
+      setAuthUser(prev => prev ? {
+        ...prev,
+        photoUrl: expertProfile.photoUrl || prev.photoUrl,
+        name: expertProfile.prenom ? (expertProfile.prenom+" "+(expertProfile.nom||"")).trim() : prev.name,
+        isExpert: true,
+      } : prev);
+    }
     if (authUser?.real && authUser?.id) {
       supabase.from("profiles").update({
         is_expert: true,
