@@ -36,11 +36,11 @@ function HomeScreen({ onExpert, onSearch, onCat, onMatch, isLoggedIn, authUser, 
         <div style={{ position:"absolute", top:0, right:0, bottom:0, width:"40%", background:"radial-gradient(ellipse at right center, rgba(91,140,106,.4) 0%, transparent 70%)", pointerEvents:"none" }}/>
         <div style={{ fontSize:11, fontWeight:600, color:"rgba(255,255,255,.6)", textTransform:"uppercase", letterSpacing:1.2, marginBottom:10 }}>Savvy · Match IA</div>
         <div style={{ fontSize:22, fontWeight:700, color:C.white, fontFamily:SERIF, lineHeight:1.3, marginBottom:8, letterSpacing:"-.3px" }}>
-          Trouvez votre expert<br/>en moins d'1 minute
+          Trouvez la personne qui a déjà vécu votre situation.
         </div>
-        <div style={{ fontSize:12, color:"rgba(255,255,255,.7)", marginBottom:18, lineHeight:1.5 }}>Simple, rapide · Conseillers vérifiés · Dès 5€</div>
+        <div style={{ fontSize:12, color:"rgba(255,255,255,.7)", marginBottom:18, lineHeight:1.5 }}>Conseillers vérifiés · Réponse rapide · Dès 5€</div>
         <div style={{ display:"inline-flex", alignItems:"center", gap:8, background:"rgba(255,255,255,.15)", backdropFilter:"blur(8px)", borderRadius:10, padding:"9px 16px", border:"1px solid rgba(255,255,255,.2)" }}>
-          <span style={{ fontSize:13, fontWeight:700, color:C.white }}>Trouver mon expert</span>
+          <span style={{ fontSize:13, fontWeight:700, color:C.white }}>Trouver quelqu'un</span>
           <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" strokeWidth={2.5}><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </div>

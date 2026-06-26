@@ -51,7 +51,7 @@ function OnboardingScreen({ onDone }) {
       {/* CTA bas */}
       <div style={{ padding:"0 24px 44px" }}>
         <button onClick={onDone} style={{ width:"100%", padding:"16px", borderRadius:14, border:"none", cursor:"pointer", fontWeight:700, fontSize:17, background:`linear-gradient(135deg,${C.goldB},#B8864A)`, color:C.white, fontFamily:SERIF, letterSpacing:".2px", boxShadow:"0 4px 24px rgba(185,134,74,.4)" }}>
-          ✦ Découvrir Savvy
+          ✦ Parler à quelqu'un
         </button>
         <p style={{ textAlign:"center", fontSize:11, color:"rgba(253,252,248,.25)", margin:"14px 0 0", lineHeight:1.6 }}>
           En continuant, tu acceptes nos <span style={{ color:"rgba(253,252,248,.4)" }}>Conditions d'utilisation</span>

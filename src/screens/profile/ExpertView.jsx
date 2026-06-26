@@ -1193,6 +1193,23 @@ export function ExpertView({
             </div>
           </div>
 
+          {/* ── Impact humain ── */}
+          {(()=>{
+            const n = authUser?.real ? (authUser?.sessionsCount || 0) : (isNewExpert ? 0 : (EXPERT_DATA.impact.clients || 0));
+            const label = n === 0
+              ? "Tu n'as pas encore aidé quelqu'un — prêt pour ta première ?"
+              : `${n} personne${n>1?"s":""} ont avancé grâce à ton expérience.`;
+            return (
+              <div style={{background:`linear-gradient(135deg,${C.ink},#2C2825)`,borderRadius:16,padding:"16px 18px",marginBottom:14,border:`1px solid rgba(185,134,74,.2)`}}>
+                <div style={{fontSize:10,fontWeight:700,color:"rgba(253,252,248,.4)",textTransform:"uppercase",letterSpacing:.8,marginBottom:8}}>Impact</div>
+                <div style={{display:"flex",alignItems:"center",gap:14}}>
+                  <div style={{fontSize:36,fontWeight:900,color:C.goldB,fontFamily:SERIF,lineHeight:1}}>{n}</div>
+                  <div style={{fontSize:12,color:"rgba(253,252,248,.7)",lineHeight:1.5,flex:1}}>{label}</div>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* ── Completion bar (new expert only) ── */}
           {isNewExpert && (
             <div style={{background:C.white,borderRadius:16,border:`1px solid ${C.goldB}`,padding:"16px 18px",marginBottom:14,boxShadow:`0 2px 8px ${C.sh}`}}>
