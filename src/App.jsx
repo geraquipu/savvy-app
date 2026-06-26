@@ -483,13 +483,13 @@ export default function App() {
       button:active{opacity:.82} button{transition:opacity .15s}
     `}</style>
     <div style={{width:"100%",maxWidth:430,margin:"0 auto",background:C.cream,minHeight:"100vh",display:"flex",flexDirection:"column",boxShadow:"0 0 40px rgba(0,0,0,.1)",...(["message"].includes(screen)?{height:"100vh",overflow:"hidden"}:{})}}>
-      {showLanding && !isLoggedIn && !showOnboarding && <LandingScreen
-        onStart={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowSplash(true); }}
-        onExplore={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setScreen("home"); setNav("home"); }}
-        onExpert={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowAuth(true); setAuthIntent("register"); }}
+      {showLanding && !isLoggedIn && <LandingScreen
+        onStart={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowOnboarding(false); setShowSplash(true); }}
+        onExplore={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowOnboarding(false); setScreen("home"); setNav("home"); }}
+        onExpert={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowOnboarding(false); setShowAuth(true); setAuthIntent("register"); }}
       />}
-      {showOnboarding && !isLoggedIn && <OnboardingScreen onDone={()=>{ setShowOnboarding(false); setShowSplash(true); }}/>}
-      {!showOnboarding && showSplash && !isLoggedIn && !showLanding && <SplashScreen onSkip={()=>{ setShowSplash(false); setScreen("home"); setNav("home"); }} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowSplash(false); setScreen("home"); setNav("home"); }} onRegister={()=>{ setShowSplash(false); setShowAuth(true); setAuthIntent("register"); }}/>}
+      {!showLanding && showOnboarding && !isLoggedIn && <OnboardingScreen onDone={()=>{ setShowOnboarding(false); setShowSplash(true); }}/>}
+      {!showLanding && !showOnboarding && showSplash && !isLoggedIn && <SplashScreen onSkip={()=>{ setShowSplash(false); setScreen("home"); setNav("home"); }} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowSplash(false); setScreen("home"); setNav("home"); }} onRegister={()=>{ setShowSplash(false); setShowAuth(true); setAuthIntent("register"); }}/>}
       {main && <TopBar onNotif={()=>setShowNotif(v=>!v)} notifCount={isLoggedIn?(authUser?.real?(authUser?.isExpert&&appMode==="expert"?expRequestsCount:0):Math.max(0,(newExpertProfile?3:4)-readNotifIds.length)):0} isLoggedIn={isLoggedIn} onLogin={()=>setShowSplash(true)} isExpert={isExpert} appMode={appMode} onToggleMode={m=>{ setAppMode(m); if(m==="expert"){ setNav("exp-dashboard"); setExpInitSection("dashboard"); setScreen("profile"); } else { setNav("home"); setExpInitSection(null); setScreen("home"); } }}/>}
       {showAuth && <AuthModal onClose={()=>setShowAuth(false)} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowAuth(false); setShowSplash(false); setAuthIntent(null); }} initialRegister={authIntent==="register"}/>}
       {showProfileSetup && authUser?.real && <ProfileSetupModal authUser={authUser} onDone={updated=>{ setAuthUser(updated); setShowProfileSetup(false); }}/>}

@@ -123,7 +123,7 @@ function LandingScreen({ onStart, onExplore, onExpert }) {
                   </div>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, fontFamily: SERIF }}>dès {Math.min(...e.offres.map(o=>o.price))}€</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, fontFamily: SERIF }}>{e.offres?.length ? `dès ${Math.min(...e.offres.map(o=>o.price))}€` : "Disponible"}</div>
                   <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>par session</div>
                 </div>
               </div>
