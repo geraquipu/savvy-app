@@ -459,7 +459,10 @@ export default function App() {
     : appMode==="expert" ? (isExpert && !newExpertProfile ? EXPERT_CLIENT_CONVS.reduce((s,c)=>s+(readMsgIds.includes("cli-"+c.id)?0:c.unread),0) : 0)
     : DEMO_MSGS.reduce((s,m)=>s+(readMsgIds.includes("exp-"+m.id)?0:m.unread),0);
 
-  return <Suspense fallback={<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100svh",background:C.ink}}/>}>
+  // Fallback de pantalla para lazy screens individuales
+  const ScreenFallback = <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",minHeight:200}}><div style={{width:6,height:6,borderRadius:"50%",background:C.goldB,animation:"pulse 1.2s ease-in-out infinite"}}/></div>;
+
+  return <>
   {showLoader && <AppLoader onDone={()=>{ sessionStorage.setItem("savvy_loaded","1"); setShowLoader(false); }}/>}
   <div style={{fontFamily:SANS}}>
     {showPaymentSuccess && (
@@ -491,19 +494,19 @@ export default function App() {
         onExplore={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowOnboarding(false); setScreen("home"); setNav("home"); }}
         onExpert={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowOnboarding(false); setShowAuth(true); setAuthIntent("register"); }}
       />}
-      {showOnboarding && !isLoggedIn && <OnboardingScreen onDone={()=>{ setShowOnboarding(false); setShowSplash(true); }}/>}
-      {!showOnboarding && showSplash && !isLoggedIn && <SplashScreen isAdmin={authUser?.email==="geraquipu@hotmail.com"} onSkip={()=>{ setShowSplash(false); setScreen("home"); setNav("home"); }} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowSplash(false); setScreen("home"); setNav("home"); }} onRegister={()=>{ setShowSplash(false); setShowAuth(true); setAuthIntent("register"); }}/>}
+      {showOnboarding && !isLoggedIn && <Suspense fallback={null}><OnboardingScreen onDone={()=>{ setShowOnboarding(false); setShowSplash(true); }}/></Suspense>}
+      {!showOnboarding && showSplash && !isLoggedIn && <Suspense fallback={null}><SplashScreen isAdmin={authUser?.email==="geraquipu@hotmail.com"} onSkip={()=>{ setShowSplash(false); setScreen("home"); setNav("home"); }} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowSplash(false); setScreen("home"); setNav("home"); }} onRegister={()=>{ setShowSplash(false); setShowAuth(true); setAuthIntent("register"); }}/></Suspense>}
       {main && <TopBar onNotif={()=>setShowNotif(v=>!v)} notifCount={isLoggedIn?(authUser?.real?(authUser?.isExpert&&appMode==="expert"?expRequestsCount:0):Math.max(0,(newExpertProfile?3:4)-readNotifIds.length)):0} isLoggedIn={isLoggedIn} onLogin={()=>setShowSplash(true)} isExpert={isExpert} appMode={appMode} onToggleMode={m=>{ setAppMode(m); if(m==="expert"){ setNav("exp-dashboard"); setExpInitSection("dashboard"); setScreen("profile"); } else { setNav("home"); setExpInitSection(null); setScreen("home"); } }}/>}
-      {showAuth && <AuthModal onClose={()=>setShowAuth(false)} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowAuth(false); setShowSplash(false); setAuthIntent(null); }} initialRegister={authIntent==="register"} isAdmin={authUser?.email==="geraquipu@hotmail.com"}/>}
+      {showAuth && <Suspense fallback={null}><AuthModal onClose={()=>setShowAuth(false)} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowAuth(false); setShowSplash(false); setAuthIntent(null); }} initialRegister={authIntent==="register"} isAdmin={authUser?.email==="geraquipu@hotmail.com"}/></Suspense>}
       {showProfileSetup && authUser?.real && <ProfileSetupModal authUser={authUser} onDone={updated=>{ setAuthUser(updated); setShowProfileSetup(false); }}/>}
-      {showNotif && <NotificationPanel onClose={()=>setShowNotif(false)} onNavigate={(s)=>{ setShowNotif(false); handleNav(s); }} readNotifIds={readNotifIds} onMarkRead={setReadNotifIds} isExpert={isExpert&&appMode==="expert"} isNewExpert={!!newExpertProfile} expRequestsCount={expRequestsCount} unreadMsgsCount={unread}/>}
+      {showNotif && <Suspense fallback={null}><NotificationPanel onClose={()=>setShowNotif(false)} onNavigate={(s)=>{ setShowNotif(false); handleNav(s); }} readNotifIds={readNotifIds} onMarkRead={setReadNotifIds} isExpert={isExpert&&appMode==="expert"} isNewExpert={!!newExpertProfile} expRequestsCount={expRequestsCount} unreadMsgsCount={unread}/></Suspense>}
       {screen==="home"         && <div key="home" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><HomeScreen onExpert={goExpert} onSearch={q=>goSearch(q)} onCat={id=>goSearch("",id)} onMatch={()=>{setScreen("match");setNav("home");}} isLoggedIn={isLoggedIn} authUser={authUser} isExpert={isExpert} experts={dbExperts}/></div>}
-      {screen==="match"        && <div key="match" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><MatchScreen onExpert={goExpert} onBrowseAll={()=>goSearch("")} experts={dbExperts}/></div>}
-      {screen==="search"       && <div key="search" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><SearchScreen initQ={searchQ} initCat={searchCat} onExpert={goExpert} onBack={()=>{setScreen("home");setNav("home");}} experts={dbExperts} expertsLoaded={expertsLoaded}/></div>}
-      {screen==="messages"     && <div key="messages" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><MessagesListScreen onConv={e=>goMsg(e)} isLoggedIn={isLoggedIn} onLogin={()=>setShowAuth(true)} readMsgIds={readMsgIds} onMarkMsgRead={id=>setReadMsgIds(p=>p.includes(id)?p:[...p,id])} appMode={appMode} isNewExpert={!!newExpertProfile} isRealUser={!!authUser?.real} authUser={authUser}/></div>}
-      {screen==="reservations" && <div key="reservations" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><ReservationsScreen onExpert={goExpert} onMsg={goMsg} isLoggedIn={isLoggedIn} onLogin={()=>setShowAuth(true)} onNavigate={handleNav} onPendingChange={n=>setClientPendingCount(n)} isRealUser={!!authUser?.real} authUser={authUser}/></div>}
-      {screen==="public"        && <PublicProfileScreen onBack={()=>{setScreen("profile");setNav("profile");}} onBook={goBook} onMsg={goMsg} expertId={authUser?.isExpert?(EXPERTS.find(ex=>ex.initials===DEMO_USERS.expert.initials)||EXPERTS[7])?.id:undefined} realExpertId={authUser?.real && authUser?.isExpert ? authUser?.expertId : null}/>}
-      {screen==="profile"      && <ProfileScreen key={expInitSection||"profile"} authUser={authUser} isLoggedIn={isLoggedIn} onLogin={()=>setShowAuth(true)} onNavigate={(s)=>handleNav(s)} newExpertProfile={newExpertProfile}
+      {screen==="match"        && <Suspense fallback={ScreenFallback}><div key="match" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><MatchScreen onExpert={goExpert} onBrowseAll={()=>goSearch("")} experts={dbExperts}/></div></Suspense>}
+      {screen==="search"       && <Suspense fallback={ScreenFallback}><div key="search" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><SearchScreen initQ={searchQ} initCat={searchCat} onExpert={goExpert} onBack={()=>{setScreen("home");setNav("home");}} experts={dbExperts} expertsLoaded={expertsLoaded}/></div></Suspense>}
+      {screen==="messages"     && <Suspense fallback={ScreenFallback}><div key="messages" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><MessagesListScreen onConv={e=>goMsg(e)} isLoggedIn={isLoggedIn} onLogin={()=>setShowAuth(true)} readMsgIds={readMsgIds} onMarkMsgRead={id=>setReadMsgIds(p=>p.includes(id)?p:[...p,id])} appMode={appMode} isNewExpert={!!newExpertProfile} isRealUser={!!authUser?.real} authUser={authUser}/></div></Suspense>}
+      {screen==="reservations" && <Suspense fallback={ScreenFallback}><div key="reservations" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><ReservationsScreen onExpert={goExpert} onMsg={goMsg} isLoggedIn={isLoggedIn} onLogin={()=>setShowAuth(true)} onNavigate={handleNav} onPendingChange={n=>setClientPendingCount(n)} isRealUser={!!authUser?.real} authUser={authUser}/></div></Suspense>}
+      {screen==="public"       && <Suspense fallback={ScreenFallback}><PublicProfileScreen onBack={()=>{setScreen("profile");setNav("profile");}} onBook={goBook} onMsg={goMsg} expertId={authUser?.isExpert?(EXPERTS.find(ex=>ex.initials===DEMO_USERS.expert.initials)||EXPERTS[7])?.id:undefined} realExpertId={authUser?.real && authUser?.isExpert ? authUser?.expertId : null}/></Suspense>}
+      {screen==="profile"      && <Suspense fallback={ScreenFallback}><ProfileScreen key={expInitSection||"profile"} authUser={authUser} isLoggedIn={isLoggedIn} onLogin={()=>setShowAuth(true)} onNavigate={(s)=>handleNav(s)} newExpertProfile={newExpertProfile}
           isExpert={isExpert}
           appMode={appMode}
           initExpSection={expInitSection}
@@ -514,20 +517,19 @@ export default function App() {
           onLogout={() => { supabase.auth.signOut(); setIsLoggedIn(false); setAuthUser(null); setIsExpert(false); setScreen("home"); setNav("home"); setAppMode("client"); }}
           uploadPhoto={uploadPhoto}
           dbExperts={dbExperts}
-        />}
-      {screen==="admin"        && <AdminScreen authUser={authUser} onBack={()=>{ setScreen("profile"); setNav("profile"); }}/>}
+        /></Suspense>}
+      {screen==="admin"        && <Suspense fallback={ScreenFallback}><AdminScreen authUser={authUser} onBack={()=>{ setScreen("profile"); setNav("profile"); }}/></Suspense>}
       {screen==="expert"       && expert && <ExpertScreen e={expert} onBack={()=>{setScreen(prevScreen);}} onBook={goBook} onMsg={goMsg}/>}
-      {screen==="message"      && expert && <MessagingScreen e={expert} onBack={()=>{setScreen(prevMsgScreen);setNav(prevMsgScreen);}} authUser={authUser}/>}
-      {screen==="booking"      && expert && phase && <BookingScreen e={expert} ph={phase} onBack={()=>setScreen("expert")} onConfirm={(info)=>{ setBookingInfo(info); setScreen("success"); }}/>}
-      {screen==="success"      && expert && phase && <SuccessScreen e={expert} ph={phase} onHome={goHome} onMsg={()=>goMsg(expert)} bookingDate={bookingInfo?.date} bookingSlot={bookingInfo?.slot} authUser={authUser}/>}
-      {screen==="signup" && <SignupScreen
+      {screen==="message"      && expert && <Suspense fallback={ScreenFallback}><MessagingScreen e={expert} onBack={()=>{setScreen(prevMsgScreen);setNav(prevMsgScreen);}} authUser={authUser}/></Suspense>}
+      {screen==="booking"      && expert && phase && <Suspense fallback={ScreenFallback}><BookingScreen e={expert} ph={phase} onBack={()=>setScreen("expert")} onConfirm={(info)=>{ setBookingInfo(info); setScreen("success"); }}/></Suspense>}
+      {screen==="success"      && expert && phase && <Suspense fallback={ScreenFallback}><SuccessScreen e={expert} ph={phase} onHome={goHome} onMsg={()=>goMsg(expert)} bookingDate={bookingInfo?.date} bookingSlot={bookingInfo?.slot} authUser={authUser}/></Suspense>}
+      {screen==="signup" && <Suspense fallback={ScreenFallback}><SignupScreen
   authUser={authUser}
   uploadPhoto={uploadPhoto}
   onBack={() => { if(prevScreen==="profile"){setScreen("profile");setNav("profile");}else{goHome();}}}
   onDone={(expertProfile) => {
     setNewExpertProfile(expertProfile);
     setIsExpert(true);
-    // Persister le statut expert dans Supabase (si utilisateur réel)
     if (authUser?.real && authUser?.id) {
       supabase.from("profiles").update({
         is_expert: true,
@@ -538,9 +540,9 @@ export default function App() {
     setScreen("profile");
     setNav("profile");
   }}
-/>}
+/></Suspense>}
       {main && <BottomNav nav={nav} onChange={handleNav} unreadCount={unread} appMode={appMode} sessionsCount={newExpertProfile ? 0 : expRequestsCount} reservationsCount={(isLoggedIn && appMode==="client" && !authUser?.real) ? clientPendingCount : 0}/>}
     </div>
   </div>
-  </Suspense>;
+  </>;
 }
