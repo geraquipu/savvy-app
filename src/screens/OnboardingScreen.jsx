@@ -38,9 +38,7 @@ function OnboardingScreen({ onDone }) {
         {/* 3 piliers */}
         <div style={{ display:"flex", flexDirection:"column", gap:12, width:"100%", maxWidth:300, marginBottom:40 }}>
           {[
-            { icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, label:"Experts vérifiés par Savvy" },
-            { icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>, label:"Conseil concret · Réponse rapide" },
-            { icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2}><path d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10z"/><path d="m9 12 2 2 4-4"/></svg>, label:"Satisfait ou remboursé · Dès 5€" },
+            { icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, label:"Une expérience réellement vécue" },
           ].map((p,i)=>(
             <div key={i} style={{ display:"flex", alignItems:"center", gap:13, background:"rgba(255,255,255,.06)", borderRadius:13, padding:"13px 16px", border:"1px solid rgba(185,134,74,.15)" }}>
               <div style={{ flexShrink:0 }}>{p.icon}</div>
