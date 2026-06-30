@@ -467,6 +467,7 @@ export default function App() {
     setNav(id);
     setExpInitSection(null);
     if(id==="home")         setScreen("home");
+    if(id==="search")       setScreen("search");
     if(id==="messages")     setScreen("messages");
     if(id==="reservations") setScreen("reservations");
     if(id==="profile")      setScreen("profile");
