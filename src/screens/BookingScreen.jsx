@@ -331,7 +331,12 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
           Choisissez parmi les offres de {e.name.split(" ")[0]}
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:20 }}>
-          {e.phases.map(p => {
+          {!(e.phases?.length) && (
+            <div style={{ background:C.white, borderRadius:14, border:`1px solid ${C.border}`, padding:"20px 16px", textAlign:"center", color:C.muted, fontSize:13 }}>
+              Cet expert n'a pas encore configuré ses offres.
+            </div>
+          )}
+          {(e.phases || []).map(p => {
             const isSel = selectedPhase?.id === p.id;
             return (
               <div key={p.id} onClick={()=>setSelectedPhase(p)}
