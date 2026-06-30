@@ -288,12 +288,11 @@ function BottomNav({nav, onChange, unreadCount, appMode, sessionsCount=0, reserv
 export default function App() {
   // Onboarding: toujours montré en démo (1 fois par session)
   // En production: utiliser localStorage.getItem("savvy_onboarded")
-  const [showLoader, setShowLoader] = useState(()=>!localStorage.getItem("savvy_loaded"));
+  const [showLoader, setShowLoader] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const isDesktop = window.innerWidth > 768;
-  const visited = !!localStorage.getItem("savvy_visited");
-  const [showSplash, setShowSplash] = useState(!visited && !isDesktop);
-  const [showLanding, setShowLanding] = useState(!visited && isDesktop);
+  const [showSplash, setShowSplash] = useState(!isDesktop);
+  const [showLanding, setShowLanding] = useState(isDesktop);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authUser, setAuthUser] = useState(null);
   const [isExpert, setIsExpert] = useState(false);
