@@ -31,6 +31,7 @@ function AuthModal({ onClose, onSuccess, initialRegister, isAdmin }) {
     if(provider==="google"||provider==="apple"){
       setLoading(true);
       try {
+        if(initialRegister) localStorage.setItem("savvy_expert_intent","1");
         await supabase.auth.signInWithOAuth({
           provider,
           options: { redirectTo: window.location.origin }

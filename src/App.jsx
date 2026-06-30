@@ -408,7 +408,6 @@ export default function App() {
       if (!session) return; // logout géré par onLogout
       if (_event === "SIGNED_IN") {
         const profil = await loadProfile(session.user);
-        // Clear demo localStorage data for real users
         try {
           localStorage.removeItem("savvy_bookings");
           localStorage.removeItem("savvy_threads");
@@ -416,7 +415,16 @@ export default function App() {
         setAuthUser(prev => prev?.real ? prev : profil);
         if (profil.isExpert) setIsExpert(true);
         setIsLoggedIn(true);
+        setShowSplash(false);
+        setShowLanding(false);
         if (needsSetup(profil, session.user)) setShowProfileSetup(true);
+        // Si venía del flujo experto (Google/Apple OAuth) → llevar al signup de experto
+        const expertIntent = localStorage.getItem("savvy_expert_intent");
+        if (expertIntent && !profil.isExpert && !profil.pendingExpert) {
+          localStorage.removeItem("savvy_expert_intent");
+          setScreen("signup");
+          setNav("profile");
+        }
       }
     });
     return () => subscription.unsubscribe();
