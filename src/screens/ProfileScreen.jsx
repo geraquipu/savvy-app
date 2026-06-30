@@ -824,9 +824,14 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
         onChange={async e=>{
           const f=e.target.files[0]; if(!f)return; e.target.value="";
           const r=new FileReader(); r.onload=ev=>setPhotoUrl(ev.target.result); r.readAsDataURL(f);
-          try{ const url=await uploadPhoto(f,authUser?.id); setPhotoUrl(url);
-            if(authUser?.id) await supabase.from(mode==="expert"?"experts":"profiles").update({photo_url:url}).eq(mode==="expert"?"user_id":"id",authUser.id);
-          }catch{}
+          try{
+            const url=await uploadPhoto(f,authUser?.id);
+            setPhotoUrl(url);
+            if(authUser?.id){
+              const {error}=await supabase.from(mode==="expert"?"experts":"profiles").update({photo_url:url}).eq(mode==="expert"?"user_id":"id",authUser.id);
+              if(error) alert("Erreur photo : "+error.message);
+            }
+          }catch(err){ alert("Erreur upload : "+(err?.message||"Réessaie")); }
         }}
       />
       <div style={{ flex:1, overflowY:"auto", paddingBottom:80, background:C.cream }}>
