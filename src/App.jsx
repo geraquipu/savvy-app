@@ -360,15 +360,17 @@ export default function App() {
     try {
       const { data } = await supabase.from("profiles").select("*").eq("id", u.id).single();
       if (data) {
-        // Charger la photo depuis experts si c'est un expert
         let photoUrl = null;
         let expertId = null;
-        if (data.is_expert) {
-          const { data: exp } = await supabase.from("experts").select("id, photo_url").eq("user_id", u.id).single();
-          photoUrl = exp?.photo_url || null;
-          expertId = exp?.id || null;
+        let isApprovedExpert = false;
+        // Vérifie que l'expert est actif (approuvé) avant de lui donner l'accès expert
+        const { data: exp } = await supabase.from("experts").select("id, photo_url, active").eq("user_id", u.id).single();
+        if (exp) {
+          photoUrl = exp.photo_url || null;
+          expertId = exp.id || null;
+          isApprovedExpert = !!exp.active;
         }
-        return { ...base, name:data.name||base.name, city:data.city, isExpert:!!data.is_expert, expertDomain:data.expert_domain, photoUrl, expertId };
+        return { ...base, name:data.name||base.name, city:data.city, isExpert:isApprovedExpert, expertDomain:data.expert_domain, photoUrl, expertId };
       }
     } catch {}
     return base;
