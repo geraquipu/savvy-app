@@ -1024,6 +1024,11 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
                 creds:builtProfile.creds, metrics:[],
                 photo_url:form.photoUrl?.startsWith("http")?form.photoUrl:null,
               };
+              // Garantir que le profil existe avant d'insérer l'expert (FK experts_user_id_fkey)
+              await supabase.from("profiles").upsert(
+                { id: authUser.id, name: authUser.name || null, email: authUser.email || null },
+                { onConflict: "id" }
+              );
               // Try update first (if row exists), then insert
               const{data:existing}=await supabase.from("experts").select("id").eq("user_id",authUser.id).single();
               let saveError=null;
