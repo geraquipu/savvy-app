@@ -339,7 +339,7 @@ function ExpertInbox({ authUser, onBack }) {
 }
 
 export function ExpertView({
-  USER, EXPERT_DATA, isExpert, authUser, newExpertProfile, isNewExpert,
+  USER, EXPERT_DATA, isExpert, authUser, newExpertProfile, isNewExpert, sbExpertData,
   onNavigate, onSignup, onBecomeExpert, onLogout,
   photoUrl, photoInputRef,
   setCancelModal, setClientProfileModal,
@@ -1129,11 +1129,13 @@ export function ExpertView({
       const revenuMois = isNewExpert ? 0 : EXPERT_DATA.impact.revenu;
 
       // Completion % for new expert
+      // Pour les experts réels (newExpertProfile peut être null si inscrit en session précédente)
+      const expertData = newExpertProfile || sbExpertData;
       const completionSteps = isNewExpert ? [
         { done: true,  label: "Profil créé", icon:"✅" },
-        { done: !!(newExpertProfile?.photo || photoUrl), label: "Photo ajoutée", icon:"📸" },
-        { done: !!newExpertProfile?.phases?.length, label: "Offre créée", icon:"💼" },
-        { done: !!newExpertProfile?.creds?.length, label: "Preuves ajoutées", icon:"🏆" },
+        { done: !!(expertData?.photo_url || expertData?.photo || photoUrl), label: "Photo ajoutée", icon:"📸" },
+        { done: !!(expertData?.phases?.length), label: "Offre créée", icon:"💼" },
+        { done: !!(expertData?.creds?.length), label: "Preuves ajoutées", icon:"🏆" },
         { done: Object.values(dispoSelected||{}).some(Boolean), label: "Disponibilités", icon:"🗓" },
         { done: false, label: "Première réservation", icon:"🎉" },
       ] : null;

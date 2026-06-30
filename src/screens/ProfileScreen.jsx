@@ -863,7 +863,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
         ) : (
           <ExpertView
             USER={USER} EXPERT_DATA={EXPERT_DATA} isExpert={isExpert} authUser={authUser}
-            newExpertProfile={newExpertProfile} isNewExpert={isNewExpert}
+            newExpertProfile={newExpertProfile} isNewExpert={isNewExpert} sbExpertData={sbExpertData}
             onNavigate={onNavigate} onSignup={onSignup} onBecomeExpert={onBecomeExpert} onLogout={onLogout}
             photoUrl={photoUrl} photoInputRef={photoInputRef}
             setCancelModal={setCancelModal} setClientProfileModal={setClientProfileModal}
