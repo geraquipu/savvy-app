@@ -294,6 +294,7 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(!isDesktop);
   const [showLanding, setShowLanding] = useState(isDesktop);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
   const [authUser, setAuthUser] = useState(null);
   const [isExpert, setIsExpert] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
@@ -399,6 +400,7 @@ export default function App() {
         setShowOnboarding(false);
         if (needsSetup(profil, session.user)) setShowProfileSetup(true);
       }
+      setAuthReady(true);
     });
     const { data:{ subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!session) return; // logout géré par onLogout
@@ -491,7 +493,7 @@ export default function App() {
       button:active{opacity:.82} button{transition:opacity .15s}
     `}</style>
     <div style={{width:"100%",maxWidth:430,margin:"0 auto",background:C.cream,minHeight:"100vh",display:"flex",flexDirection:"column",boxShadow:"0 0 40px rgba(0,0,0,.1)",paddingTop:`calc(env(safe-area-inset-top) + 56px)`,paddingBottom:`calc(env(safe-area-inset-bottom) + 64px)`,...(["message"].includes(screen)?{height:"100vh",overflow:"hidden"}:{})}}>
-      {showLanding && !isLoggedIn && (
+      {showLanding && !isLoggedIn && authReady && (
         <div style={{position:"fixed",inset:0,zIndex:50,overflowY:"auto",background:C.cream}}>
           <Suspense fallback={null}>
             <LandingScreen
@@ -503,7 +505,7 @@ export default function App() {
         </div>
       )}
       {showOnboarding && !isLoggedIn && <Suspense fallback={null}><OnboardingScreen onDone={()=>{ setShowOnboarding(false); setShowSplash(true); }}/></Suspense>}
-      {!showOnboarding && showSplash && !isLoggedIn && <Suspense fallback={null}><SplashScreen isAdmin={authUser?.email==="geraquipu@hotmail.com"} onSkip={()=>{ setShowSplash(false); setScreen("home"); setNav("home"); }} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowSplash(false); setScreen("home"); setNav("home"); }} onRegister={()=>{ setShowSplash(false); setShowAuth(true); setAuthIntent("register"); }}/></Suspense>}
+      {!showOnboarding && showSplash && !isLoggedIn && authReady && <Suspense fallback={null}><SplashScreen isAdmin={authUser?.email==="geraquipu@hotmail.com"} onSkip={()=>{ setShowSplash(false); setScreen("home"); setNav("home"); }} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowSplash(false); setScreen("home"); setNav("home"); }} onRegister={()=>{ setShowSplash(false); setShowAuth(true); setAuthIntent("register"); }}/></Suspense>}
       {main && <TopBar onNotif={()=>setShowNotif(v=>!v)} notifCount={isLoggedIn?(authUser?.real?(authUser?.isExpert&&appMode==="expert"?expRequestsCount:0):Math.max(0,(newExpertProfile?3:4)-readNotifIds.length)):0} isLoggedIn={isLoggedIn} onLogin={()=>setShowSplash(true)} isExpert={isExpert} appMode={appMode} onToggleMode={m=>{ setAppMode(m); if(m==="expert"){ setNav("exp-dashboard"); setExpInitSection("dashboard"); setScreen("profile"); } else { setNav("home"); setExpInitSection(null); setScreen("home"); } }}/>}
       {showAuth && <Suspense fallback={null}><AuthModal onClose={()=>setShowAuth(false)} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowAuth(false); setShowSplash(false); setAuthIntent(null); }} initialRegister={authIntent==="register"} isAdmin={authUser?.email==="geraquipu@hotmail.com"}/></Suspense>}
       {showProfileSetup && authUser?.real && <ProfileSetupModal authUser={authUser} onDone={updated=>{ setAuthUser(updated); setShowProfileSetup(false); }}/>}
