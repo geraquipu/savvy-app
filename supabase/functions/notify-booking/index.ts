@@ -72,7 +72,7 @@ serve(async (req) => {
           <p style="margin:0;color:#57534E">💶 ${price}€</p>
         </div>
         <p style="color:#57534E">Connectez-vous à Savvy pour <strong>confirmer ou décliner</strong> cette réservation.</p>
-        <a href="https://savvy-app.fr" style="display:inline-block;background:#1C1917;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;margin-top:8px">Voir la réservation →</a>
+        <a href="https://getsavvy.fr" style="display:inline-block;background:#1C1917;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;margin-top:8px">Voir la réservation →</a>
         <p style="color:#A8A29E;font-size:12px;margin-top:24px">Savvy · Tu gardes 80% de chaque session</p>
       </div>
       `
@@ -95,7 +95,7 @@ serve(async (req) => {
           <p style="margin:0;color:#57534E">💶 ${price}€</p>
         </div>
         <p style="color:#57534E">Préparez vos questions et rejoignez la session à l'heure prévue.</p>
-        <a href="https://savvy-app.fr" style="display:inline-block;background:#1C1917;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;margin-top:8px">Voir ma session →</a>
+        <a href="https://getsavvy.fr" style="display:inline-block;background:#1C1917;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;margin-top:8px">Voir ma session →</a>
         <p style="color:#A8A29E;font-size:12px;margin-top:24px">Savvy · L'expertise humaine, accessible à tous</p>
       </div>
       `
@@ -113,7 +113,7 @@ serve(async (req) => {
         <p style="color:#57534E">Bonjour ${clientName},</p>
         <p style="color:#57534E">Malheureusement, <strong>${expertName}</strong> a annulé votre session ${phase} du ${date}.</p>
         <p style="color:#57534E">Vous pouvez réserver une nouvelle session ou choisir un autre expert sur Savvy.</p>
-        <a href="https://savvy-app.fr" style="display:inline-block;background:#1C1917;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;margin-top:8px">Trouver un expert →</a>
+        <a href="https://getsavvy.fr" style="display:inline-block;background:#1C1917;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;margin-top:8px">Trouver un expert →</a>
         <p style="color:#A8A29E;font-size:12px;margin-top:24px">Savvy · L'expertise humaine, accessible à tous</p>
       </div>
       `
