@@ -1019,13 +1019,14 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
                 initials:builtProfile.initials,
                 role:builtProfile.role, tagline:form.tagline,
                 bio:form.bio||"", location:form.pays, langs:form.langs||["FR"],
-                cat:form.category, verified:false, active:true,
+                cat:form.category, verified:false, active:false,
                 phases:builtProfile.phases,
                 creds:builtProfile.creds, metrics:[],
                 photo_url:form.photoUrl?.startsWith("http")?form.photoUrl:null,
               };
-              const{error}=await supabase.from("experts").upsert(expertData,{onConflict:"user_id"});
+              const{data:expRow,error}=await supabase.from("experts").upsert(expertData,{onConflict:"user_id"}).select("id").single();
               if(error) console.warn("Expert non sauvegardé:",error.message);
+              else console.log("Expert créé (en attente d'approbation):", expRow?.id);
             }
             patch({submitted:true});
           }} style={{flex:2,padding:"14px",borderRadius:13,border:"none",

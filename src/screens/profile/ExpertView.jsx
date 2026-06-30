@@ -744,7 +744,10 @@ export function ExpertView({
           </div>
 
           <button onClick={async ()=>{
-            if (!resolvedExpertId) { setDispoSaved(true); setTimeout(()=>setDispoSaved(false),3000); return; }
+            if (!resolvedExpertId) {
+              alert("Profil expert introuvable. Déconnecte-toi et reconnecte-toi pour réessayer.");
+              return;
+            }
             const rows = Object.entries(weekSchedule)
               .filter(([,d]) => d.active)
               .map(([dow, d]) => ({ expert_id: resolvedExpertId, day_of_week: Number(dow), start_time: d.start, end_time: d.end }));

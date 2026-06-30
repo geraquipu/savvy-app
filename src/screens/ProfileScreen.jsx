@@ -188,12 +188,12 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
   // ── Charger les bookings Supabase pour l'expert réel ──
   const [resolvedExpertId, setResolvedExpertId] = useState(authUser?.expertId || null);
   useEffect(() => {
-    if (!authUser?.real || !authUser?.isExpert) return;
+    if (!authUser?.real || !authUser?.id) return;
     if (authUser?.expertId) { setResolvedExpertId(authUser.expertId); return; }
-    // Fallback: chercher l'expertId si absent de authUser (session antérieure)
+    // Fallback: chercher l'expertId même si isExpert n'est pas encore confirmé
     supabase.from("experts").select("id").eq("user_id", authUser.id).single()
-      .then(({data, error}) => {
-        if(data?.id) setResolvedExpertId(data.id);
+      .then(({data}) => {
+        if (data?.id) setResolvedExpertId(data.id);
       });
   }, [authUser?.id, authUser?.expertId]);
 

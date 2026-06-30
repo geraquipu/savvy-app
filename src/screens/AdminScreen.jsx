@@ -23,12 +23,32 @@ function AdminScreen({ authUser, onBack }) {
   const [users, setUsers] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [pendingExperts, setPendingExperts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const isAdmin = ADMIN_EMAILS.includes(authUser?.email);
 
+  const loadPending = () => {
+    supabase.from("experts").select("id, name, role, bio, tagline, cat, location, user_id, created_at").eq("active", false).order("created_at", { ascending: false })
+      .then(({ data }) => setPendingExperts(data || []));
+  };
+
+  const approveExpert = async (exp) => {
+    await supabase.from("experts").update({ active: true, verified: true }).eq("id", exp.id);
+    if (exp.user_id) await supabase.from("profiles").update({ is_expert: true }).eq("id", exp.user_id);
+    setPendingExperts(p => p.filter(e => e.id !== exp.id));
+    setStats(s => ({ ...s, experts: s.experts + 1 }));
+  };
+
+  const rejectExpert = async (exp) => {
+    if (!window.confirm(`Rejeter la candidature de ${exp.name} ?`)) return;
+    await supabase.from("experts").delete().eq("id", exp.id);
+    setPendingExperts(p => p.filter(e => e.id !== exp.id));
+  };
+
   useEffect(() => {
     if (!isAdmin) return;
+    loadPending();
     Promise.all([
       supabase.from("profiles").select("id, name, email, is_expert, created_at").order("created_at", { ascending: false }).limit(50),
       supabase.from("bookings").select("*").order("created_at", { ascending: false }).limit(100),
@@ -70,6 +90,7 @@ function AdminScreen({ authUser, onBack }) {
 
   const TABS = [
     { id: "overview", l: "Vue d'ensemble" },
+    { id: "experts", l: `Experts (${pendingExperts.length > 0 ? `⚠️ ${pendingExperts.length} en attente` : stats.experts})` },
     { id: "users", l: `Utilisateurs (${stats.users})` },
     { id: "bookings", l: `Réservations (${stats.bookings})` },
     { id: "reviews", l: `Avis (${stats.reviews})` },
@@ -126,6 +147,47 @@ function AdminScreen({ authUser, onBack }) {
               ))}
               {bookings.length === 0 && <div style={{ fontSize: 12, color: C.muted, textAlign: "center", padding: "16px 0" }}>Aucune réservation</div>}
             </div>
+          </div>
+        )}
+
+        {/* ── Experts ── */}
+        {!loading && tab === "experts" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {pendingExperts.length > 0 && (
+              <div style={{ background: "#FEF3C7", borderRadius: 10, padding: "10px 14px", fontSize: 12, color: "#92400E", fontWeight: 600 }}>
+                ⚠️ {pendingExperts.length} candidature{pendingExperts.length > 1 ? "s" : ""} en attente d'approbation
+              </div>
+            )}
+            {pendingExperts.length === 0 && (
+              <div style={{ textAlign: "center", padding: "40px", color: C.muted }}>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>✓</div>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>Aucune candidature en attente</div>
+              </div>
+            )}
+            {pendingExperts.map(exp => (
+              <div key={exp.id} style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "16px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+                  <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.goldL, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 16, color: C.goldB, flexShrink: 0 }}>
+                    {(exp.name || "?")[0].toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>{exp.name}</div>
+                    <div style={{ fontSize: 12, color: C.muted }}>{exp.role}</div>
+                  </div>
+                  <div style={{ fontSize: 10, color: C.faint }}>{new Date(exp.created_at).toLocaleDateString("fr-FR")}</div>
+                </div>
+                {exp.tagline && <div style={{ fontSize: 12, color: C.soft, fontStyle: "italic", marginBottom: 8, lineHeight: 1.5, padding: "8px 10px", background: C.cream, borderRadius: 8 }}>«{exp.tagline}»</div>}
+                {exp.bio && <div style={{ fontSize: 12, color: C.soft, lineHeight: 1.5, marginBottom: 10 }}>{exp.bio}</div>}
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => rejectExpert(exp)} style={{ flex: 1, padding: "10px", borderRadius: 10, border: `1px solid #FCA5A5`, background: "#FEF2F2", color: "#DC2626", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                    ✕ Rejeter
+                  </button>
+                  <button onClick={() => approveExpert(exp)} style={{ flex: 2, padding: "10px", borderRadius: 10, border: "none", background: C.sage, color: C.white, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                    ✓ Approuver
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
