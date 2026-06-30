@@ -20,7 +20,7 @@ const SIGNUP_T = {
     createBtn: "Créer mon profil →",
     cguNote: "En créant un profil, tu acceptes les CGU Savvy",
     // step 1
-    step1Title: "Qui es-tu ?",
+    step1Title: "Présente-toi",
     addPhoto: "Ajouter photo", photoAdded: "Photo ajoutée · touche pour changer", photoHint: "Photo de profil (recommandée)",
     labelPrenom: "Prénom", labelNom: "Nom",
     labelEmail: "Email du compte", emailLocked: "Même compte que client · non modifiable",
@@ -29,9 +29,9 @@ const SIGNUP_T = {
     errName: "Prénom et nom obligatoires.", errLang: "Sélectionne au moins une langue.",
     // step 2
     step2Title: "Ton expertise",
-    step2H: "Qu'est-ce que tu sais vraiment faire ?", step2Sub: "Ton vécu, pas ton diplôme.",
+    step2H: "Qu'est-ce que tu sais vraiment faire ?", step2Sub: "Les clients achètent ton expérience, pas ton CV.",
     domainLabel: "Ton domaine", specialLabel: "Spécialité",
-    taglineLabel: "En une phrase, ce que tu apportes",
+    taglineLabel: "Quel problème peux-tu résoudre en moins d'une heure ?",
     taglinePh: "Ex : J'aide les nouveaux arrivants à trouver un logement en moins de 2 semaines",
     taglineOk: "✓ Parfait", taglineHint: "Sois précis — c'est ta première impression",
     yearsLabel: "Années d'expérience",
@@ -51,18 +51,18 @@ const SIGNUP_T = {
     resultLabel: "🎯 Décris un résultat réel", resultReq: "obligatoire",
     resultPh: "Ex : Trouver un appart sans garant, c'est possible — je l'ai fait 12 fois. Demande-moi comment.",
     resultOk: "✓ Parfait — concret et personnel", resultHint: "1–2 lignes · mesurable · personnel",
-    proofLabel: "🔗 Preuve", proofOpt: "(optionnel)",
+    proofLabel: "🔗 Renforce ta crédibilité", proofOpt: "",
     proofLien: "🔗 Lien URL", proofFile: "📎 Fichier",
     proofFilePh: "Choisir un fichier (PDF, image)",
     proofUrlPh: "https://linkedin.com/in/tonprofil ou lien portfolio",
-    bioLabel: "📝 Bio", bioOpt: "(optionnel)",
+    bioLabel: "📖 Ton histoire", bioOpt: "",
     bioNote: "Ajoute-la plus tard si tu veux — tu peux aussi la générer avec l'IA depuis ton profil.",
     bioPh: "Ex : Ancienne gestionnaire de copropriété pendant 6 ans…",
     errResult: "Décris un résultat réel (20 caractères min).",
     // step 5
     step5Title: "Tes disponibilités",
     step5H: "Quand es-tu disponible ?", step5Sub: "Les clients voient tes créneaux en temps réel — sois précis.",
-    dispoNow: {title:"Je configure maintenant", sub:"Mets tes créneaux en ligne tout de suite", icon:"🟢"},
+    dispoNow: {title:"Je veux commencer à recevoir des clients", sub:"Mets tes créneaux en ligne tout de suite", icon:"🟢"},
     dispoLater: {title:"Je le ferai plus tard", sub:"Tu peux configurer depuis ton tableau de bord", icon:"⏸"},
     modeLabel: "Mode",
     modeRecurrent: "📅 Horaire hebdo", modeRSub: "Chaque sem.",
@@ -76,7 +76,7 @@ const SIGNUP_T = {
     summaryEmail: "Email", summaryPays: "Pays", summaryLangs: "Langues", summaryResult: "Résultat", summaryDispo: "Dispo",
     cguCheck: null,
     certifCheck: "Je certifie que mon expérience est authentique",
-    publishBtn: "Publier mon profil ✦",
+    publishBtn: "✨ Commencer à aider",
     errCgu: "Accepte les conditions pour continuer.",
     // submitted
     submittedTitle: "Candidature en cours",
@@ -190,11 +190,32 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
     proof1Type:"lien",
   });
   const patch = (p) => setForm(f => ({...f,...p}));
+  // Sync photo from authUser if it arrives after mount
+  React.useEffect(() => {
+    if (authUser?.photoUrl && !form.photoUrl) patch({ photoUrl: authUser.photoUrl });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser?.photoUrl]);
   const [showCguModal, setShowCguModal] = useState(false);
   const TOTAL_STEPS = 6;
   const pct = Math.round((Math.max(0,step-1) / TOTAL_STEPS) * 100);
 
   const [exIdx] = useState(0);
+  const OFFER_EXAMPLES_BY_CAT = {
+    vie:       [{bad:"Appel vidéo 1h",    good:"S'installer en France sans galère"},
+                {bad:"Visio 30 min",       good:"Trouver un appart sans garant à Paris"},
+                {bad:"Consultation",       good:"Décrypter la CAF et les aides sociales"}],
+    business:  [{bad:"Appel vidéo 1h",    good:"Lancer sa micro-entreprise sans erreurs"},
+                {bad:"Visio 30 min",       good:"Trouver ses 10 premiers clients"},
+                {bad:"Consultation",       good:"Négocier avec des fournisseurs chinois"}],
+    industrie: [{bad:"Appel vidéo 1h",    good:"Optimiser son labo de pâtisserie en 1h"},
+                {bad:"Visio 30 min",       good:"Réduire ses coûts de production de 20%"},
+                {bad:"Consultation",       good:"Préparer son entretien ingénieur EPC"}],
+    cuisine:   [{bad:"Appel vidéo 1h",    good:"Réussir son macaron à coup sûr"},
+                {bad:"Visio 30 min",       good:"Trouver des fournisseurs chocolat Valrhona"},
+                {bad:"Consultation",       good:"Ouvrir sa boulangerie artisanale en France"}],
+  };
+  const offerExamples = OFFER_EXAMPLES_BY_CAT[form.category] || OFFER_EXAMPLES_BY_CAT.vie;
+
   const SPECIALTY_EXAMPLES = [
     "Comment importer depuis la Chine sans erreurs",
     "Comment ouvrir un restaurant rentable",
@@ -290,8 +311,19 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
           );
         })()}
 
+        {/* Message émotionnel */}
+        <div style={{textAlign:"center",padding:"20px 16px",marginBottom:16}}>
+          <div style={{fontSize:28,marginBottom:12}}>✨</div>
+          <div style={{fontSize:18,fontWeight:700,color:C.ink,fontFamily:SERIF,lineHeight:1.3,marginBottom:8}}>
+            Bienvenue parmi les experts Savvy.
+          </div>
+          <div style={{fontSize:13,color:C.muted,lineHeight:1.7}}>
+            À partir d'aujourd'hui, ton expérience peut aider quelqu'un à gagner des mois.
+          </div>
+        </div>
+
         <button onClick={()=>{ if(onDone&&finalProfile) onDone(finalProfile); else onBack(); }}
-          style={{width:"100%",padding:"15px",borderRadius:13,border:"none",background:C.ink,color:C.white,fontWeight:700,fontSize:15,cursor:"pointer",fontFamily:SERIF}}>
+          style={{width:"100%",padding:"15px",borderRadius:13,border:"none",background:`linear-gradient(135deg,${C.gold},${C.goldB})`,color:C.white,fontWeight:700,fontSize:15,cursor:"pointer",fontFamily:SERIF,boxShadow:`0 4px 20px rgba(185,134,74,.35)`}}>
           {T.accessBtn}
         </button>
       </div>
@@ -387,7 +419,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
   const FMT   = [
     {id:"video", icon:"🎥", label:"Vidéocall",  sub:"En direct",         durs:["30min","1h","2h"]},
     {id:"audio", icon:"🎧", label:"Appel audio",sub:"Par téléphone",     durs:["15min","30min","1h"]},
-    {id:"chat",  icon:"💬", label:"Chat",        sub:"Messagerie",        durs:["30min","1h"]},
+    {id:"chat",  icon:"💬", label:"Échange écrit", sub:"Messagerie",        durs:["30min","1h"]},
     {id:"doc",   icon:"📄", label:"Document",   sub:"Livrable écrit",    durs:["24h","48h","72h"]},
   ];
   const patchFmt = (id, key, val) => patch({formats:{...form.formats,[id]:{...form.formats[id],[key]:val}}});
@@ -483,7 +515,11 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
       <div style={{flex:1,overflowY:"auto",padding:"20px 18px 28px"}}>
 
         <p style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF,margin:"0 0 4px"}}>{T.step2H}</p>
-        <p style={{fontSize:12,color:C.muted,margin:"0 0 20px",lineHeight:1.6}}>{T.step2Sub}</p>
+        <p style={{fontSize:12,color:C.muted,margin:"0 0 12px",lineHeight:1.6}}>{T.step2Sub}</p>
+        <div style={{background:`linear-gradient(135deg,${C.goldL},#FFF9F0)`,borderRadius:10,padding:"8px 12px",marginBottom:18,border:`1px solid ${C.goldB}`,display:"flex",alignItems:"center",gap:8}}>
+          <span style={{fontSize:13,flexShrink:0}}>✦</span>
+          <span style={{fontSize:11,color:"#92400E",fontStyle:"italic"}}>L'Exartitude commence par une vraie expérience.</span>
+        </div>
 
         {/* Catégorie */}
         <div style={{fontSize:10,fontWeight:700,color:C.muted,marginBottom:10,textTransform:"uppercase",letterSpacing:.5}}>{T.domainLabel}</div>
@@ -570,8 +606,15 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
 
         {/* Conseil */}
         <div style={{background:`linear-gradient(135deg,${C.goldL},#FFF9F0)`,borderRadius:12,padding:"12px 14px",marginBottom:16,border:`1px solid ${C.goldB}`}}>
-          <div style={{fontSize:12,fontWeight:700,color:C.gold,marginBottom:3}}>✦ Donne un nom qui parle</div>
-          <div style={{fontSize:11,color:"#92400E",lineHeight:1.6}}>Pas "Vidéocall 30min" — mais <em>"Session d'orientation pour immigrant"</em>. Tes clients cherchent une solution, pas un format.</div>
+          <div style={{fontSize:12,fontWeight:700,color:C.gold,marginBottom:8}}>✦ Donne un nom qui parle</div>
+          {offerExamples.map(ex=>(
+            <div key={ex.bad} style={{display:"flex",alignItems:"center",gap:6,marginBottom:5,fontSize:11}}>
+              <span style={{color:"#B91C1C",fontWeight:600,flexShrink:0}}>❌</span>
+              <span style={{color:"#92400E",textDecoration:"line-through",flex:1}}>{ex.bad}</span>
+              <span style={{color:C.sage,fontWeight:600,flexShrink:0}}>✅</span>
+              <span style={{color:"#065F46",fontWeight:600,flex:1}}>{ex.good}</span>
+            </div>
+          ))}
         </div>
 
         {/* Format cards */}
@@ -677,7 +720,11 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
       <div style={{flex:1,overflowY:"auto",padding:"20px 18px 28px"}}>
 
         <p style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF,margin:"0 0 4px"}}>{T.step4H}</p>
-        <p style={{fontSize:12,color:C.muted,margin:"0 0 20px",lineHeight:1.6}}>{T.step4Sub}</p>
+        <p style={{fontSize:12,color:C.muted,margin:"0 0 12px",lineHeight:1.6}}>{T.step4Sub}</p>
+        <div style={{background:`linear-gradient(135deg,${C.goldL},#FFF9F0)`,borderRadius:10,padding:"8px 12px",marginBottom:18,border:`1px solid ${C.goldB}`,display:"flex",alignItems:"center",gap:8}}>
+          <span style={{fontSize:13,flexShrink:0}}>✦</span>
+          <span style={{fontSize:11,color:"#92400E",fontStyle:"italic"}}>Tes preuves renforcent ton Exartitude.</span>
+        </div>
 
         {/* Résultat concret — OBLIGATOIRE */}
         <div style={{background:C.white,borderRadius:14,border:`1.5px solid ${form.result1.length>20?C.sage:C.border}`,padding:"14px 15px",marginBottom:14,transition:"border-color .2s"}}>
@@ -908,6 +955,29 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
               <span style={{fontSize:12,fontWeight:600,color:C.ink,maxWidth:"60%",textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.v}</span>
             </div>
           ))}
+        </div>
+
+        {/* Exartitude Score */}
+        <div style={{background:`linear-gradient(135deg,${C.ink},#2C2825)`,borderRadius:14,padding:"18px 18px",marginBottom:16}}>
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+            <div style={{flexShrink:0,width:42,height:42,borderRadius:11,background:"rgba(185,134,74,.15)",border:`1px solid rgba(185,134,74,.3)`,display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <span style={{fontSize:20}}>✦</span>
+            </div>
+            <div>
+              <div style={{fontSize:13,fontWeight:700,color:C.white,fontFamily:SERIF}}>Score d'Exartitude</div>
+              <div style={{fontSize:22,fontWeight:800,color:"rgba(185,134,74,.4)",fontFamily:SERIF,letterSpacing:2,lineHeight:1}}>—</div>
+            </div>
+          </div>
+          <div style={{fontSize:11,color:"rgba(253,252,248,.45)",marginBottom:10}}>Ton score sera calculé à partir de :</div>
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {["Résultats vérifiés","Avis clients","Régularité","Réactivité","Fiabilité"].map(c=>(
+              <div key={c} style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:"rgba(253,252,248,.65)"}}>
+                <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="rgba(185,134,74,.7)" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>
+                {c}
+              </div>
+            ))}
+          </div>
+          <div style={{fontSize:10,color:"rgba(253,252,248,.3)",marginTop:12,fontStyle:"italic"}}>Encore indisponible — apparaîtra après tes premières missions.</div>
         </div>
 
         {/* CGU */}

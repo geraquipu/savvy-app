@@ -687,8 +687,8 @@ export function ClientView({
             <div style={{display:"flex",gap:8}}>
               {[
                 {icon:"🔍", t:"Explorer", nav:"search"},
-                {icon:"📅", t:"Réserver", nav:"search"},
-                {icon:"✦",  t:"Devenir expert", nav:"expert"},
+                {icon:"📅", t:"Réservations", nav:"reservations"},
+                {icon:"💬", t:"Messages", nav:"messages"},
               ].map(s=>(
                 <div key={s.t} onClick={()=>{ if(s.nav==="expert"){onBecomeExpert&&onBecomeExpert();onSignup&&onSignup();}else{onNavigate&&onNavigate(s.nav);}}}
                   style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:6,padding:"12px 8px",background:"rgba(253,252,248,.08)",borderRadius:12,cursor:"pointer",border:"1px solid rgba(253,252,248,.12)",textAlign:"center"}}>
@@ -747,8 +747,8 @@ export function ClientView({
           <div onClick={()=>{onBecomeExpert&&onBecomeExpert();onSignup&&onSignup();}} style={{background:`linear-gradient(135deg,${C.ink},#2C2825)`,borderRadius:14,padding:"14px 16px",display:"flex",alignItems:"center",gap:12,cursor:"pointer"}}>
             <div style={{width:40,height:40,borderRadius:12,background:"rgba(185,134,74,.18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>✦</div>
             <div style={{flex:1}}>
-              <div style={{fontSize:13,fontWeight:700,color:C.white,fontFamily:SERIF}}>Devenir conseiller</div>
-              <div style={{fontSize:11,color:"rgba(253,252,248,.6)",marginTop:1}}>Partage ton experience Gagne 80%</div>
+              <div style={{fontSize:13,fontWeight:700,color:C.white,fontFamily:SERIF}}>Ton expérience peut changer la vie de quelqu'un.</div>
+              <div style={{fontSize:11,color:"rgba(253,252,248,.6)",marginTop:1}}>Devenir conseiller · Gagne jusqu'à 80%</div>
             </div>
             <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2.5}><polyline points="9 18 15 12 9 6"/></svg>
           </div>

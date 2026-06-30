@@ -393,7 +393,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
         <div style={{textAlign:"center",padding:"48px 16px",color:C.muted,fontSize:13}}>
           <div style={{display:"flex",justifyContent:"center",marginBottom:12}}><svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke={C.border} strokeWidth={1.5}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
           <div style={{marginBottom:appMode==="client"?12:0}}>Aucune conversation pour le moment</div>
-          {appMode==="client" && <button onClick={()=>onConv&&onConv("__search__")} style={{padding:"11px 22px",borderRadius:12,border:"none",background:C.sage,color:C.white,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>Trouver un expert →</button>}
+          {appMode==="client" && <button onClick={()=>onConv&&onConv("__search__")} style={{padding:"11px 22px",borderRadius:12,border:"none",background:C.sage,color:C.white,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>Trouver quelqu'un à qui parler →</button>}
         </div>
       )}
     </div>

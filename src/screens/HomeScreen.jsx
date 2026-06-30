@@ -26,7 +26,7 @@ function HomeScreen({ onExpert, onSearch, onCat, onMatch, isLoggedIn, authUser, 
       {/* Barre de recherche */}
       <div onClick={() => onSearch("")} style={{ display:"flex", alignItems:"center", gap:10, background:C.white, borderRadius:14, padding:"13px 16px", cursor:"pointer", border:`1.5px solid ${C.border}`, marginBottom:16 }}>
         <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth={2}><circle cx={11} cy={11} r={8}/><path d="m21 21-4.35-4.35"/></svg>
-        <span style={{ fontSize:13, color:C.faint }}>Rechercher un expert, un domaine…</span>
+        <span style={{ fontSize:13, color:C.faint }}>Que cherches-tu à résoudre ?</span>
       </div>
     </div>
 
@@ -34,7 +34,7 @@ function HomeScreen({ onExpert, onSearch, onCat, onMatch, isLoggedIn, authUser, 
     <div style={{ margin:"0 16px 20px" }}>
       <div onClick={onMatch} style={{ borderRadius:20, overflow:"hidden", cursor:"pointer", background:`linear-gradient(135deg, ${C.ink} 0%, #2D5A3D 60%, ${C.gold} 100%)`, padding:"24px 22px", position:"relative", minHeight:140 }}>
         <div style={{ position:"absolute", top:0, right:0, bottom:0, width:"40%", background:"radial-gradient(ellipse at right center, rgba(91,140,106,.4) 0%, transparent 70%)", pointerEvents:"none" }}/>
-        <div style={{ fontSize:11, fontWeight:600, color:"rgba(255,255,255,.6)", textTransform:"uppercase", letterSpacing:1.2, marginBottom:10 }}>Savvy · Match IA</div>
+        <div style={{ fontSize:11, fontWeight:600, color:"rgba(255,255,255,.6)", textTransform:"uppercase", letterSpacing:1.2, marginBottom:10 }}>Savvy Match</div>
         <div style={{ fontSize:22, fontWeight:700, color:C.white, fontFamily:SERIF, lineHeight:1.3, marginBottom:8, letterSpacing:"-.3px" }}>
           Trouvez la personne qui a déjà vécu votre situation.
         </div>
@@ -65,7 +65,7 @@ function HomeScreen({ onExpert, onSearch, onCat, onMatch, isLoggedIn, authUser, 
 
     {/* ── Stats ── */}
     <div style={{ margin:"0 16px 24px", background:C.white, borderRadius:16, border:`1px solid ${C.border}`, padding:"16px 18px", display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr" }}>
-      {[["✦","Vérifiés"],["< 24h","Réponse"],["100%","Sécurisé"],["Dès 5€","Session"]].map(([n,l]) =>
+      {[["Dès 5€","Session"],["✦","Vérifiés"],["< 24h","Réponse"],["100%","Sécurisé"]].map(([n,l]) =>
         <div key={l} style={{ textAlign:"center" }}>
           <div style={{ fontSize:15, fontWeight:700, color:C.ink, fontFamily:SERIF }}>{n}</div>
           <div style={{ fontSize:9, color:C.muted, marginTop:2, lineHeight:1.3 }}>{l}</div>

@@ -1452,11 +1452,18 @@ export function ExpertView({
             </div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontSize:20,fontWeight:700,color:C.ink,fontFamily:SERIF,letterSpacing:"-.3px"}}>{USER.prenom} {USER.nom}</div>
-              <div style={{fontSize:11,color:C.muted,marginTop:2}}>{EXPERT_DATA.domain}</div>
+              {(authUser?.tagline || profileEdits?.tagline || newExpertProfile?.tagline || (!authUser?.real && EXPERT_DATA.tagline)) && (
+                <div style={{fontSize:12,color:C.ink,fontStyle:"italic",marginTop:2,lineHeight:1.4,fontFamily:SERIF}}>«&nbsp;{authUser?.tagline || profileEdits?.tagline || newExpertProfile?.tagline || EXPERT_DATA.tagline}&nbsp;»</div>
+              )}
+              <div style={{fontSize:11,color:C.muted,marginTop:2}}>{authUser?.real ? (authUser?.expertDomain || profileEdits?.domain || "Conseiller Savvy") : EXPERT_DATA.domain}</div>
               <div style={{display:"flex",alignItems:"center",gap:6,marginTop:4}}>
-                <div style={{display:"flex",gap:1}}>{[1,2,3,4,5].map(s=><svg key={s} width={11} height={11} viewBox="0 0 12 12" fill={s<=Math.round(EXPERT_DATA.rating||4.8)?"#B8864A":"#E5E0D8"}><path d="M6 1l1.5 3H11l-2.5 2 1 3L6 7.5 2.5 9l1-3L1 4h3.5z"/></svg>)}</div>
-                <span style={{fontSize:11,fontWeight:700,color:C.gold}}>{EXPERT_DATA.rating||"4.8"}</span>
-                <span style={{fontSize:10,color:C.muted}}>· {EXPERT_DATA.impact.sessions||0} sessions</span>
+                {authUser?.real ? (
+                  <span style={{fontSize:10,color:C.muted}}>0 session · Pas encore d'avis</span>
+                ) : (<>
+                  <div style={{display:"flex",gap:1}}>{[1,2,3,4,5].map(s=><svg key={s} width={11} height={11} viewBox="0 0 12 12" fill={s<=Math.round(EXPERT_DATA.rating||4.8)?"#B8864A":"#E5E0D8"}><path d="M6 1l1.5 3H11l-2.5 2 1 3L6 7.5 2.5 9l1-3L1 4h3.5z"/></svg>)}</div>
+                  <span style={{fontSize:11,fontWeight:700,color:C.gold}}>{EXPERT_DATA.rating||"4.8"}</span>
+                  <span style={{fontSize:10,color:C.muted}}>· {EXPERT_DATA.impact.sessions||0} sessions</span>
+                </>)}
               </div>
             </div>
             <div onClick={()=>setShowRevenu(v=>!v)} style={{textAlign:"right",cursor:"pointer",flexShrink:0}}>
@@ -1480,11 +1487,28 @@ export function ExpertView({
               <div style={{margin:"12px 0 4px"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
                   <span style={{fontSize:11,fontWeight:600,color:C.muted}}>Profil Savvy</span>
-                  <span style={{fontSize:11,fontWeight:700,color}}>{pct}% complété</span>
+                  <span style={{fontSize:11,fontWeight:700,color}}>{
+                    pct >= 100 ? "✦ Profil complet" :
+                    pct >= 80  ? `Presque là — ${pct}%` :
+                    pct >= 50  ? `À mi-chemin vers un profil Premium — ${pct}%` :
+                    `Encore quelques étapes avant d'être recommandé — ${pct}%`
+                  }</span>
                 </div>
                 <div style={{height:5,background:C.cream3,borderRadius:10,overflow:"hidden"}}>
                   <div style={{height:"100%",width:pct+"%",background:`linear-gradient(90deg,${color},${color}99)`,borderRadius:10,transition:"width .4s"}}/>
                 </div>
+                {pct < 100 && (
+                  <>
+                    <button onClick={()=>{
+                      if(!(expOffres||EXPERT_DATA.offres).length) setOffresOpen(true);
+                      else if(!Object.values(dispoSelected||{}).some(Boolean)) setSection("disponibilidades");
+                      else setShowEditExpert(true);
+                    }} style={{marginTop:8,width:"100%",padding:"8px",borderRadius:10,border:`1px solid ${color}`,background:"transparent",color,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",textAlign:"center"}}>
+                      Compléter mon profil → {pct}%
+                    </button>
+                    <div style={{marginTop:5,fontSize:10,color:C.faint,textAlign:"center"}}>Plus ton profil est complet, plus tu reçois de demandes.</div>
+                  </>
+                )}
               </div>
             );
           })()}
@@ -1508,10 +1532,10 @@ export function ExpertView({
         <div style={{background:C.white,overflow:"hidden",marginBottom:8}}>
           <div style={{padding:"18px 20px 6px",fontSize:13,fontWeight:600,color:C.muted,letterSpacing:".4px",textTransform:"uppercase"}}>Activité</div>
           <MenuRowExp icon="📋" title="Mes sessions" sub="Demandes en attente · Planning" badge={expRequests.length>0?expRequests.length:undefined} onClick={()=>setSection("sesiones")}/>
-          <MenuRowExp icon="💬" title="Messages clients" sub="Répondre aux clients" onClick={()=>setSection("messages")}/>
-          {["geraquipu@hotmail.com","german@savvy.fr"].includes(authUser?.email) && <MenuRowExp icon="⚙️" title="Admin Savvy" sub="Utilisateurs · Réservations · Revenue" onClick={()=>onNavigate&&onNavigate("admin")}/>}
           <MenuRowExp icon="🗓️" title="Disponibilités" sub={(()=>{const n=Object.keys(dispoSelected).filter(k=>dispoSelected[k]).length; return n>0?`${n} jour${n>1?"s":""} ouvert${n>1?"s":""} à la réservation`:"Aucun jour configuré";})()}  onClick={()=>setSection("disponibilidades")}/>
+          <MenuRowExp icon="💬" title="Messages clients" sub="Répondre aux clients" onClick={()=>setSection("messages")}/>
           <MenuRowExp icon="💼" title="Mes offres" sub={(expOffres||EXPERT_DATA.offres).length===0?"Aucune offre · Créer la première":`${(expOffres||EXPERT_DATA.offres).length} offre(s) active(s)`} onClick={()=>setOffresOpen(v=>!v)}/>
+          {["geraquipu@hotmail.com","german@savvy.fr"].includes(authUser?.email) && <MenuRowExp icon="⚙️" title="Admin Savvy" sub="Utilisateurs · Réservations · Revenue" onClick={()=>onNavigate&&onNavigate("admin")}/>}
         </div>
 
         {/* Mes offres accordéon (inline, sans carte) */}

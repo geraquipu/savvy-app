@@ -288,10 +288,12 @@ function BottomNav({nav, onChange, unreadCount, appMode, sessionsCount=0, reserv
 export default function App() {
   // Onboarding: toujours montré en démo (1 fois par session)
   // En production: utiliser localStorage.getItem("savvy_onboarded")
-  const [showLoader, setShowLoader] = useState(()=>!sessionStorage.getItem("savvy_loaded"));
-  const [showOnboarding, setShowOnboarding] = useState(true);
-  const [showSplash, setShowSplash] = useState(false);
-  const [showLanding, setShowLanding] = useState(false); // LandingScreen desactivado — guardado para web marketing
+  const [showLoader, setShowLoader] = useState(()=>!localStorage.getItem("savvy_loaded"));
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const isDesktop = window.innerWidth > 768;
+  const visited = !!localStorage.getItem("savvy_visited");
+  const [showSplash, setShowSplash] = useState(!visited && !isDesktop);
+  const [showLanding, setShowLanding] = useState(!visited && isDesktop);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authUser, setAuthUser] = useState(null);
   const [isExpert, setIsExpert] = useState(false);
@@ -464,7 +466,7 @@ export default function App() {
   const ScreenFallback = <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",minHeight:200}}><div style={{width:6,height:6,borderRadius:"50%",background:C.goldB,animation:"pulse 1.2s ease-in-out infinite"}}/></div>;
 
   return <>
-  {showLoader && <AppLoader onDone={()=>{ sessionStorage.setItem("savvy_loaded","1"); setShowLoader(false); }}/>}
+  {showLoader && <AppLoader onDone={()=>{ localStorage.setItem("savvy_loaded","1"); setShowLoader(false); }}/>}
   <div style={{fontFamily:SANS}}>
     {showPaymentSuccess && (
       <div style={{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",zIndex:99999,background:"#1C1917",color:"#fff",borderRadius:14,padding:"14px 22px",display:"flex",alignItems:"center",gap:10,boxShadow:"0 4px 24px rgba(0,0,0,0.25)",fontFamily:SANS,fontSize:14,fontWeight:600,maxWidth:360,animation:"fadeSlideUp .3s ease-out"}}>
@@ -490,11 +492,17 @@ export default function App() {
       button:active{opacity:.82} button{transition:opacity .15s}
     `}</style>
     <div style={{width:"100%",maxWidth:430,margin:"0 auto",background:C.cream,minHeight:"100vh",display:"flex",flexDirection:"column",boxShadow:"0 0 40px rgba(0,0,0,.1)",paddingTop:`calc(env(safe-area-inset-top) + 56px)`,paddingBottom:`calc(env(safe-area-inset-bottom) + 64px)`,...(["message"].includes(screen)?{height:"100vh",overflow:"hidden"}:{})}}>
-      {showLanding && !isLoggedIn && <LandingScreen
-        onStart={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowOnboarding(false); setShowSplash(true); }}
-        onExplore={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowOnboarding(false); setScreen("home"); setNav("home"); }}
-        onExpert={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowOnboarding(false); setShowAuth(true); setAuthIntent("register"); }}
-      />}
+      {showLanding && !isLoggedIn && (
+        <div style={{position:"fixed",inset:0,zIndex:50,overflowY:"auto",background:C.cream}}>
+          <Suspense fallback={null}>
+            <LandingScreen
+              onStart={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowSplash(true); }}
+              onExplore={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setScreen("home"); setNav("home"); }}
+              onExpert={()=>{ localStorage.setItem("savvy_visited","1"); setShowLanding(false); setShowAuth(true); setAuthIntent("register"); }}
+            />
+          </Suspense>
+        </div>
+      )}
       {showOnboarding && !isLoggedIn && <Suspense fallback={null}><OnboardingScreen onDone={()=>{ setShowOnboarding(false); setShowSplash(true); }}/></Suspense>}
       {!showOnboarding && showSplash && !isLoggedIn && <Suspense fallback={null}><SplashScreen isAdmin={authUser?.email==="geraquipu@hotmail.com"} onSkip={()=>{ setShowSplash(false); setScreen("home"); setNav("home"); }} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowSplash(false); setScreen("home"); setNav("home"); }} onRegister={()=>{ setShowSplash(false); setShowAuth(true); setAuthIntent("register"); }}/></Suspense>}
       {main && <TopBar onNotif={()=>setShowNotif(v=>!v)} notifCount={isLoggedIn?(authUser?.real?(authUser?.isExpert&&appMode==="expert"?expRequestsCount:0):Math.max(0,(newExpertProfile?3:4)-readNotifIds.length)):0} isLoggedIn={isLoggedIn} onLogin={()=>setShowSplash(true)} isExpert={isExpert} appMode={appMode} onToggleMode={m=>{ setAppMode(m); if(m==="expert"){ setNav("exp-dashboard"); setExpInitSection("dashboard"); setScreen("profile"); } else { setNav("home"); setExpInitSection(null); setScreen("home"); } }}/>}

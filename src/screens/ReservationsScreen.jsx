@@ -945,8 +945,9 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
                 <div style={{ textAlign:"center", padding:"60px 20px" }}>
                   <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}><svg width={44} height={44} viewBox="0 0 24 24" fill="none" stroke={C.border} strokeWidth={1.5}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg></div>
                   <div style={{ fontSize:16, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:8 }}>Aucune session à venir</div>
-                  <div style={{ fontSize:13, color:C.muted, marginBottom:20 }}>Trouve un expert et réserve ta première session.</div>
-                  <button onClick={() => onNavigate && onNavigate("search")} style={{ padding:"12px 24px", borderRadius:12, border:"none", background:C.sage, color:C.white, fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Trouver un expert →</button>
+                  <div style={{ fontSize:13, color:C.muted, marginBottom:6 }}>Trouve un expert et réserve ta première session.</div>
+                  <div style={{ fontSize:12, color:C.gold, fontWeight:600, marginBottom:20 }}>Les meilleurs experts répondent souvent dans la journée.</div>
+                  <button onClick={() => onNavigate && onNavigate("search")} style={{ padding:"12px 24px", borderRadius:12, border:"none", background:C.sage, color:C.white, fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Trouver quelqu'un →</button>
                 </div>
               )
           )}
