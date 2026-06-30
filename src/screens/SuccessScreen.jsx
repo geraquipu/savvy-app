@@ -54,7 +54,6 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, authUser
           phase_price: bookingData.price,
           status: "pending",
           date_session: bookingDateTime ? bookingDateTime.toISOString() : null,
-          time: bookingSlot || null,
           notes: bookingData.topic,
         }).then(({error}) => {
           if (error) {
