@@ -23,11 +23,14 @@ function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
   const loginSocial = async(provider) => {
     setSocialLoading(provider);
     try {
-      await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo: window.location.origin }
       });
-    } catch {
+      if (error) { alert("Erreur de connexion : " + error.message); setSocialLoading(null); }
+      // Si no hay error, la página redirige a Google — no reseteamos loading
+    } catch(e) {
+      alert("Erreur inattendue : " + (e?.message || "Réessaie"));
       setSocialLoading(null);
     }
   };

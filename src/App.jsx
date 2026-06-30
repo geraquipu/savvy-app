@@ -358,12 +358,18 @@ export default function App() {
   const loadProfile = async (u) => {
     const base = { email:u.email, name:u.user_metadata?.name || u.email.split("@")[0], isExpert:false, real:true, id:u.id };
     try {
-      const { data } = await supabase.from("profiles").select("*").eq("id", u.id).single();
+      let { data } = await supabase.from("profiles").select("*").eq("id", u.id).single();
+      if (!data) {
+        // Le trigger handle_new_user a peut-être échoué — on crée le profil manuellement
+        const { data: created } = await supabase.from("profiles")
+          .upsert({ id: u.id, name: u.user_metadata?.name || base.name, email: u.email }, { onConflict: "id" })
+          .select().single();
+        data = created;
+      }
       if (data) {
         let photoUrl = null;
         let expertId = null;
         let isApprovedExpert = false;
-        // Vérifie que l'expert est actif (approuvé) avant de lui donner l'accès expert
         const { data: exp } = await supabase.from("experts").select("id, photo_url, active").eq("user_id", u.id).single();
         if (exp) {
           photoUrl = exp.photo_url || null;
