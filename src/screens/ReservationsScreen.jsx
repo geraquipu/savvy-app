@@ -20,7 +20,7 @@ function CalendarPicker({ expert, onDone, onSelect }) {
     const from = new Date();
     from.setHours(0,0,0,0);
     supabase.from("bookings")
-      .select("date_session, time")
+      .select("date_session")
       .eq("expert_id", expert.id)
       .in("status", ["pending","confirmed"])
       .gte("date_session", from.toISOString())
@@ -31,7 +31,8 @@ function CalendarPicker({ expert, onDone, onSelect }) {
           if (!b.date_session) return;
           const key = b.date_session.slice(0,10);
           if (!map[key]) map[key] = [];
-          if (b.time) map[key].push(b.time);
+          const t = new Date(b.date_session).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+          if (t) map[key].push(t);
         });
         setBookedSlots(map);
       });
