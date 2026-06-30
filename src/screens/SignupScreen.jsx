@@ -196,6 +196,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser?.photoUrl]);
   const [showCguModal, setShowCguModal] = useState(false);
+  const [stepErr, setStepErr] = useState("");
   const TOTAL_STEPS = 6;
   const pct = Math.round((Math.max(0,step-1) / TOTAL_STEPS) * 100);
 
@@ -628,7 +629,16 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
             return (
               <div key={f.id} style={{borderRadius:14,border:on?`2px solid ${C.ink}`:`1px solid ${C.border}`,background:C.white,transition:"all .15s",overflow:"hidden"}}>
                 {/* Header — click to toggle */}
-                <button onClick={()=>patchFmt(f.id,"on",!on)}
+                <button onClick={()=>{
+                  const turning = !on;
+                  // Video y audio son mutuamente exclusivos
+                  if (turning && (f.id==="video" || f.id==="audio")) {
+                    const other = f.id==="video" ? "audio" : "video";
+                    patch({formats:{...form.formats,[f.id]:{...form.formats[f.id],on:true},[other]:{...form.formats[other],on:false}}});
+                  } else {
+                    patchFmt(f.id,"on",turning);
+                  }
+                }}
                   style={{width:"100%",padding:"14px 16px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",background:on?C.ink:"transparent",border:"none",display:"flex",alignItems:"center",gap:14}}>
                   <div style={{fontSize:22,flexShrink:0}}>{f.icon}</div>
                   <div style={{flex:1}}>
@@ -693,20 +703,18 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
           })}
         </div>
 
-        {!Object.values(form.formats).some(f=>f.on)&&(
-          <div style={{textAlign:"center",fontSize:12,color:C.muted,padding:"8px 0"}}>{T.selectFormat}</div>
-        )}
+        {stepErr && <div style={{background:"#FEF2F2",border:"1px solid #FCA5A5",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#DC2626",marginBottom:4}}>⚠️ {stepErr}</div>}
 
         <div style={{display:"flex",gap:9,marginTop:16}}>
-          <button onClick={()=>setStep(2)} style={{flex:1,padding:"13px",borderRadius:13,border:`1.5px solid ${C.border}`,cursor:"pointer",fontWeight:700,fontSize:13,background:C.white,color:C.ink,fontFamily:"inherit"}}>{T.backBtn}</button>
+          <button onClick={()=>{setStepErr(""); setStep(2);}} style={{flex:1,padding:"13px",borderRadius:13,border:`1.5px solid ${C.border}`,cursor:"pointer",fontWeight:700,fontSize:13,background:C.white,color:C.ink,fontFamily:"inherit"}}>{T.backBtn}</button>
           <button onClick={()=>{
             const activeF=FMT.filter(f=>form.formats[f.id]?.on);
-            if(activeF.length===0){alert(T.errFormat); return;}
+            if(activeF.length===0){setStepErr(T.errFormat); return;}
             const missingName=activeF.find(f=>!form.formats[f.id]?.name?.trim());
-            if(missingName){alert(`Donne un nom à ton offre "${missingName.label}" — c'est ce que voient tes clients.`); return;}
+            if(missingName){setStepErr(`Donne un nom à ton offre "${missingName.label}" — c'est ce que voient tes clients.`); return;}
             const missingPrice=activeF.find(f=>!(Number(form.formats[f.id]?.price)>0));
-            if(missingPrice){alert(`Ajoute un prix pour "${form.formats[missingPrice.id]?.name||missingPrice.label}".`); return;}
-            setStep(4);
+            if(missingPrice){setStepErr(`Ajoute un prix pour "${form.formats[missingPrice.id]?.name||missingPrice.label}".`); return;}
+            setStepErr(""); setStep(4);
           }} style={{flex:2,padding:"13px",borderRadius:13,border:"none",background:C.ink,color:C.white,fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:SERIF}}>{T.continueBtn}</button>
         </div>
       </div>

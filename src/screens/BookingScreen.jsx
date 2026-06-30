@@ -524,7 +524,7 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
 
         {/* CTA */}
         <button onClick={handleSend} disabled={sending}
-          style={{ width:"100%", padding:"16px", borderRadius:14, border:"none", cursor:sending?"wait":"pointer", fontWeight:700, fontSize:16, fontFamily:SERIF, letterSpacing:".2px", background:sending?"#10B981":C.ink, color:C.white, boxShadow:`0 4px 16px rgba(28,25,23,.2)`, transition:"background .3s" }}>
+          style={{ width:"100%", padding:"16px", borderRadius:14, border:"none", cursor:sending?"wait":"pointer", fontWeight:700, fontSize:16, fontFamily:SERIF, letterSpacing:".2px", background:sending?"#10B981":`linear-gradient(135deg,${C.gold},${C.goldB})`, color:C.white, boxShadow:`0 4px 16px rgba(110,139,61,.35)`, transition:"background .3s" }}>
           {sending ? "⏳ Envoi en cours…" : `Envoyer ma demande à ${e.name.split(" ")[0]} →`}
         </button>
         <div style={{ textAlign:"center", fontSize:11, color:C.faint, marginTop:10 }}>Aucun paiement requis maintenant</div>
