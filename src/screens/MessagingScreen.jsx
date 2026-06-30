@@ -28,10 +28,12 @@ async function getSugg(msg) {
 function MessagingScreen({ e, onBack, authUser }) {
   const _msgKey = `savvy_chat_${e.initials||e.id||"guest"}`;
   const _defaultMsg = [{id:1,from:"expert",text:`Bonjour ! Je suis ${e.name.split(" ")[0]}. ${e.tagline||e.role||""}. Quelle est votre question ?`,time:"09:30"}];
+  // Mode "expert répond à un client réel" : e.clientId vient de MessagesListScreen
+  const isExpertReplyMode = !!e.clientId;
   // Expert a un vrai UUID Supabase si son id est une string UUID
-  const expertSbId = (typeof e.id === "string" && e.id.includes("-")) ? e.id : null;
+  const expertSbId = isExpertReplyMode ? (authUser?.expertId || null) : ((typeof e.id === "string" && e.id.includes("-")) ? e.id : null);
   // user_id = auth UUID del experto (para mensajes/RLS); id = UUID de la tabla experts
-  const expertAuthId = e.user_id || null;
+  const expertAuthId = isExpertReplyMode ? (e.clientId || null) : (e.user_id || null);
   const isRealUser = authUser?.real && authUser?.id;
 
   const [msgs, setMsgs] = useState(() => {
@@ -54,11 +56,12 @@ function MessagingScreen({ e, onBack, authUser }) {
       _fromSB: true,
     });
 
-    supabase.from("messages")
-      .select("*")
-      .eq("expert_id", expertSbId)
-      .order("created_at", { ascending: true })
-      .then(({ data }) => {
+    let q = supabase.from("messages").select("*").eq("expert_id", expertSbId).order("created_at", { ascending: true });
+    if (isExpertReplyMode && expertAuthId) {
+      // En mode expert, filtrer aussi par client pour ne pas mélanger les conversations
+      q = q.or(`sender_id.eq.${expertAuthId},receiver_id.eq.${expertAuthId}`);
+    }
+    q.then(({ data }) => {
         if (!data || data.length === 0) return;
         const sbMsgs = data.map(toMsg);
         setMsgs(prev => {
@@ -69,7 +72,7 @@ function MessagingScreen({ e, onBack, authUser }) {
       });
 
     const channel = supabase
-      .channel(`chat-${expertSbId}-${authUser.id}`)
+      .channel(`chat-${expertSbId}-${authUser.id}-${expertAuthId||""}`)
       .on("postgres_changes", {
         event: "INSERT",
         schema: "public",
@@ -77,6 +80,7 @@ function MessagingScreen({ e, onBack, authUser }) {
         filter: `expert_id=eq.${expertSbId}`,
       }, ({ new: m }) => {
         if (m.sender_id === authUser.id) return; // ya lo agregamos optimistamente
+        if (isExpertReplyMode && expertAuthId && m.sender_id !== expertAuthId && m.receiver_id !== expertAuthId) return; // d'un autre client
         setMsgs(prev => {
           if (prev.some(x => x.id === m.id)) return prev;
           return [...prev, toMsg(m)].slice(0,200);

@@ -1,9 +1,47 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { C, SERIF } from '../constants/colors'
 import { EXPERTS, DEMO_MSGS, getThreads } from '../constants/data'
 import { Av } from '../components/ui'
+import { supabase } from '../supabase'
 
-function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkMsgRead, appMode="client", isNewExpert=false, isRealUser=false, authUser=null}) {
+function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkMsgRead, appMode="client", isNewExpert=false, isRealUser=false, authUser=null, dbExperts=[]}) {
+  const [realClientConvs, setRealClientConvs] = useState([]);
+
+  // Charger les conversations clients réelles (expert mode) depuis Supabase
+  useEffect(() => {
+    if (!(isRealUser && appMode==="expert" && authUser?.expertId)) { setRealClientConvs([]); return; }
+    let cancelled = false;
+    supabase.from("messages")
+      .select("*")
+      .eq("expert_id", authUser.expertId)
+      .order("created_at", { ascending: false })
+      .then(async ({ data }) => {
+        if (cancelled || !data || data.length===0) { setRealClientConvs([]); return; }
+        const byClient = new Map();
+        for (const m of data) {
+          const clientId = m.sender_id === authUser.id ? m.receiver_id : m.sender_id;
+          if (!clientId || byClient.has(clientId)) continue;
+          byClient.set(clientId, m);
+        }
+        const clientIds = [...byClient.keys()];
+        const { data: profiles } = await supabase.from("profiles").select("id, name, photo_url").in("id", clientIds);
+        if (cancelled) return;
+        const convs = clientIds.map(cid => {
+          const m = byClient.get(cid);
+          const p = profiles?.find(pr=>pr.id===cid);
+          return {
+            id: "real-"+cid, type:"client", clientId: cid,
+            name: p?.name || "Client",
+            ini: (p?.name||"C").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase(),
+            bg:"#EDE9FE", col:"#7C3AED", photoUrl: p?.photo_url,
+            lastMsg: m.content, time: new Date(m.created_at).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}),
+            unread: m.sender_id!==authUser.id ? 1 : 0, session:null,
+          };
+        });
+        setRealClientConvs(convs);
+      });
+    return () => { cancelled = true; };
+  }, [isRealUser, appMode, authUser?.expertId, authUser?.id]);
   const [msgFilter, setMsgFilter]       = useState("tous");
   const [showSavvyChat, setShowSavvyChat] = useState(false);
   const [savvyInput, setSavvyInput]     = useState("");
@@ -43,7 +81,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
         const lastReal = _getLastMsg(t.expertInitials);
         return {
           eid: t.expertId, type:"expert",
-          expert: EXPERTS.find(e=>e.initials===t.expertInitials) || {name:t.expertName, initials:t.expertInitials, bg:t.expertBg||"#EDE9FE", color:t.expertCol||"#7C3AED", role:"Conseiller Savvy"},
+          expert: dbExperts.find(de=>de.id===t.expertId) || EXPERTS.find(e=>e.initials===t.expertInitials) || {name:t.expertName, initials:t.expertInitials, bg:t.expertBg||"#EDE9FE", color:t.expertCol||"#7C3AED", role:"Conseiller Savvy", id:t.expertId},
           lastMsg: lastReal?.text || t.lastMsg,
           time: lastReal?.time || t.time,
           unread: lastReal?.from==="expert" ? 1 : 0,
@@ -62,7 +100,9 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
     {id:"c3", type:"client", name:"Emma P.",   ini:"EP", bg:"#D1FAE5", col:"#065F46", lastMsg:"Merci beaucoup pour les conseils !", time:"Lun", unread:0, archived:true, rating:5.0, session:null},
   ];
   // New experts start with no client conversations; clients don't see "client" convs
-  const clientConvs = (appMode==="expert" && !isNewExpert) ? allClientConvs : [];
+  const clientConvs = appMode==="expert"
+    ? (isRealUser ? realClientConvs : (isNewExpert ? [] : allClientConvs))
+    : [];
   // In expert mode, experts only see their clients — not their own client-side expert convs
   const expertConvsDisplay = appMode==="expert" ? [] : expertConvs;
 
@@ -359,7 +399,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
                 const convKey="cli-"+conv.id;
                 const isRead=readMsgIds.includes(convKey)||conv.unread===0;
                 return (
-                  <div key={conv.id} onClick={()=>{ markMsgRead(convKey); onConv&&onConv({name:conv.name,role:"Client",tagline:conv.lastMsg,color:conv.col,initials:conv.ini,avatar:conv.ini,bg:conv.bg}); }} style={{display:"flex",gap:12,alignItems:"center",background:C.white,borderRadius:16,padding:"14px 15px",marginBottom:9,cursor:"pointer",border:`1px solid ${isRead?C.border:"#6EE7B7"}`,boxShadow:`0 1px 6px ${C.sh}`,transition:"border-color .25s"}}>
+                  <div key={conv.id} onClick={()=>{ markMsgRead(convKey); onConv&&onConv({name:conv.name,role:"Client",tagline:conv.lastMsg,color:conv.col,initials:conv.ini,avatar:conv.ini,bg:conv.bg,clientId:conv.clientId,photo_url:conv.photoUrl}); }} style={{display:"flex",gap:12,alignItems:"center",background:C.white,borderRadius:16,padding:"14px 15px",marginBottom:9,cursor:"pointer",border:`1px solid ${isRead?C.border:"#6EE7B7"}`,boxShadow:`0 1px 6px ${C.sh}`,transition:"border-color .25s"}}>
                     <div style={{position:"relative"}}>
                       <div style={{width:46,height:46,borderRadius:"50%",background:conv.bg,color:conv.col,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:15}}>{conv.ini}</div>
                       {!isRead&&<div style={{position:"absolute",top:-2,right:-2,width:17,height:17,borderRadius:"50%",background:C.sage,color:C.white,fontSize:9,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",border:`2px solid ${C.white}`}}>{conv.unread}</div>}
