@@ -30,6 +30,8 @@ function MessagingScreen({ e, onBack, authUser }) {
   const _defaultMsg = [{id:1,from:"expert",text:`Bonjour ! Je suis ${e.name.split(" ")[0]}. ${e.tagline||e.role||""}. Quelle est votre question ?`,time:"09:30"}];
   // Expert a un vrai UUID Supabase si son id est une string UUID
   const expertSbId = (typeof e.id === "string" && e.id.includes("-")) ? e.id : null;
+  // user_id = auth UUID del experto (para mensajes/RLS); id = UUID de la tabla experts
+  const expertAuthId = e.user_id || null;
   const isRealUser = authUser?.real && authUser?.id;
 
   const [msgs, setMsgs] = useState(() => {
@@ -55,7 +57,6 @@ function MessagingScreen({ e, onBack, authUser }) {
     supabase.from("messages")
       .select("*")
       .eq("expert_id", expertSbId)
-      .or(`sender_id.eq.${authUser.id},receiver_id.eq.${authUser.id}`)
       .order("created_at", { ascending: true })
       .then(({ data }) => {
         if (!data || data.length === 0) return;
@@ -98,12 +99,13 @@ function MessagingScreen({ e, onBack, authUser }) {
 
     if (isRealUser && expertSbId) {
       // Experto real → guardar mensaje y esperar respuesta real (no Claude)
-      await supabase.from("messages").insert({
+      const { error: msgErr } = await supabase.from("messages").insert({
         sender_id: authUser.id,
-        receiver_id: expertSbId,
+        receiver_id: expertAuthId || expertSbId,
         expert_id: expertSbId,
         content: t,
       });
+      if (msgErr) console.error("Message insert error:", msgErr.message);
       setLoading(false);
       setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),50);
       return;
