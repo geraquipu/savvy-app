@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { C, SERIF } from '../constants/colors';
 
-function AppLoader({ onDone }) {
-  const [phase, setPhase] = useState(0); // 0=fade in, 1=visible, 2=fade out
+function AppLoader({ onDone, authReady }) {
+  const [phase, setPhase] = useState(0);
+  const [animDone, setAnimDone] = useState(false);
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase(1), 100);
     const t2 = setTimeout(() => setPhase(2), 1800);
-    const t3 = setTimeout(() => onDone(), 2300);
+    const t3 = setTimeout(() => setAnimDone(true), 2300);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, []);
+
+  useEffect(() => {
+    if (animDone && authReady) onDone();
+  }, [animDone, authReady]);
 
   return (
     <div style={{

@@ -288,9 +288,9 @@ function BottomNav({nav, onChange, unreadCount, appMode, sessionsCount=0, reserv
 export default function App() {
   // Onboarding: toujours montré en démo (1 fois par session)
   // En production: utiliser localStorage.getItem("savvy_onboarded")
-  const [showLoader, setShowLoader] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const isDesktop = window.innerWidth > 768;
+  const [showLoader, setShowLoader] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(!isDesktop && !sessionStorage.getItem("savvy_onboarding_seen"));
   const [showSplash, setShowSplash] = useState(!isDesktop);
   const [showLanding, setShowLanding] = useState(isDesktop);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -477,7 +477,7 @@ export default function App() {
   const ScreenFallback = <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",minHeight:200}}><div style={{width:6,height:6,borderRadius:"50%",background:C.goldB,animation:"pulse 1.2s ease-in-out infinite"}}/></div>;
 
   return <>
-  {showLoader && <AppLoader onDone={()=>{ localStorage.setItem("savvy_loaded","1"); setShowLoader(false); }}/>}
+  {showLoader && <AppLoader authReady={authReady} onDone={()=>{ localStorage.setItem("savvy_loaded","1"); setShowLoader(false); }}/>}
   <div style={{fontFamily:SANS}}>
     {showPaymentSuccess && (
       <div style={{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",zIndex:99999,background:"#1C1917",color:"#fff",borderRadius:14,padding:"14px 22px",display:"flex",alignItems:"center",gap:10,boxShadow:"0 4px 24px rgba(0,0,0,0.25)",fontFamily:SANS,fontSize:14,fontWeight:600,maxWidth:360,animation:"fadeSlideUp .3s ease-out"}}>
@@ -531,7 +531,7 @@ export default function App() {
           </Suspense>
         </div>
       )}
-      {showOnboarding && !isLoggedIn && <Suspense fallback={null}><OnboardingScreen onDone={()=>{ setShowOnboarding(false); setShowSplash(true); }}/></Suspense>}
+      {showOnboarding && !isLoggedIn && authReady && <Suspense fallback={null}><OnboardingScreen onDone={()=>{ sessionStorage.setItem("savvy_onboarding_seen","1"); setShowOnboarding(false); setShowSplash(true); }}/></Suspense>}
       {!showOnboarding && showSplash && !isLoggedIn && authReady && <Suspense fallback={null}><SplashScreen isAdmin={authUser?.email==="geraquipu@hotmail.com"} onSkip={()=>{ setShowSplash(false); setScreen("home"); setNav("home"); }} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowSplash(false); setScreen("home"); setNav("home"); }} onRegister={()=>{ setShowSplash(false); setShowAuth(true); setAuthIntent("register"); }}/></Suspense>}
       {main && <TopBar onNotif={()=>setShowNotif(v=>!v)} notifCount={isLoggedIn?(authUser?.real?(authUser?.isExpert&&appMode==="expert"?expRequestsCount:0):Math.max(0,(newExpertProfile?3:4)-readNotifIds.length)):0} isLoggedIn={isLoggedIn} onLogin={()=>setShowSplash(true)} isExpert={isExpert} appMode={appMode} onToggleMode={m=>{ setAppMode(m); if(m==="expert"){ setNav("exp-dashboard"); setExpInitSection("dashboard"); setScreen("profile"); } else { setNav("home"); setExpInitSection(null); setScreen("home"); } }}/>}
       {showAuth && <Suspense fallback={null}><AuthModal onClose={()=>setShowAuth(false)} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowAuth(false); setShowSplash(false); setAuthIntent(null); }} initialRegister={authIntent==="register"} isAdmin={authUser?.email==="geraquipu@hotmail.com"}/></Suspense>}
