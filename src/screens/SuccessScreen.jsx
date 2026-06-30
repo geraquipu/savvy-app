@@ -40,13 +40,9 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, authUser
     };
     addBooking(bookingData);
     // Sauvegarder dans Supabase si utilisateur réel
-    if (!authUser?.real || !authUser?.id) {
-      setSaveError(`[DEBUG] authUser.real=${authUser?.real} authUser.id=${authUser?.id} — insert omis`);
-    } else {
+    if (authUser?.real && authUser?.id) {
       const expertId = typeof e.id === "string" && e.id.includes("-") ? e.id : null;
-      if (!expertId) {
-        setSaveError(`[DEBUG] expert_id invalide: "${e.id}" — insert omis`);
-      } else {
+      if (expertId) {
         supabase.from("bookings").insert({
           client_id: authUser.id,
           expert_id: expertId,
@@ -57,9 +53,8 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, authUser
           notes: bookingData.topic,
         }).then(({error}) => {
           if (error) {
-            setSaveError(`[DEBUG] Supabase error: ${error.message} (code: ${error.code})`);
-          } else {
-            setSaveError(`[DEBUG] Insert OK — client_id=${authUser.id} expert_id=${expertId}`);
+            console.warn("Booking Supabase:", error.message);
+            setSaveError("La réservation n'a pas pu être enregistrée (" + error.message + "). Contactez le support.");
           }
         });
       }
