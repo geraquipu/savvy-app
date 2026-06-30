@@ -1024,9 +1024,22 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
                 creds:builtProfile.creds, metrics:[],
                 photo_url:form.photoUrl?.startsWith("http")?form.photoUrl:null,
               };
-              const{data:expRow,error}=await supabase.from("experts").upsert(expertData,{onConflict:"user_id"}).select("id").single();
-              if(error) console.warn("Expert non sauvegardé:",error.message);
-              else console.log("Expert créé (en attente d'approbation):", expRow?.id);
+              // Try update first (if row exists), then insert
+              const{data:existing}=await supabase.from("experts").select("id").eq("user_id",authUser.id).single();
+              let saveError=null;
+              if(existing?.id){
+                const{error}=await supabase.from("experts").update(expertData).eq("user_id",authUser.id);
+                saveError=error;
+              } else {
+                const{error}=await supabase.from("experts").insert(expertData);
+                saveError=error;
+              }
+              if(saveError){ alert("Erreur sauvegarde: "+saveError.message); return; }
+              // Update profile as expert
+              await supabase.from("profiles").update({is_expert:true}).eq("id",authUser.id);
+            } else if(!authUser?.real){
+              alert("Tu dois être connecté pour créer un profil expert.");
+              return;
             }
             patch({submitted:true});
           }} style={{flex:2,padding:"14px",borderRadius:13,border:"none",
