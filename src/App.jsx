@@ -370,7 +370,7 @@ export default function App() {
           expertId = exp.id || null;
           isApprovedExpert = !!exp.active;
         }
-        return { ...base, name:data.name||base.name, city:data.city, isExpert:isApprovedExpert, expertDomain:data.expert_domain, photoUrl, expertId };
+        return { ...base, name:data.name||base.name, city:data.city, isExpert:isApprovedExpert, expertDomain:data.expert_domain, photoUrl, expertId, pendingExpert: !!exp && !exp.active };
       }
     } catch {}
     return base;
@@ -495,6 +495,23 @@ export default function App() {
       button:active{opacity:.82} button{transition:opacity .15s}
     `}</style>
     <div style={{width:"100%",maxWidth:430,margin:"0 auto",background:C.cream,minHeight:"100vh",display:"flex",flexDirection:"column",boxShadow:"0 0 40px rgba(0,0,0,.1)",paddingTop:`calc(env(safe-area-inset-top) + 56px)`,paddingBottom:`calc(env(safe-area-inset-bottom) + 64px)`,...(["message"].includes(screen)?{height:"100vh",overflow:"hidden"}:{})}}>
+      {isLoggedIn && authUser?.pendingExpert && (
+        <div style={{position:"fixed",inset:0,zIndex:60,background:C.ink,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"0 32px",textAlign:"center"}}>
+          <div style={{fontSize:48,marginBottom:20}}>⏳</div>
+          <div style={{fontSize:24,fontWeight:800,color:C.white,fontFamily:SERIF,marginBottom:12,lineHeight:1.3}}>Candidature en cours d'examen</div>
+          <div style={{fontSize:14,color:"rgba(253,252,248,.65)",lineHeight:1.7,marginBottom:32}}>
+            Ton profil de conseiller est en cours de vérification par l'équipe Savvy. Tu recevras une confirmation sous 24–48h.
+          </div>
+          <div style={{background:"rgba(255,255,255,.08)",borderRadius:14,padding:"16px 20px",width:"100%",maxWidth:320,marginBottom:32}}>
+            <div style={{fontSize:12,color:"rgba(253,252,248,.5)",marginBottom:8}}>Connecté en tant que</div>
+            <div style={{fontSize:15,fontWeight:700,color:C.white}}>{authUser?.name}</div>
+            <div style={{fontSize:12,color:"rgba(253,252,248,.4)",marginTop:2}}>{authUser?.email}</div>
+          </div>
+          <button onClick={()=>{ supabase.auth.signOut(); setIsLoggedIn(false); setAuthUser(null); setIsExpert(false); setShowSplash(!isDesktop?true:false); setShowLanding(isDesktop?true:false); }} style={{padding:"13px 28px",borderRadius:12,border:"1px solid rgba(255,255,255,.2)",background:"transparent",color:"rgba(253,252,248,.7)",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+            Se déconnecter
+          </button>
+        </div>
+      )}
       {showLanding && !isLoggedIn && authReady && (
         <div style={{position:"fixed",inset:0,zIndex:50,overflowY:"auto",background:C.cream}}>
           <Suspense fallback={null}>
