@@ -1126,7 +1126,13 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           const handleSave = async () => {
             setSaving(true);
             if (authUser?.real) {
-              await supabase.from("experts").update({ tagline, bio, role }).eq("user_id", authUser.id);
+              const { error } = await supabase.from("experts").update({ tagline, bio, role }).eq("user_id", authUser.id);
+              if (error) {
+                console.error("Bio save error:", error.message, error.code);
+                alert("Erreur lors de la sauvegarde : " + error.message);
+                setSaving(false);
+                return;
+              }
               const { data } = await supabase.from("experts").select("*").eq("user_id", authUser.id).single();
               if (data) setSbExpertData(data);
             }
