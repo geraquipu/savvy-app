@@ -5,6 +5,7 @@ import { addBooking, addThread } from '../constants/data';
 
 function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, authUser}) {
   const savedRef = useRef(false);
+  const [saveError, setSaveError] = useState(null);
   useEffect(() => {
     if (savedRef.current) return;
     savedRef.current = true;
@@ -39,17 +40,30 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, authUser
     };
     addBooking(bookingData);
     // Sauvegarder dans Supabase si utilisateur réel
-    if (authUser?.real && authUser?.id) {
-      supabase.from("bookings").insert({
-        client_id: authUser.id,
-        expert_id: e.supabaseId || (typeof e.id === "string" && e.id.includes("-") ? e.id : null),
-        phase_name: bookingData.phase,
-        phase_price: bookingData.price,
-        status: "pending",
-        date_session: bookingDateTime ? bookingDateTime.toISOString() : null,
-        time: bookingSlot || null,
-        notes: bookingData.topic,
-      }).then(({error}) => { if(error) console.warn("Booking Supabase:", error.message); });
+    if (!authUser?.real || !authUser?.id) {
+      setSaveError(`[DEBUG] authUser.real=${authUser?.real} authUser.id=${authUser?.id} — insert omis`);
+    } else {
+      const expertId = typeof e.id === "string" && e.id.includes("-") ? e.id : null;
+      if (!expertId) {
+        setSaveError(`[DEBUG] expert_id invalide: "${e.id}" — insert omis`);
+      } else {
+        supabase.from("bookings").insert({
+          client_id: authUser.id,
+          expert_id: expertId,
+          phase_name: bookingData.phase,
+          phase_price: bookingData.price,
+          status: "pending",
+          date_session: bookingDateTime ? bookingDateTime.toISOString() : null,
+          time: bookingSlot || null,
+          notes: bookingData.topic,
+        }).then(({error}) => {
+          if (error) {
+            setSaveError(`[DEBUG] Supabase error: ${error.message} (code: ${error.code})`);
+          } else {
+            setSaveError(`[DEBUG] Insert OK — client_id=${authUser.id} expert_id=${expertId}`);
+          }
+        });
+      }
     }
     addThread({
       id: `thread_${e.initials}_${Date.now()}`,
@@ -83,6 +97,12 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, authUser
       </div>
 
       <div style={{ padding:"20px 20px 0" }}>
+        {saveError && (
+          <div style={{ background:"#FEF2F2", borderRadius:13, padding:"11px 14px", marginBottom:14, border:"1px solid #FCA5A5", display:"flex", gap:9, alignItems:"center" }}>
+            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#B91C1C" strokeWidth={2}><circle cx={12} cy={12} r={10}/><line x1={12} y1={8} x2={12} y2={12}/><line x1={12} y1={16} x2={12.01} y2={16}/></svg>
+            <span style={{ fontSize:12, color:"#B91C1C", lineHeight:1.5 }}>{saveError}</span>
+          </div>
+        )}
         {/* Réponse attendue */}
         {(()=>{ const rt=e.metrics?.find(m=>m.label?.includes("réponse")||m.label?.includes("response")); return rt ? (
           <div style={{ background:"#FFFBEB", borderRadius:13, padding:"11px 14px", marginBottom:14, border:"1px solid #FDE68A", display:"flex", gap:9, alignItems:"center" }}>

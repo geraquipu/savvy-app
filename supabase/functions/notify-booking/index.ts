@@ -30,7 +30,7 @@ serve(async (req) => {
   if (!record) return new Response("no record", { status: 400 });
 
   const booking = record;
-  const expertId = booking.expert_id;
+  const expertId = booking.expert_id; // experts.id (PK), not the expert's auth user id
   const clientId = booking.client_id;
   const status = booking.status;
   const date = booking.date_session ? new Date(booking.date_session).toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long" }) : "À confirmer";
@@ -38,8 +38,12 @@ serve(async (req) => {
   const phase = booking.phase_name || "Session";
   const price = booking.phase_price || 0;
 
+  // Resolve the expert's auth user id from experts.id before looking up auth/profile data
+  const { data: expertRow } = await supabase.from("experts").select("user_id").eq("id", expertId).single();
+  const expertUserId = expertRow?.user_id;
+
   // Get expert email
-  const { data: expertProfile } = await supabase.auth.admin.getUserById(expertId);
+  const { data: expertProfile } = expertUserId ? await supabase.auth.admin.getUserById(expertUserId) : { data: null };
   const expertEmail = expertProfile?.user?.email;
 
   // Get client email
@@ -47,7 +51,7 @@ serve(async (req) => {
   const clientEmail = clientProfile?.user?.email;
 
   // Get names from profiles
-  const { data: expProf } = await supabase.from("profiles").select("name").eq("id", expertId).single();
+  const { data: expProf } = expertUserId ? await supabase.from("profiles").select("name").eq("id", expertUserId).single() : { data: null };
   const { data: cliProf } = await supabase.from("profiles").select("name").eq("id", clientId).single();
   const expertName = expProf?.name || "Expert";
   const clientName = cliProf?.name || "Client";
