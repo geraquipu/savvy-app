@@ -627,7 +627,7 @@ export default function App() {
     setNav("profile");
   }}
 /></Suspense>}
-      {main && <BottomNav nav={nav} onChange={handleNav} unreadCount={unread} appMode={appMode} sessionsCount={newExpertProfile ? 0 : expRequestsCount} reservationsCount={(isLoggedIn && appMode==="client" && !authUser?.real) ? clientPendingCount : 0}/>}
+      {main && <BottomNav nav={nav} onChange={handleNav} unreadCount={unread} appMode={appMode} sessionsCount={newExpertProfile ? 0 : expRequestsCount} reservationsCount={(isLoggedIn && appMode==="client") ? clientPendingCount : 0}/>}
     </div>
   </div>
   </>;
