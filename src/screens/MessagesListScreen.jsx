@@ -6,6 +6,38 @@ import { supabase } from '../supabase'
 
 function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkMsgRead, appMode="client", isNewExpert=false, isRealUser=false, authUser=null, dbExperts=[]}) {
   const [realClientConvs, setRealClientConvs] = useState([]);
+  const [realExpertConvs, setRealExpertConvs] = useState([]);
+
+  // Charger les conversations expert réelles (mode client) depuis Supabase
+  useEffect(() => {
+    if (!(isRealUser && appMode!=="expert" && authUser?.id)) { setRealExpertConvs([]); return; }
+    let cancelled = false;
+    supabase.from("messages")
+      .select("*")
+      .or(`sender_id.eq.${authUser.id},receiver_id.eq.${authUser.id}`)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (cancelled || !data || data.length===0) { setRealExpertConvs([]); return; }
+        const byExpert = new Map();
+        for (const m of data) {
+          if (!m.expert_id || byExpert.has(m.expert_id)) continue;
+          byExpert.set(m.expert_id, m);
+        }
+        const convs = [...byExpert.entries()].map(([eid, m]) => {
+          const expert = dbExperts.find(de=>de.id===eid) || EXPERTS.find(e=>e.id===eid);
+          if (!expert) return null;
+          return {
+            eid, type:"expert", expert,
+            lastMsg: m.content,
+            time: new Date(m.created_at).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}),
+            unread: m.sender_id!==authUser.id ? 1 : 0,
+            id: eid, _fromSB: true,
+          };
+        }).filter(Boolean);
+        setRealExpertConvs(convs);
+      });
+    return () => { cancelled = true; };
+  }, [isRealUser, appMode, authUser?.id, dbExperts]);
 
   // Charger les conversations clients réelles (expert mode) depuis Supabase
   useEffect(() => {
@@ -90,7 +122,11 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
       });
   })();
   const demoMsgIds = new Set(lsThreads.map(t=>t.expert?.initials).filter(Boolean));
-  const expertConvs = isRealUser ? lsThreads : [
+  const realEidSet = new Set(realExpertConvs.map(c=>c.eid));
+  const expertConvs = isRealUser ? [
+    ...realExpertConvs,
+    ...lsThreads.filter(t=>!realEidSet.has(t.expertId)),
+  ] : [
     ...lsThreads,
     ...DEMO_MSGS.filter(m=>!demoMsgIds.has(EXPERTS[m.eid]?.initials)).map(m => ({...m, expert: EXPERTS[m.eid], type:"expert"})).filter(m => m.expert),
   ];

@@ -330,6 +330,7 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser?.id, authUser?.isExpert]);
   const [clientPendingCount, setClientPendingCount] = useState(0); // synced from ReservationsScreen
+  const [realUnreadCount, setRealUnreadCount] = useState(0);
   const [appMode, setAppMode] = useState("client"); // "client" | "expert"
   const [expInitSection, setExpInitSection] = useState(null); // section to open in ProfileScreen
   const [dbExperts, setDbExperts] = useState([]);
@@ -353,6 +354,38 @@ export default function App() {
       })
       .catch(() => { setDbExperts(EXPERTS); setExpertsLoaded(true); });
   }, []);
+
+  // ── Supabase : compter les messages non lus (badge notif/menu) pour utilisateurs réels ──
+  useEffect(() => {
+    if (!authUser?.real || !authUser?.id) { setRealUnreadCount(0); return; }
+    let cancelled = false;
+    const load = () => {
+      const isExpertMode = appMode === "expert" && authUser?.expertId;
+      const q = isExpertMode
+        ? supabase.from("messages").select("*").eq("expert_id", authUser.expertId).order("created_at", { ascending: false })
+        : supabase.from("messages").select("*").or(`sender_id.eq.${authUser.id},receiver_id.eq.${authUser.id}`).order("created_at", { ascending: false });
+      q.then(({ data }) => {
+        if (cancelled || !data) { setRealUnreadCount(0); return; }
+        const seen = new Map();
+        for (const m of data) {
+          const key = isExpertMode ? (m.sender_id===authUser.id ? m.receiver_id : m.sender_id) : m.expert_id;
+          if (!key || seen.has(key)) continue;
+          seen.set(key, m);
+        }
+        let count = 0;
+        for (const [key, m] of seen) {
+          const convKey = isExpertMode ? "cli-"+key : "exp-"+key;
+          if (m.sender_id !== authUser.id && !readMsgIds.includes(convKey)) count++;
+        }
+        setRealUnreadCount(count);
+      });
+    };
+    load();
+    const channel = supabase.channel("unread-msgs-"+authUser.id+"-"+appMode)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, load)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [authUser?.real, authUser?.id, authUser?.expertId, appMode, readMsgIds]);
 
   // ── Supabase : restaurer la session + charger le profil ──
   const loadProfile = async (u) => {
@@ -476,7 +509,7 @@ export default function App() {
   // "search" est maintenant dans main pour avoir la TopBar et BottomNav
   const main = ["home","search","match","messages","reservations","profile","public"].includes(screen);
   const unread = !isLoggedIn ? 0
-    : authUser?.real ? 0
+    : authUser?.real ? realUnreadCount
     : appMode==="expert" ? (isExpert && !newExpertProfile ? EXPERT_CLIENT_CONVS.reduce((s,c)=>s+(readMsgIds.includes("cli-"+c.id)?0:c.unread),0) : 0)
     : DEMO_MSGS.reduce((s,m)=>s+(readMsgIds.includes("exp-"+m.id)?0:m.unread),0);
 
@@ -540,7 +573,7 @@ export default function App() {
       )}
       {showOnboarding && !isLoggedIn && authReady && <Suspense fallback={null}><OnboardingScreen onDone={()=>{ sessionStorage.setItem("savvy_onboarding_seen","1"); setShowOnboarding(false); setShowSplash(true); }}/></Suspense>}
       {!showOnboarding && showSplash && !isLoggedIn && authReady && <Suspense fallback={null}><SplashScreen isAdmin={authUser?.email==="geraquipu@hotmail.com"} onSkip={()=>{ setShowSplash(false); setScreen("home"); setNav("home"); }} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowSplash(false); setScreen("home"); setNav("home"); }} onRegister={()=>{ setShowSplash(false); setShowAuth(true); setAuthIntent("register"); }}/></Suspense>}
-      {main && <TopBar onNotif={()=>setShowNotif(v=>!v)} notifCount={isLoggedIn?(authUser?.real?(authUser?.isExpert&&appMode==="expert"?expRequestsCount:0):Math.max(0,(newExpertProfile?3:4)-readNotifIds.length)):0} isLoggedIn={isLoggedIn} onLogin={()=>setShowSplash(true)} isExpert={isExpert} appMode={appMode} onToggleMode={m=>{ setAppMode(m); if(m==="expert"){ setNav("exp-dashboard"); setExpInitSection("dashboard"); setScreen("profile"); } else { setNav("home"); setExpInitSection(null); setScreen("home"); } }}/>}
+      {main && <TopBar onNotif={()=>setShowNotif(v=>!v)} notifCount={isLoggedIn?(authUser?.real?((authUser?.isExpert&&appMode==="expert"?expRequestsCount:0)+realUnreadCount):Math.max(0,(newExpertProfile?3:4)-readNotifIds.length)):0} isLoggedIn={isLoggedIn} onLogin={()=>setShowSplash(true)} isExpert={isExpert} appMode={appMode} onToggleMode={m=>{ setAppMode(m); if(m==="expert"){ setNav("exp-dashboard"); setExpInitSection("dashboard"); setScreen("profile"); } else { setNav("home"); setExpInitSection(null); setScreen("home"); } }}/>}
       {showAuth && <Suspense fallback={null}><AuthModal onClose={()=>setShowAuth(false)} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowAuth(false); setShowSplash(false); setAuthIntent(null); }} initialRegister={authIntent==="register"} isAdmin={authUser?.email==="geraquipu@hotmail.com"}/></Suspense>}
       {showProfileSetup && authUser?.real && <ProfileSetupModal authUser={authUser} onDone={updated=>{ setAuthUser(updated); setShowProfileSetup(false); }}/>}
       {showNotif && <Suspense fallback={null}><NotificationPanel onClose={()=>setShowNotif(false)} onNavigate={(s)=>{ setShowNotif(false); handleNav(s); }} readNotifIds={readNotifIds} onMarkRead={setReadNotifIds} isExpert={isExpert&&appMode==="expert"} isNewExpert={!!newExpertProfile} expRequestsCount={expRequestsCount} unreadMsgsCount={unread}/></Suspense>}

@@ -781,7 +781,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           price: b.phase_price || 0,
           status: b.status,
           statusLabel: b.status === "confirmed" ? "Confirmée" : b.status === "cancelled" ? "Annulée" : "En attente",
-          paid: !!localStorage.getItem(`savvy_paid_${b.id}`),
+          paid: !!b.paid || !!localStorage.getItem(`savvy_paid_${b.id}`),
           _fromSB: true,
           expertName: exp.name || "Expert",
         };
