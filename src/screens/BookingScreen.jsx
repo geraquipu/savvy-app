@@ -361,7 +361,7 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
         </div>
         <button onClick={()=>{ if(!selectedPhase){alert("Choisissez une offre."); return;} setStep("format"); }}
           style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:15, fontFamily:SERIF,
-            background:selectedPhase?C.ink:C.cream3, color:selectedPhase?C.white:C.muted }}>
+            background:selectedPhase?`linear-gradient(135deg,${C.gold},${C.goldB})`:C.cream3, color:selectedPhase?C.white:C.muted }}>
           {selectedPhase ? `Continuer avec "${selectedPhase.name}" →` : "Sélectionnez une offre"}
         </button>
       </div>
@@ -410,7 +410,7 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
         </div>}
 
         <button onClick={()=>{ if(!selectedFormat){alert("Choisissez un format."); return;} setStep("date"); }}
-          style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:15, background:selectedFormat?C.ink:C.cream3, color:selectedFormat?C.white:C.muted, fontFamily:SERIF, transition:"all .2s" }}>
+          style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:15, background:selectedFormat?`linear-gradient(135deg,${C.gold},${C.goldB})`:C.cream3, color:selectedFormat?C.white:C.muted, fontFamily:SERIF, transition:"all .2s" }}>
           {selectedFormat ? `Continuer avec ${BOOKING_FORMATS.find(f=>f.id===selectedFormat)?.icon} ${BOOKING_FORMATS.find(f=>f.id===selectedFormat)?.label} →` : "Sélectionnez un format"}
         </button>
       </div>
@@ -439,7 +439,7 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
         <textarea value={note} onChange={ev=>setNote(ev.target.value)} placeholder="Quelques lignes pour que votre conseiller se prépare..." style={{ width:"100%", padding:"12px 14px", borderRadius:13, border:`1.5px solid ${C.border}`, fontSize:12, fontFamily:"inherit", color:C.ink, resize:"none", height:76, boxSizing:"border-box", outline:"none", marginBottom:14, background:C.cream2, lineHeight:1.6 }}/>
 
         <button onClick={()=>{ if(!booking.date||!booking.slot){alert("Choisissez une date et un créneau."); return;} setStep("confirm"); }}
-          style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:14, fontFamily:SERIF, background:booking.date&&booking.slot?C.ink:C.cream3, color:booking.date&&booking.slot?C.white:C.muted }}>
+          style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:14, fontFamily:SERIF, background:booking.date&&booking.slot?`linear-gradient(135deg,${C.gold},${C.goldB})`:C.cream3, color:booking.date&&booking.slot?C.white:C.muted }}>
           {booking.date&&booking.slot ? `Confirmer le ${booking.date.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})} à ${booking.slot} →` : "Sélectionnez une date →"}
         </button>
       </div>
