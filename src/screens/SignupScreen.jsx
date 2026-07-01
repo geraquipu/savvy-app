@@ -289,9 +289,9 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
         {(()=>{
           const hasDispoConfigured = form.dispoChoice==="now" && Object.values(form.dispoJours||{}).some(Boolean);
           const items=[
-            {icon:"📸", label:T.pendingPhoto, done:!!form.photoUrl},
-            {icon:"✍️", label:T.pendingBio,   done:!!(form.bio&&form.bio.trim().length>10)},
-            {icon:"🗓️", label:T.pendingDispo, done:hasDispoConfigured},
+            {icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={1.8}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx={12} cy={13} r={4}/></svg>, label:T.pendingPhoto, done:!!form.photoUrl},
+            {icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={1.8}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>, label:T.pendingBio, done:!!(form.bio&&form.bio.trim().length>10)},
+            {icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={1.8}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>, label:T.pendingDispo, done:hasDispoConfigured},
           ].filter(i=>!i.done);
           if(!items.length) return (
             <div style={{background:C.sageL,border:"1px solid rgba(16,185,129,.2)",borderRadius:15,padding:"14px 18px",marginBottom:20,display:"flex",gap:10,alignItems:"center"}}>
@@ -304,7 +304,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
               <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:12}}>{T.pendingTitle}</div>
               {items.map((item,i,arr)=>(
                 <div key={item.label} style={{display:"flex",alignItems:"center",gap:12,padding:"9px 0",borderBottom:i<arr.length-1?`1px solid ${C.borderF}`:"none"}}>
-                  <span style={{fontSize:18}}>{item.icon}</span>
+                  <span style={{display:"flex",alignItems:"center"}}>{item.icon}</span>
                   <span style={{fontSize:13,color:C.soft}}>{item.label}</span>
                 </div>
               ))}

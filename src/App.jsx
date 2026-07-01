@@ -389,7 +389,8 @@ export default function App() {
 
   // ── Supabase : restaurer la session + charger le profil ──
   const loadProfile = async (u) => {
-    const base = { email:u.email, name:u.user_metadata?.name || u.email.split("@")[0], isExpert:false, real:true, id:u.id };
+    const googlePhoto = u.user_metadata?.avatar_url || u.user_metadata?.picture || null;
+    const base = { email:u.email, name:u.user_metadata?.full_name || u.user_metadata?.name || u.email.split("@")[0], isExpert:false, real:true, id:u.id };
     try {
       let { data } = await supabase.from("profiles").select("*").eq("id", u.id).single();
       if (!data) {
@@ -405,9 +406,11 @@ export default function App() {
         let isApprovedExpert = false;
         const { data: exp } = await supabase.from("experts").select("id, photo_url, active").eq("user_id", u.id).single();
         if (exp) {
-          photoUrl = exp.photo_url || null;
+          photoUrl = exp.photo_url || googlePhoto;
           expertId = exp.id || null;
           isApprovedExpert = !!exp.active;
+        } else {
+          photoUrl = googlePhoto;
         }
         return { ...base, name:data.name||base.name, city:data.city, isExpert:isApprovedExpert, expertDomain:data.expert_domain, photoUrl, expertId, pendingExpert: !!exp && !exp.active };
       }
