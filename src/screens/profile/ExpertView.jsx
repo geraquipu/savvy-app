@@ -646,9 +646,8 @@ export function ExpertView({
                           </button>
                           {s.statut==="confirmé"&&(
                             <button onClick={()=>{
-                              const meetUrl = `https://meet.savvy.fr/session-${s.id}`;
-                              if(navigator.share){ navigator.share({title:`Session avec ${s.client}`,url:meetUrl}).catch(()=>{}); }
-                              else { try{navigator.clipboard.writeText(meetUrl);}catch{} window.open(meetUrl,"_blank"); }
+                              const roomId = s.id ? String(s.id).replace(/-/g,"").slice(0,16) : "savvy";
+                              window.open(`https://meet.jit.si/savvy-${roomId}`, "_blank");
                             }} style={{flex:1,padding:"8px",borderRadius:9,border:"none",background:C.sage,color:C.white,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:SERIF,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
                               <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>Rejoindre
                             </button>

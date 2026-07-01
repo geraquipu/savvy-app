@@ -793,7 +793,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
   // ── STEP 5 — Disponibilités ──────────────────────────────────────────────────
   if (step === 5) {
     const dispoNow = form.dispoChoice === "now";
-    const saveAndContinue = () => {
+    const saveAndContinue = async () => {
       if (dispoNow) {
         if(!Object.values(form.dispoJours).some(v=>v)){alert(lang==="es"?"Selecciona al menos un día.":"Sélectionne au moins un jour."); return;}
         const dispoMap={}, today=new Date();
@@ -810,6 +810,18 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
         const hMap={};
         Object.keys(dispoMap).forEach(k=>{hMap[k]=(form.dispoStart||"09:00")+"-"+(form.dispoEnd||"18:00");});
         localStorage.setItem(`savvy_dispo_hours_${_dk}`, JSON.stringify(hMap));
+        // Also save to Supabase availability table
+        if (authUser?.real && authUser?.id) {
+          const { data: expRow } = await supabase.from("experts").select("id").eq("user_id", authUser.id).single();
+          const expertId = expRow?.id;
+          if (expertId) {
+            const rows = Object.entries(form.dispoJours)
+              .filter(([,v]) => v)
+              .map(([dow]) => ({ expert_id: expertId, day_of_week: Number(dow), start_time: form.dispoStart||"09:00", end_time: form.dispoEnd||"18:00" }));
+            await supabase.from("availability").delete().eq("expert_id", expertId);
+            if (rows.length > 0) await supabase.from("availability").insert(rows);
+          }
+        }
       }
       setStep(6);
     };

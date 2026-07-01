@@ -658,11 +658,10 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
           </div>
         )}
         <div style={{ display:"flex", gap:8 }}>
-          {isToday && s.status==="confirmed" && (
+          {s.status==="confirmed" && s.paid && (
             <button onClick={()=>{
-              const meetUrl = `https://meet.savvy.fr/session-${s.id}`;
-              if(navigator.share){ navigator.share({title:`Session avec ${expert.name}`,url:meetUrl}).catch(()=>{}); }
-              else { try{navigator.clipboard.writeText(meetUrl);}catch{} window.open(meetUrl,"_blank"); }
+              const roomId = s.id ? s.id.replace(/-/g,"").slice(0,16) : "savvy";
+              window.open(`https://meet.jit.si/savvy-${roomId}`, "_blank");
             }} style={{ flex:2, padding:"10px", borderRadius:11, border:"none", cursor:"pointer", fontWeight:700, fontSize:12, background:C.sage, color:C.white, fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
               <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>
               Rejoindre la session

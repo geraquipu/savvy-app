@@ -81,6 +81,9 @@ serve(async (req) => {
 
   // ── Confirmée → notifier le client ──
   if (type === "UPDATE" && status === "confirmed" && clientEmail) {
+    const bookingId = record.id || "";
+    const roomId = bookingId.replace(/-/g,"").slice(0,16);
+    const meetUrl = `https://meet.jit.si/savvy-${roomId}`;
     await sendEmail(
       clientEmail,
       `✅ Session confirmée — ${phase}`,
@@ -95,6 +98,10 @@ serve(async (req) => {
           <p style="margin:0;color:#57534E">💶 ${price}€</p>
         </div>
         <p style="color:#57534E">Préparez vos questions et rejoignez la session à l'heure prévue.</p>
+        <div style="background:#ECFDF5;border:1px solid #6EE7B7;border-radius:12px;padding:16px;margin:20px 0">
+          <p style="margin:0 0 6px;color:#065F46;font-weight:700">🎥 Lien de la session vidéo</p>
+          <a href="${meetUrl}" style="color:#059669;word-break:break-all;font-size:13px">${meetUrl}</a>
+        </div>
         <a href="https://getsavvy.fr" style="display:inline-block;background:#1C1917;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;margin-top:8px">Voir ma session →</a>
         <p style="color:#A8A29E;font-size:12px;margin-top:24px">Savvy · L'expertise humaine, accessible à tous</p>
       </div>
