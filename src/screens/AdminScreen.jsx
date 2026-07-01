@@ -36,6 +36,12 @@ function AdminScreen({ authUser, onBack }) {
   const approveExpert = async (exp) => {
     await supabase.from("experts").update({ active: true, verified: true }).eq("id", exp.id);
     if (exp.user_id) await supabase.from("profiles").update({ is_expert: true }).eq("id", exp.user_id);
+    // Notifier l'expert par email
+    if (exp.user_id) {
+      supabase.functions.invoke("notify-expert-approved", {
+        body: { expertUserId: exp.user_id, expertName: exp.name || "Expert" },
+      }).catch(e => console.warn("notify-expert-approved:", e));
+    }
     setPendingExperts(p => p.filter(e => e.id !== exp.id));
     setStats(s => ({ ...s, experts: s.experts + 1 }));
   };
