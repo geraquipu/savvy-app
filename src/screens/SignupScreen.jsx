@@ -1039,7 +1039,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
                 initials:builtProfile.initials,
                 role:builtProfile.role, tagline:form.tagline,
                 bio:form.bio||"", location:form.pays, langs:form.langs||["FR"],
-                cat:form.category, verified:false, active:false,
+                cat:form.category, subcats:form.subcats||[], verified:false, active:false,
                 phases:builtProfile.phases,
                 creds:builtProfile.creds, metrics:[],
                 photo_url:form.photoUrl?.startsWith("http")?form.photoUrl:null,
