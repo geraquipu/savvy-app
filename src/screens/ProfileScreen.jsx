@@ -1115,7 +1115,18 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
             </div>
             <div style={{display:"flex",gap:10}}>
               <button onClick={()=>setShowDeleteModal(false)} style={{flex:1,padding:"14px",borderRadius:13,border:`1.5px solid ${C.border}`,background:C.white,color:C.ink,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>Annuler</button>
-              <button onClick={()=>{ setShowDeleteModal(false); onLogout&&onLogout(); }} style={{flex:1,padding:"14px",borderRadius:13,border:"none",background:"#DC2626",color:C.white,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>Supprimer</button>
+              <button onClick={async()=>{
+                setShowDeleteModal(false);
+                if (authUser?.real) {
+                  try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    await supabase.functions.invoke("delete-account", {
+                      headers: { Authorization: `Bearer ${session?.access_token}` },
+                    });
+                  } catch(e) { console.warn("delete-account:", e); }
+                }
+                onLogout&&onLogout();
+              }} style={{flex:1,padding:"14px",borderRadius:13,border:"none",background:"#DC2626",color:C.white,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>Supprimer</button>
             </div>
           </div>
         </div>
