@@ -660,8 +660,9 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
         <div style={{ display:"flex", gap:8 }}>
           {s.status==="confirmed" && s.paid && (
             <button onClick={()=>{
+              const customLink = s.expertData?.meet_link;
               const roomId = s.id ? s.id.replace(/-/g,"").slice(0,16) : "savvy";
-              window.open(`https://meet.jit.si/savvy-${roomId}`, "_blank");
+              window.open(customLink || `https://meet.jit.si/savvy-${roomId}`, "_blank");
             }} style={{ flex:2, padding:"10px", borderRadius:11, border:"none", cursor:"pointer", fontWeight:700, fontSize:12, background:C.sage, color:C.white, fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
               <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>
               Rejoindre la session
@@ -762,7 +763,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
       const expertIds = [...new Set(bookingsData.map(b=>b.expert_id).filter(Boolean))];
       const expertMap = {};
       if (expertIds.length > 0) {
-        const { data: experts } = await supabase.from("experts").select("id, name, initials, bg, color, role").in("id", expertIds);
+        const { data: experts } = await supabase.from("experts").select("id, name, initials, bg, color, role, meet_link").in("id", expertIds);
         (experts||[]).forEach(e => { expertMap[e.id] = e; });
       }
       const mapped = bookingsData.map(b => {
@@ -771,7 +772,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           id: b.id,
           eid: b.expert_id,
           expertInitials: exp.initials || "?",
-          expertData: { name: exp.name || "Expert", initials: exp.initials || "?", bg: exp.bg || "#EDE8DF", color: exp.color || "#8B7355", role: exp.role || "", id: b.expert_id },
+          expertData: { name: exp.name || "Expert", initials: exp.initials || "?", bg: exp.bg || "#EDE8DF", color: exp.color || "#8B7355", role: exp.role || "", id: b.expert_id, meet_link: exp.meet_link || null },
           topic: b.notes || b.phase_name || "Session",
           date: b.date_session ? new Date(b.date_session).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}) : "À confirmer",
           time: b.date_session ? new Date(b.date_session).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "À confirmer",

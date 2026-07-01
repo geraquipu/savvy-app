@@ -38,9 +38,10 @@ serve(async (req) => {
   const phase = booking.phase_name || "Session";
   const price = booking.phase_price || 0;
 
-  // Resolve the expert's auth user id from experts.id before looking up auth/profile data
-  const { data: expertRow } = await supabase.from("experts").select("user_id").eq("id", expertId).single();
+  // Resolve the expert's auth user id and meet_link from experts.id
+  const { data: expertRow } = await supabase.from("experts").select("user_id, meet_link").eq("id", expertId).single();
   const expertUserId = expertRow?.user_id;
+  const expertMeetLink = expertRow?.meet_link || null;
 
   // Get expert email
   const { data: expertProfile } = expertUserId ? await supabase.auth.admin.getUserById(expertUserId) : { data: null };
@@ -56,9 +57,16 @@ serve(async (req) => {
   const expertName = expProf?.name || "Expert";
   const clientName = cliProf?.name || "Client";
 
-  // ── Nouvelle réservation → notifier l'expert ──
-  if (type === "INSERT" && status === "pending" && expertEmail) {
-    await sendEmail(
+  // ── Nouvelle réservation → notifier l'expert (email + push) ──
+  if (type === "INSERT" && status === "pending") {
+    if (expertUserId) {
+      await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}` },
+        body: JSON.stringify({ userId: expertUserId, title: "📅 Nouvelle réservation", body: `${clientName} · ${phase} · ${price}€`, url: "/" }),
+      }).catch(() => {});
+    }
+    if (expertEmail) await sendEmail(
       expertEmail,
       `📅 Nouvelle réservation — ${phase}`,
       `
@@ -79,11 +87,20 @@ serve(async (req) => {
     );
   }
 
+  // ── Confirmée → push au client en plus de l'email ──
+  if (type === "UPDATE" && status === "confirmed") {
+    await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}` },
+      body: JSON.stringify({ userId: clientId, title: "✅ Session confirmée !", body: `${expertName} a accepté votre demande · ${phase}`, url: "/" }),
+    }).catch(() => {});
+  }
+
   // ── Confirmée → notifier le client ──
   if (type === "UPDATE" && status === "confirmed" && clientEmail) {
     const bookingId = record.id || "";
     const roomId = bookingId.replace(/-/g,"").slice(0,16);
-    const meetUrl = `https://meet.jit.si/savvy-${roomId}`;
+    const meetUrl = expertMeetLink || `https://meet.jit.si/savvy-${roomId}`;
     await sendEmail(
       clientEmail,
       `✅ Session confirmée — ${phase}`,

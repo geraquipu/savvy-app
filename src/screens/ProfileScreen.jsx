@@ -1145,11 +1145,12 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           const [tagline, setTagline] = useState(expertUser?.tagline || "");
           const [bio, setBio] = useState(expertUser?.bio || "");
           const [role, setRole] = useState(expertUser?.role?.split("·")[0]?.trim() || "");
+          const [meetLink, setMeetLink] = useState(sbExpertData?.meet_link || "");
           const [saving, setSaving] = useState(false);
           const handleSave = async () => {
             setSaving(true);
             if (authUser?.real) {
-              const { error } = await supabase.from("experts").update({ tagline, bio, role }).eq("user_id", authUser.id);
+              const { error } = await supabase.from("experts").update({ tagline, bio, role, meet_link: meetLink||null }).eq("user_id", authUser.id);
               if (error) {
                 console.error("Bio save error:", error.message, error.code);
                 alert("Erreur lors de la sauvegarde : " + error.message);
@@ -1184,6 +1185,11 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                       : <input value={f.val} onChange={e=>f.set(e.target.value)} placeholder={f.ph} style={{ width:"100%", padding:"12px 14px", borderRadius:11, border:`1.5px solid ${C.border}`, fontSize:13, fontFamily:"inherit", color:C.ink, outline:"none", boxSizing:"border-box", background:C.white }}/>}
                   </div>
                 ))}
+                <div style={{ marginBottom:16 }}>
+                  <label style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:6, display:"block", textTransform:"uppercase", letterSpacing:.5 }}>Lien de visio (Zoom / Meet / Teams)</label>
+                  <input value={meetLink} onChange={e=>setMeetLink(e.target.value)} placeholder="https://zoom.us/j/... ou https://meet.google.com/..." style={{ width:"100%", padding:"12px 14px", borderRadius:11, border:`1.5px solid ${C.border}`, fontSize:13, fontFamily:"inherit", color:C.ink, outline:"none", boxSizing:"border-box", background:C.white }}/>
+                  <div style={{ fontSize:11, color:C.muted, marginTop:5 }}>Ce lien sera envoyé au client quand tu confirmes une session.</div>
+                </div>
                 <div style={{ display:"flex", gap:9 }}>
                   <button onClick={()=>setShowEditExpert(false)} style={{ flex:1, padding:"13px", borderRadius:12, border:`1px solid ${C.border}`, background:C.white, color:C.ink, fontWeight:600, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Annuler</button>
                   <button onClick={handleSave} disabled={saving} style={{ flex:2, padding:"13px", borderRadius:12, border:"none", background:C.ink, color:C.white, fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:SERIF, opacity:saving?.6:1 }}>{saving?"Enregistrement…":"Enregistrer ✓"}</button>

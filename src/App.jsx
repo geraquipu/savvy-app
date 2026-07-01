@@ -315,6 +315,30 @@ export default function App() {
   const [readMsgIds, setReadMsgIds] = useState([]);
   const [expRequestsCount, setExpRequestsCount] = useState(() => (newExpertProfile || authUser?.real) ? 0 : 2); // synced from ProfileScreen
   const [showProfileSetup, setShowProfileSetup] = useState(false);
+
+  // ── Push notifications : register service worker + subscribe ──
+  useEffect(() => {
+    if (!authUser?.real || !authUser?.id) return;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    const VAPID_PUBLIC = "BNaRkGUch6UJgKgCALtZdv-3qjAJeeUqa8Hp0-PVHQHFsTv_ck9g4XJotLNoMZ1kNo1-ssTmGjym3TLzDyfdJQ4";
+    const urlB64ToUint8 = (b64) => { const p = (b64+"===").slice(0,b64.length+(4-b64.length%4)%4).replace(/-/g,"+").replace(/_/g,"/"); const r = atob(p); return Uint8Array.from(r, c=>c.charCodeAt(0)); };
+    navigator.serviceWorker.register("/sw.js").then(reg => {
+      Notification.requestPermission().then(async perm => {
+        if (perm !== "granted") return;
+        try {
+          const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(VAPID_PUBLIC) });
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            await supabase.functions.invoke("save-push-subscription", {
+              body: { subscription: sub.toJSON() },
+              headers: { Authorization: `Bearer ${session.access_token}` },
+            });
+          }
+        } catch(e) { console.warn("push subscribe:", e.message); }
+      });
+    }).catch(e => console.warn("sw register:", e.message));
+  }, [authUser?.real, authUser?.id]);
+
   // ── Supabase : charger les demandes en attente pour l'expert ──
   useEffect(() => {
     if (!authUser?.real || !authUser?.id || !authUser?.isExpert || !authUser?.expertId) return;
