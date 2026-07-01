@@ -660,17 +660,19 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
 
             {/* Actions */}
             <div style={{display:"flex",gap:10}}>
-              <button onClick={()=>{
+              <button onClick={async()=>{
                 if(r._fromLS) updateBooking(r.id, {status:"cancelled"});
+                if(!r._fromLS && r.id) await supabase.from("bookings").update({status:"cancelled"}).eq("id", r.id);
                 setExpCancelled(prev=>[{...r,statut:"refusé",motif:"Refusé par l'expert"},...prev]);
                 setExpRequests(prev=>prev.filter(x=>x.id!==r.id));
                 setClientProfileModal(null);
               }} style={{flex:1,padding:"13px",borderRadius:13,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
                 ✕ Refuser
               </button>
-              <button onClick={()=>{
+              <button onClick={async()=>{
                 const confirmed={...r,statut:"confirmé",hoursUntil:r.date==="Demain"?22:r.date==="Aujourd'hui"?6:168};
                 if(r._fromLS) updateBooking(r.id, {status:"confirmed"});
+                if(!r._fromLS && r.id) await supabase.from("bookings").update({status:"confirmed"}).eq("id", r.id);
                 setExpConfirmed(prev=>[confirmed,...prev]);
                 setExpRequests(prev=>prev.filter(x=>x.id!==r.id));
                 setClientProfileModal(null);
@@ -796,12 +798,17 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           )}
           <div style={{display:"flex",gap:10}}>
             <button onClick={()=>setCancelModal({...cancelModal,step:"reason"})} style={{flex:1,padding:"13px",borderRadius:12,border:`1px solid ${C.border}`,background:C.white,color:C.ink,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Retour</button>
-            <button onClick={()=>{
+            <button onClick={async()=>{
               const s = cancelModal.session;
               const motif = cancelModal.selectedMotif==="Autre"?(cancelModal.motifTexte||"Autre"):cancelModal.selectedMotif;
               if(cancelModal.type==="exp"){
+                if(s._fromLS) updateBooking(s.id, {status:"cancelled"});
+                if(!s._fromLS && s.id) await supabase.from("bookings").update({status:"cancelled"}).eq("id", s.id);
                 setExpCancelled(prev=>[{...s,statut:"annulé",motif},...prev]);
                 setExpConfirmed(prev=>prev.filter(x=>x.id!==s.id));
+              } else {
+                if(s._fromLS) updateBooking(s.id, {status:"cancelled"});
+                if(!s._fromLS && s.id) await supabase.from("bookings").update({status:"cancelled"}).eq("id", s.id);
               }
               setCancelModal(null);
             }} style={{flex:1,padding:"13px",borderRadius:12,border:"none",background:"#B91C1C",color:C.white,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>Confirmer</button>
