@@ -1010,7 +1010,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
               prenom:form.prenom, nom:form.nom,
               initials:`${form.prenom[0]||""}${form.nom[0]||""}`.toUpperCase(),
               domain:`${CATS.find(c=>c.id===form.category)?.label||""}`,
-              role:`${CATS.find(c=>c.id===form.category)?.label||""} · ${form.yearsExp}`,
+              role:`${CATS.find(c=>c.id===form.category)?.label||""}${form.subcats?.length?(` · ${form.subcats.map(sid=>SUBCATS[form.category]?.find(s=>s.id===sid)?.label||sid).join(", ")} · `):" · "}${form.yearsExp}`,
               tagline:form.tagline, bio:form.bio||"",
               location:form.pays, langs:form.langs||["FR"], cat:form.category,
               photoUrl:form.photoUrl||null,
