@@ -317,14 +317,15 @@ export default function App() {
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   // ── Supabase : charger les demandes en attente pour l'expert ──
   useEffect(() => {
-    if (!authUser?.real || !authUser?.id || !authUser?.isExpert) return;
+    if (!authUser?.real || !authUser?.id || !authUser?.isExpert || !authUser?.expertId) return;
+    const eid = authUser.expertId;
     const load = () =>
       supabase.from("bookings").select("id", { count: "exact" })
-        .eq("expert_id", authUser.id).eq("status", "pending")
+        .eq("expert_id", eid).eq("status", "pending")
         .then(({ count }) => { if (count != null) setExpRequestsCount(count); });
     load();
-    const channel = supabase.channel("expert-bookings-"+authUser.id)
-      .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `expert_id=eq.${authUser.id}` }, load)
+    const channel = supabase.channel("expert-bookings-"+eid)
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `expert_id=eq.${eid}` }, load)
       .subscribe();
     return () => supabase.removeChannel(channel);
   // eslint-disable-next-line react-hooks/exhaustive-deps
