@@ -97,7 +97,7 @@ function OfferEditForm({ initial, onSave, onCancel }) {
             return (
               <div key={fmt.v} onClick={()=>toggleFmt(fmt.v)}
                 style={{display:"flex",alignItems:"center",gap:9,padding:"9px 11px",borderRadius:10,border:`1.5px solid ${checked?C.gold:C.border}`,background:checked?C.goldL:C.white,cursor:"pointer",transition:"all .15s"}}>
-                <span style={{fontSize:16,flexShrink:0}}>{fmt.icon}</span>
+                <span style={{display:"flex",flexShrink:0,color:"currentColor"}}>{MENU_ICONS[fmt.icon]||fmt.icon}</span>
                 <div>
                   <div style={{fontSize:12,fontWeight:checked?700:500,color:checked?C.gold:C.ink}}>{fmt.l}</div>
                   <div style={{fontSize:10,color:C.muted}}>{fmt.sub}</div>
@@ -658,7 +658,7 @@ export function ExpertView({
                             <div style={{fontSize:11,color:C.muted,marginTop:1}}>{s.format}</div>
                           </div>
                           <div style={{padding:"3px 10px",borderRadius:20,fontSize:10,fontWeight:700,background:s.statut==="confirmé"?C.sageL:"#FEF3C7",color:s.statut==="confirmé"?C.sage:"#92400E"}}>
-                            {s.statut==="confirmé"?"✓ Confirmé":"⏳ En attente"}
+                            {s.statut==="confirmé"?"✓ Confirmé":"En attente"}
                           </div>
                         </div>
                         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:7,marginBottom:11}}>
@@ -1262,10 +1262,10 @@ export function ExpertView({
               ) : (
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
                   {[
-                    {v: revenuMois.toFixed(0)+"€", l:"💰 revenus ce mois"},
-                    {v: String(realClientsCount), l:"👥 clients aidés"},
-                    {v: authUser?.real ? "—" : (EXPERT_DATA.rating ? EXPERT_DATA.rating.toFixed(1)+"★" : "—"), l:"⭐ note moyenne"},
-                    {v: String(sessionsThisWeek), l:"📅 sessions sem."},
+                    {v: revenuMois.toFixed(0)+"€", l:"revenus ce mois"},
+                    {v: String(realClientsCount), l:"clients aidés"},
+                    {v: authUser?.real ? "—" : (EXPERT_DATA.rating ? EXPERT_DATA.rating.toFixed(1)+"★" : "—"), l:"note moyenne"},
+                    {v: String(sessionsThisWeek), l:"sessions sem."},
                   ].map(s=>(
                     <div key={s.l} style={{background:"rgba(255,255,255,.07)",borderRadius:12,padding:"11px 10px",textAlign:"center"}}>
                       <div style={{fontSize:18,fontWeight:800,color:C.white,fontFamily:SERIF}}>{s.v}</div>
@@ -1686,7 +1686,7 @@ export function ExpertView({
                             <div style={{fontSize:11,color:C.muted,marginTop:3,display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>
                               {(o.formats?o.formats:[o.format]).map(f=>(
                                 <span key={f} style={{fontSize:10,padding:"2px 8px",borderRadius:20,background:C.cream3,color:C.muted,fontWeight:500}}>
-                                  {f==="video"||f?.includes?.("Vidéo")?"🎥 Vidéo":f==="audio"||f?.includes?.("audio")?"📞 Audio":f==="doc"||f?.includes?.("Doc")?"📄 Doc":"💬 Chat"}
+                                  {f==="video"||f?.includes?.("Vidéo")?"Vidéo":f==="audio"||f?.includes?.("audio")?"Audio":f==="doc"||f?.includes?.("Doc")?"Document":"Chat"}
                                 </span>
                               ))}
                               {(o.duree||o.what)&&<span style={{fontSize:10,color:C.muted}}>· {o.duree||(o.what?.split(" ").slice(-1)[0])}</span>}

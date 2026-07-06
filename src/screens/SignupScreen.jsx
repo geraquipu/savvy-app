@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabase';
+import { MENU_ICONS } from '../constants/menuIcons.jsx';
 import { C, SERIF } from '../constants/colors';
 import { CATS, SUBCATS } from '../constants/data';
 
@@ -381,7 +382,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
             { emoji:"🛡️", title:T.why3t, sub:T.why3s },
           ].map(item => (
             <div key={item.title} style={{ display:"flex", gap:14, alignItems:"flex-start", marginBottom:12, background:C.white, borderRadius:14, padding:"14px 15px", border:`1px solid ${C.border}` }}>
-              <div style={{ fontSize:24, width:44, height:44, borderRadius:13, background:C.goldL, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{item.emoji}</div>
+              <div style={{ width:44, height:44, borderRadius:13, background:C.goldL, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:C.gold }}>{MENU_ICONS[item.emoji]||item.emoji}</div>
               <div>
                 <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:3, fontFamily:SERIF }}>{item.title}</div>
                 <div style={{ fontSize:12, color:C.muted, lineHeight:1.6 }}>{item.sub}</div>
@@ -538,7 +539,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
               style={{padding:"13px 11px",borderRadius:13,cursor:"pointer",textAlign:"center",fontFamily:"inherit",
                 border:form.category===cat.id?`2px solid ${cat.color}`:`1px solid ${C.border}`,
                 background:form.category===cat.id?cat.bg:C.white,transition:"all .15s"}}>
-              <div style={{fontSize:24,marginBottom:5}}>{cat.icon}</div>
+              <div style={{marginBottom:5,display:"flex",justifyContent:"center",color:C.gold}}>{MENU_ICONS[cat.icon]||cat.icon}</div>
               <div style={{fontSize:12,fontWeight:700,color:form.category===cat.id?cat.color:C.ink,lineHeight:1.3}}>{cat.label}</div>
             </button>
           ))}
@@ -555,7 +556,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
                   <button key={s.id} onClick={()=>patch({subcats:sel?(form.subcats||[]).filter(x=>x!==s.id):[...(form.subcats||[]),s.id]})}
                     style={{padding:"7px 14px",borderRadius:20,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:600,border:"none",
                       background:sel?C.ink:C.cream3,color:sel?C.white:C.soft,transition:"all .15s"}}>
-                    {s.icon} {s.label}
+                    {s.label}
                   </button>
                 );
               })}

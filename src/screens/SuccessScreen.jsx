@@ -3,6 +3,16 @@ import { supabase } from '../supabase';
 import { C, SERIF } from '../constants/colors';
 import { addBooking, addThread } from '../constants/data';
 
+const ICN = {
+  date: <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>,
+  time: <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={9}/><polyline points="12 7 12 12 15 15"/></svg>,
+  fmt:  <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>,
+  eur:  <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"/></svg>,
+  bell: <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+  card: <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x={1} y={4} width={22} height={16} rx={2}/><line x1={1} y1={10} x2={23} y2={10}/></svg>,
+  msg:  <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+};
+
 function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, authUser}) {
   const savedRef = useRef(false);
   const [saveError, setSaveError] = useState(null);
@@ -119,13 +129,13 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, authUser
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
               {[
-                { icon:"📅", label:"Date proposée", value: bookingDate ? bookingDate.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"}) : "À confirmer" },
-                { icon:"⏰", label:"Créneau", value: bookingSlot || "À confirmer" },
-                { icon:"🎯", label:"Format", value: ph?.format || "Vidéo" },
-                { icon:"💶", label:"Si accepté", value: ph?.price ? `${ph.price}€` : "Devis" },
+                { icon:"date", label:"Date proposée", value: bookingDate ? bookingDate.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"}) : "À confirmer" },
+                { icon:"time", label:"Créneau", value: bookingSlot || "À confirmer" },
+                { icon:"fmt", label:"Format", value: ph?.format || "Vidéo" },
+                { icon:"eur", label:"Si accepté", value: ph?.price ? `${ph.price}€` : "Devis" },
               ].map(item => (
                 <div key={item.label} style={{ background:C.cream2, borderRadius:10, padding:"9px 11px" }}>
-                  <div style={{ fontSize:10, color:C.muted, marginBottom:2 }}>{item.icon} {item.label}</div>
+                  <div style={{ fontSize:10, color:C.muted, marginBottom:2, display:"flex", alignItems:"center", gap:4 }}>{ICN[item.icon]} {item.label}</div>
                   <div style={{ fontSize:12, fontWeight:700, color:C.ink }}>{item.value}</div>
                 </div>
               ))}
@@ -137,12 +147,12 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, authUser
         <div style={{ background:C.white, borderRadius:14, border:`1px solid ${C.border}`, padding:"14px 16px", marginBottom:16 }}>
           <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:.6, marginBottom:12 }}>Et ensuite ?</div>
           {[
-            { icon:"🔔", text:`Vous recevrez une notification quand ${e.name.split(" ")[0]} accepte.` },
-            { icon:"💳", text:"Le paiement n'est demandé qu'après l'acceptation de l'expert." },
-            { icon:"💬", text:`Écrivez à ${e.name.split(" ")[0]} pour plus de précisions.` },
+            { icon:"bell", text:`Vous recevrez une notification quand ${e.name.split(" ")[0]} accepte.` },
+            { icon:"card", text:"Le paiement n'est demandé qu'après l'acceptation de l'expert." },
+            { icon:"msg", text:`Écrivez à ${e.name.split(" ")[0]} pour plus de précisions.` },
           ].map((s,i) => (
             <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", marginBottom:i<2?10:0 }}>
-              <span style={{ fontSize:16, flexShrink:0 }}>{s.icon}</span>
+              <span style={{ flexShrink:0, color:C.gold, display:"flex", marginTop:1 }}>{ICN[s.icon]}</span>
               <span style={{ fontSize:12, color:C.soft, lineHeight:1.55 }}>{s.text}</span>
             </div>
           ))}

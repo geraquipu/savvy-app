@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { C, SERIF } from '../constants/colors';
 import { CATS, SUBCATS } from '../constants/data';
+import { MENU_ICONS } from '../constants/menuIcons.jsx';
 import { ExpertCard } from '../components/ui';
 
 function SkeletonCard() {
@@ -110,7 +111,7 @@ function SearchScreen({ initQ="", initCat=null, onExpert, onBack, experts=[], ex
             return (
               <button key={cat.id} onClick={()=>{ setActiveCat(isActive?null:cat.id); setActiveSubcat(null); }}
                 style={{ flexShrink:0, padding:"8px 16px", borderRadius:20, border:`1.5px solid ${isActive?cat.color:C.border}`, background:isActive?cat.color:"transparent", color:isActive?C.white:C.ink, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit", transition:"all .2s", whiteSpace:"nowrap", display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ fontSize:15 }}>{cat.icon}</span>
+                <span style={{ display:"flex", alignItems:"center" }}>{MENU_ICONS[cat.icon]||cat.icon}</span>
                 {cat.label}
                 {isActive && <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><polyline points="20 6 9 17 4 12"/></svg>}
               </button>
@@ -142,7 +143,7 @@ function SearchScreen({ initQ="", initCat=null, onExpert, onBack, experts=[], ex
 
         {/* ── PILIERS + FILTRES ── */}
         <div style={{ display:"flex", alignItems:"center", gap:0, borderTop:`1px solid ${C.borderF}` }}>
-          {[{id:"tous",label:"Tous"},{id:"top",label:"⭐ Top notés"},{id:"verifies",label:"✓ Vérifiés"}].map(p=>(
+          {[{id:"tous",label:"Tous"},{id:"top",label:"Top notés"},{id:"verifies",label:"✓ Vérifiés"}].map(p=>(
             <button key={p.id} onClick={()=>setPilier(p.id)} style={{ flex:1, padding:"10px 4px", border:"none", background:"none", cursor:"pointer", fontFamily:"inherit", fontSize:11, fontWeight:pilier===p.id?700:400, color:pilier===p.id?C.ink:C.muted, borderBottom:pilier===p.id?`2.5px solid ${C.ink}`:"2px solid transparent", transition:"all .15s" }}>{p.label}</button>
           ))}
           <button onClick={()=>setShowFilters(v=>!v)} style={{ padding:"10px 12px", border:"none", background:"none", cursor:"pointer", fontFamily:"inherit", fontSize:11, fontWeight:600, color:activeFilterCount>0?C.gold:C.muted, borderBottom:showFilters?`2.5px solid ${C.gold}`:"2px solid transparent", display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
@@ -221,7 +222,7 @@ function SearchScreen({ initQ="", initCat=null, onExpert, onBack, experts=[], ex
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
                 {CATS.map(cat=>(
                   <button key={cat.id} onClick={()=>setActiveCat(cat.id)} style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 15px", borderRadius:16, border:`1px solid ${C.border}`, background:C.white, cursor:"pointer", textAlign:"left", fontFamily:"inherit", boxShadow:`0 2px 8px ${C.sh}`, transition:"all .2s" }}>
-                    <div style={{ width:46, height:46, borderRadius:13, background:cat.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0, border:`1px solid ${cat.color}20` }}>{cat.icon}</div>
+                    <div style={{ width:46, height:46, borderRadius:13, background:cat.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, border:`1px solid ${cat.color}20`, color:cat.color }}>{MENU_ICONS[cat.icon]||cat.icon}</div>
                     <div>
                       <div style={{ fontSize:12, fontWeight:700, color:C.ink, lineHeight:1.3 }}>{cat.label}</div>
                       <div style={{ fontSize:10, color:C.muted, marginTop:3, lineHeight:1.3 }}>{cat.sub}</div>

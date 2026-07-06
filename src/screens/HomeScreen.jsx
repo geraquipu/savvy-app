@@ -1,6 +1,7 @@
 import React from 'react';
 import { C, SERIF } from '../constants/colors';
 import { CATS } from '../constants/data';
+import { MENU_ICONS } from '../constants/menuIcons.jsx';
 import { ExpertCard } from '../components/ui';
 
 function HomeScreen({ onExpert, onSearch, onCat, onMatch, isLoggedIn, authUser, isExpert, experts=[] }) {
@@ -79,7 +80,7 @@ function HomeScreen({ onExpert, onSearch, onCat, onMatch, isLoggedIn, authUser, 
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:28 }}>
         {CATS.map(cat =>
           <button key={cat.id} onClick={() => onCat(cat.id)} style={{ display:"flex", alignItems:"center", gap:11, padding:"14px 15px", borderRadius:15, border:`1px solid ${C.border}`, background:C.white, cursor:"pointer", textAlign:"left", fontFamily:"inherit" }}>
-            <div style={{ width:40, height:40, borderRadius:12, background:cat.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>{cat.icon}</div>
+            <div style={{ width:40, height:40, borderRadius:12, background:cat.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:cat.color }}>{MENU_ICONS[cat.icon]||cat.icon}</div>
             <div>
               <div style={{ fontSize:12, fontWeight:700, color:C.ink, lineHeight:1.3 }}>{cat.label}</div>
               <div style={{ fontSize:10, color:C.muted, marginTop:3, lineHeight:1.3 }}>{cat.sub}</div>

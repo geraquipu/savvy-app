@@ -333,7 +333,7 @@ function CancelModal({ session, onClose, onMsg }) {
               Statut : <b style={{ color:"#92400E" }}>En attente d\'annulation</b>
             </div>
             <div style={{ background:"#FEF3C7", borderRadius:12, padding:"11px 14px", marginBottom:22, fontSize:12, color:"#92400E", lineHeight:1.6 }}>
-              ⏳ Le remboursement sera traité après confirmation de l\'expert.
+              Le remboursement sera traité après confirmation de l\'expert.
             </div>
             <button onClick={() => onClose(true)} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:15, background:C.ink, color:C.white, fontFamily:SERIF }}>Compris</button>
           </div>
@@ -628,7 +628,7 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
             </div>
           </div>
           <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:s.status==="confirmed"?C.sageL:s.status==="pending"?"#FEF3C7":C.cream2, color:s.status==="confirmed"?C.sage:s.status==="pending"?"#B45309":"#92400E", fontWeight:700, border:s.status==="pending"?"1.5px solid #FCD34D":"none" }}>
-            {s.status==="pending"?"⏳ "+s.statusLabel:s.statusLabel}
+            {s.statusLabel}
           </span>
         </div>
         <div style={{ background:C.cream2, borderRadius:10, padding:"9px 12px", marginBottom:12, borderLeft:`2px solid ${expert.color}` }}>
@@ -637,13 +637,13 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
         <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:14 }}>
           <span style={{ fontSize:12, color:C.muted, display:"flex", gap:4, alignItems:"center" }}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>{s.date} · {s.time}</span>
           <span style={{ fontSize:12, color:C.muted, display:"flex", gap:4, alignItems:"center" }}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>{s.duration}</span>
-          <span style={{ fontSize:12, color:C.muted }}>{s.format}</span>
+          <span style={{ fontSize:12, color:C.muted, display:"flex", alignItems:"center", gap:4 }}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>{s.format}</span>
           <span style={{ fontSize:12, color:C.muted, display:"flex", gap:3, alignItems:"center" }}><svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><line x1={12} y1={1} x2={12} y2={23}/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>{s.price}€</span>
         </div>
         {/* Pending action hint */}
         {s.status==="pending" && (
           <div style={{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:10,padding:"9px 12px",marginBottom:10,display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:16}}>⏳</span>
+            <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#92400E" strokeWidth={2} style={{flexShrink:0}}><circle cx={12} cy={12} r={9}/><polyline points="12 7 12 12 15 15"/></svg>
             <div>
               <div style={{fontSize:12,fontWeight:700,color:"#92400E"}}>En attente de confirmation</div>
               <div style={{fontSize:11,color:"#B45309",marginTop:1}}>L'expert doit accepter votre demande avant de pouvoir procéder au paiement.</div>
@@ -738,7 +738,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
     time: b.slot,
     hoursUntil: b.hoursUntil || 48,
     duration: b.duration || "1h",
-    format: "🎥 " + (b.format||"Vidéo"),
+    format: b.format||"Vidéo",
     price: b.price || 0,
     status: b.status === "confirmed" ? "confirmed" : "pending",
     statusLabel: b.status === "confirmed" ? "Confirmée" : "En attente",
@@ -787,7 +787,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           time: b.date_session ? new Date(b.date_session).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "À confirmer",
           hoursUntil: b.date_session ? Math.max(1, Math.round((new Date(b.date_session) - new Date()) / 3600000)) : 48,
           duration: "1h",
-          format: "🎥 Vidéo",
+          format: "Vidéo",
           price: b.phase_price || 0,
           status: b.status,
           statusLabel: b.status === "confirmed" ? "Confirmée" : b.status === "cancelled" ? "Annulée" : "En attente",
@@ -932,7 +932,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontSize:13, fontWeight:700, color:C.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.expertData?.name || s.expertName || EXPERTS[s.eid]?.name || "Expert"}</div>
-                    <div style={{ fontSize:11, color:C.muted }}>Session confirmée · {s.format||"🎥 Vidéo"}</div>
+                    <div style={{ fontSize:11, color:C.muted }}>Session confirmée · {s.format||"Vidéo"}</div>
                   </div>
                 </div>
                 );
