@@ -992,7 +992,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           {tab === "annulees" && (
             allAnnulees.length > 0 ? (
               allAnnulees.map(s => {
-                const expert = EXPERTS[s.eid];
+                const expert = EXPERTS[s.eid] || s.expertData || { name: s.expertName || "Expert", initials: s.expertInitials || "?", bg: "#EDE8DF", color: "#8B7355", role: s.expertData?.role || "" };
                 if (!expert) return null;
                 return (
                   <div key={s.id} style={{ background:C.white, borderRadius:16, border:"1.5px solid #FEE2E2", overflow:"hidden", marginBottom:12 }}>
@@ -1002,7 +1002,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
                         <div style={{ width:42, height:42, borderRadius:"50%", background:expert.bg, color:expert.color, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:15, border:`1.5px solid ${C.border}`, flexShrink:0 }}>{expert.initials}</div>
                         <div style={{ flex:1 }}>
                           <div style={{ fontSize:13, fontWeight:700, color:C.ink, fontFamily:SERIF }}>{expert.name}</div>
-                          <div style={{ fontSize:11, color:C.muted }}>{expert.role.split("·")[0].trim()}</div>
+                          <div style={{ fontSize:11, color:C.muted }}>{(expert.role||"").split("·")[0].trim()}</div>
                         </div>
                         <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:"#FFF5F5", color:"#B91C1C", fontWeight:700, border:"1px solid #FEE2E2", display:"flex", alignItems:"center", gap:4 }}><svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><line x1={18} y1={6} x2={6} y2={18}/><line x1={6} y1={6} x2={18} y2={18}/></svg>Annulée</span>
                       </div>
@@ -1017,11 +1017,13 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
                         <span style={{ fontSize:11, color:C.muted }}>{s.format}</span>
                         <span style={{ fontSize:11, color:C.muted, display:"flex", gap:3, alignItems:"center" }}><svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><line x1={12} y1={1} x2={12} y2={23}/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>{s.price}€</span>
                       </div>
+                      {(s.annuledBy || s.motif) && (
                       <div style={{ background:C.cream2, borderRadius:9, padding:"8px 12px", fontSize:11, color:C.muted, display:"flex", gap:7, alignItems:"center" }}>
-                        <span>Annulée par : <b style={{ color:C.ink }}>{s.annuledBy==="client"?"le client":"l\'expert"}</b></span>
-                        <span>·</span>
-                        <span>Motif : {s.motif}</span>
+                        {s.annuledBy && <span>Annulée par : <b style={{ color:C.ink }}>{s.annuledBy==="client"?"le client":"l\'expert"}</b></span>}
+                        {s.annuledBy && s.motif && <span>·</span>}
+                        {s.motif && <span>Motif : {s.motif}</span>}
                       </div>
+                      )}
                     </div>
                   </div>
                 );
