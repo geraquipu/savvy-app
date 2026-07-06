@@ -715,20 +715,20 @@ export function ExpertView({
         });
         return def;
       };
-      const [weekSchedule, setWeekSchedule] = React.useState(deriveWeek);
-
-      // Les dispos Supabase arrivent après le premier rendu → re-sync tant que
-      // l'utilisateur n'a rien touché manuellement
-      if (!weekSchedule._touched && ![0,1,2,3,4,5,6].some(i => weekSchedule[i]?.active)) {
-        const derived = deriveWeek();
-        if ([0,1,2,3,4,5,6].some(i => derived[i]?.active)) setWeekSchedule({ ...derived, _touched: true });
-      }
+      // Valeur dérivée des dispos Supabase (toujours à jour, même si elles
+      // arrivent après le premier rendu). Tant que l'utilisateur n'a rien
+      // modifié, on affiche cette valeur dérivée ; dès qu'il touche un jour,
+      // on bascule sur son édition locale.
+      const derivedWeek = deriveWeek();
+      const [edited, setEdited] = React.useState(null);
+      const weekSchedule = edited || derivedWeek;
+      const setWeekSchedule = (updater) => setEdited(prev => typeof updater === "function" ? updater(prev || derivedWeek) : updater);
 
       const activeDays = [0,1,2,3,4,5,6].filter(i => weekSchedule[i]?.active).length;
 
-      const toggle = (i) => setWeekSchedule(s => ({ ...s, _touched: true, [i]: { ...s[i], active: !s[i].active } }));
-      const setStart = (i, v) => setWeekSchedule(s => ({ ...s, _touched: true, [i]: { ...s[i], start: v } }));
-      const setEnd = (i, v) => setWeekSchedule(s => ({ ...s, _touched: true, [i]: { ...s[i], end: v } }));
+      const toggle = (i) => setWeekSchedule(s => ({ ...s, [i]: { ...s[i], active: !s[i].active } }));
+      const setStart = (i, v) => setWeekSchedule(s => ({ ...s, [i]: { ...s[i], start: v } }));
+      const setEnd = (i, v) => setWeekSchedule(s => ({ ...s, [i]: { ...s[i], end: v } }));
 
       return (
         <div>
@@ -744,11 +744,11 @@ export function ExpertView({
           </div>
 
           <div style={{display:"flex",gap:8,marginBottom:12}}>
-            <button onClick={()=>setWeekSchedule(s=>{const n={...s,_touched:true};for(let i=0;i<5;i++)n[i]={...n[i],active:true};return n;})}
+            <button onClick={()=>setWeekSchedule(s=>{const n={...s};for(let i=0;i<5;i++)n[i]={...n[i],active:true};return n;})}
               style={{flex:1,padding:"8px",borderRadius:20,border:`1px solid ${C.border}`,background:C.white,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Lun–Ven</button>
-            <button onClick={()=>setWeekSchedule(s=>{const n={...s,_touched:true};for(let i=0;i<7;i++)n[i]={...n[i],active:true};return n;})}
+            <button onClick={()=>setWeekSchedule(s=>{const n={...s};for(let i=0;i<7;i++)n[i]={...n[i],active:true};return n;})}
               style={{flex:1,padding:"8px",borderRadius:20,border:`1px solid ${C.border}`,background:C.white,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Tous les jours</button>
-            <button onClick={()=>setWeekSchedule(s=>{const n={...s,_touched:true};for(let i=0;i<7;i++)n[i]={...n[i],active:false};return n;})}
+            <button onClick={()=>setWeekSchedule(s=>{const n={...s};for(let i=0;i<7;i++)n[i]={...n[i],active:false};return n;})}
               style={{flex:1,padding:"8px",borderRadius:20,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Effacer</button>
           </div>
 
