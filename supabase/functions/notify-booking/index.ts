@@ -33,8 +33,8 @@ serve(async (req) => {
   const expertId = booking.expert_id; // experts.id (PK), not the expert's auth user id
   const clientId = booking.client_id;
   const status = booking.status;
-  const date = booking.date_session ? new Date(booking.date_session).toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long" }) : "À confirmer";
-  const time = booking.time || "";
+  const date = booking.date_session ? new Date(booking.date_session).toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long", timeZone:"Europe/Paris" }) : "À confirmer";
+  const time = booking.date_session ? new Date(booking.date_session).toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit", timeZone:"Europe/Paris" }) : "";
   const phase = booking.phase_name || "Session";
   const price = booking.phase_price || 0;
 

@@ -105,6 +105,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
   const [clientMoisFilter, setClientMoisFilter] = useState("Tous");
   const [expSessionFilter, setExpSessionFilter] = useState("semana");
   const [expRevFilter, setExpRevFilter] = useState("mes");
+  const [realPaidBookings, setRealPaidBookings] = useState([]);
   const [expNotifToggles, setExpNotifToggles] = useState({ nuevas_resa:true, clientes:true, rappels:true, newsletter:false });
   const [expShowShareModal, setExpShowShareModal] = useState(false);
   const [clientShowReferModal, setClientShowReferModal] = useState(false);
@@ -222,9 +223,13 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           heure: b.date_session ? new Date(b.date_session).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "",
           duree:"1h", format:"Vidéo", domaine:b.phase_name||"Conseil",
           msg:`Demande : ${b.phase_name||"Session"}`, why:b.notes||"", pays:"France", langue:"FR",
-          status: b.status, hoursUntil:48,
+          status: b.status, hoursUntil: b.date_session ? Math.round((new Date(b.date_session) - Date.now()) / 3600000) : 999,
         };
       };
+      // Store paid bookings with client names
+      setRealPaidBookings(data.filter(b => b.paid && b.status === "confirmed").map(b=>({
+        ...b, client_name: profileMap[b.client_id] || "Client Savvy"
+      })));
       const sbPending   = data.filter(b=>b.status==="pending").map(toRequest);
       const sbConfirmed = data.filter(b=>b.status==="confirmed").map(toRequest);
       const sbCancelled = data.filter(b=>b.status==="cancelled").map(toRequest);
@@ -881,6 +886,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
             expSubSection={expSubSection} setExpSubSection={setExpSubSection}
             expSessionFilter={expSessionFilter} setExpSessionFilter={setExpSessionFilter}
             expRevFilter={expRevFilter} setExpRevFilter={setExpRevFilter}
+            realPaidBookings={realPaidBookings}
             expNotifToggles={expNotifToggles} setExpNotifToggles={setExpNotifToggles}
             expShowShareModal={expShowShareModal} setExpShowShareModal={setExpShowShareModal}
             expRequests={expRequests} setExpRequests={setExpRequests}
@@ -1210,9 +1216,21 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
             <button onClick={()=>setShowExpertProfile(false)} style={{ position:"absolute", top:52, left:16, width:36, height:36, borderRadius:10, background:"rgba(253,252,248,.12)", border:"1px solid rgba(253,252,248,.2)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
               <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={C.white} strokeWidth={2}><path d="m15 18-6-6 6-6"/></svg>
             </button>
-            <div style={{ width:96, height:96, borderRadius:"50%", background:`linear-gradient(135deg,${C.goldL},#FDE68A)`, color:C.gold, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:34, border:`4px solid ${C.goldB}`, boxShadow:`0 0 0 6px rgba(185,134,74,.2)`, fontFamily:SERIF, margin:"0 auto 16px" }}>{USER.initials}</div>
-            <div style={{ fontSize:24, fontWeight:700, color:C.white, fontFamily:SERIF, marginBottom:4 }}>{EXPERT_DATA.prenom} {EXPERT_DATA.nom}</div>
-            <div style={{ fontSize:12, color:"rgba(253,252,248,.55)", marginBottom:14 }}>📍 {EXPERT_DATA.location} · {EXPERT_DATA.since}</div>
+            {(() => {
+              const realName = authUser?.real ? (authUser?.name || `${EXPERT_DATA.prenom} ${EXPERT_DATA.nom}`) : `${EXPERT_DATA.prenom} ${EXPERT_DATA.nom}`;
+              const realLoc = authUser?.real ? (sbExpertData?.location || "France") : EXPERT_DATA.location;
+              const realSince = authUser?.real
+                ? (sbExpertData?.created_at ? new Date(sbExpertData.created_at).toLocaleDateString("fr-FR",{month:"long",year:"numeric"}) : "récemment")
+                : EXPERT_DATA.since;
+              return <>
+                {photoUrl
+                  ? <img src={photoUrl} alt="" style={{ width:96, height:96, borderRadius:"50%", objectFit:"cover", border:`4px solid ${C.goldB}`, boxShadow:`0 0 0 6px rgba(185,134,74,.2)`, margin:"0 auto 16px", display:"block" }}/>
+                  : <div style={{ width:96, height:96, borderRadius:"50%", background:`linear-gradient(135deg,${C.goldL},#FDE68A)`, color:C.gold, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:34, border:`4px solid ${C.goldB}`, boxShadow:`0 0 0 6px rgba(185,134,74,.2)`, fontFamily:SERIF, margin:"0 auto 16px" }}>{USER.initials}</div>
+                }
+                <div style={{ fontSize:24, fontWeight:700, color:C.white, fontFamily:SERIF, marginBottom:4 }}>{realName}</div>
+                <div style={{ fontSize:12, color:"rgba(253,252,248,.55)", marginBottom:14 }}>📍 {realLoc} · Membre depuis {realSince}</div>
+              </>;
+            })()}
             {/* Badge identité vérifiée */}
             <div style={{ display:"inline-flex", alignItems:"center", gap:7, background:"rgba(16,185,129,.2)", border:"1px solid rgba(16,185,129,.4)", borderRadius:20, padding:"6px 14px" }}>
               <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.sageMid} strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>
@@ -1223,9 +1241,9 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           <div style={{ background:C.white, padding:"20px", borderBottom:`1px solid ${C.border}` }}>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:0 }}>
               {[
-                {n:EXPERT_DATA.impact.sessions||0, l:"Sessions"},
-                {n:expertUser?.rating>0?(expertUser.rating+"★"):"Nouveau", l:"Note moyenne"},
-                {n:EXPERT_DATA.since, l:"Membre depuis"},
+                {n: authUser?.real ? realStats.sessions : (EXPERT_DATA.impact.sessions||0), l:"Sessions"},
+                {n: authUser?.real ? (realStats.reviewCount>0 ? realStats.rating+"★" : "Nouveau") : (expertUser?.rating>0?(expertUser.rating+"★"):"Nouveau"), l:"Note moyenne"},
+                {n: authUser?.real ? (sbExpertData?.created_at ? new Date(sbExpertData.created_at).toLocaleDateString("fr-FR",{month:"short",year:"numeric"}) : "—") : EXPERT_DATA.since, l:"Membre depuis"},
               ].map((s,i,arr)=>(
                 <div key={s.l} style={{ textAlign:"center", padding:"14px 8px", borderRight:i<arr.length-1?`1px solid ${C.border}`:"none" }}>
                   <div style={{ fontSize:22, fontWeight:700, color:C.ink, fontFamily:SERIF }}>{s.n}</div>
@@ -1238,7 +1256,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
             {/* Tagline */}
             <div style={{ background:C.white, borderRadius:14, border:`1px solid ${C.border}`, padding:"14px 16px", marginBottom:16 }}>
               <div style={{ fontSize:13, color:C.soft, lineHeight:1.7, fontStyle:"italic" }}>
-                "{EXPERT_DATA.probleme}"
+                "{authUser?.real ? (sbExpertData?.tagline || authUser?.tagline || "Expert Savvy") : EXPERT_DATA.probleme}"
               </div>
             </div>
             {/* Avis reçus des clients */}

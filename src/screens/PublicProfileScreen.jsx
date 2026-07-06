@@ -23,6 +23,12 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
   const extras = realExpertId && sbReviews.length > 0
     ? { resout: [], reviews: sbReviews.map(r=>({ name: r.client_name||"Client", stars: r.stars, text: r.text||"", date: new Date(r.created_at).toLocaleDateString("fr-FR",{month:"long",year:"numeric"}) })), preuves: [] }
     : EXPERT_EXTRAS[e.id] || { resout:[], reviews:[], preuves:[] };
+  // Valeurs sûres — les experts réels peuvent avoir metrics/phases vides
+  const langs = e.langs || [];
+  const phases = e.phases?.length ? e.phases : [{ name:"Session conseil", price: 0, format:"video" }];
+  const expValue = e.metrics?.[0]?.value || (e.role?.match(/\d.*ans/)?.[0]) || "Récent";
+  const repValue = e.metrics?.[3]?.value || "< 24h";
+  const noteValue = e.reviews > 0 && e.rating ? `${e.rating}★` : "Nouveau";
   return (
     <div style={{ flex:1, overflowY:"auto", paddingBottom:80, background:C.cream }}>
       <div style={{ background:`linear-gradient(160deg,#1C1917 0%,#3D2B1F 100%)`, padding:"20px 20px 0", overflow:"hidden" }}>
@@ -37,7 +43,7 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
           <div style={{ fontSize:24,fontWeight:700,color:C.white,fontFamily:SERIF,letterSpacing:"-.5px" }}>{e.name}</div>
           <div style={{ fontSize:13,color:"rgba(253,252,248,.55)",marginTop:4 }}>📍 {e.location} · {e.country}</div>
           <div style={{ display:"flex",gap:6,justifyContent:"center",marginTop:10,flexWrap:"wrap" }}>
-            {e.langs.map(l=><span key={l} style={{ fontSize:11,padding:"3px 10px",borderRadius:20,background:"rgba(185,134,74,.18)",color:C.goldB,fontWeight:600 }}>{l}</span>)}
+            {langs.map(l=><span key={l} style={{ fontSize:11,padding:"3px 10px",borderRadius:20,background:"rgba(185,134,74,.18)",color:C.goldB,fontWeight:600 }}>{l}</span>)}
             <span style={{ fontSize:11,padding:"3px 10px",borderRadius:20,background:C.sageL,color:C.sage,fontWeight:700 }}>Très actif</span>
           </div>
         </div>
@@ -45,7 +51,7 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
           <div style={{ fontSize:14,color:C.white,fontStyle:"italic",fontFamily:SERIF,lineHeight:1.55 }}>"{e.tagline}"</div>
         </div>
         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",background:"rgba(255,255,255,.06)",borderRadius:"14px 14px 0 0",padding:"12px 10px" }}>
-          {[{v:`${e.rating}★`,l:"Note"},{v:`+${e.reviews}`,l:"Sessions"},{v:e.metrics[3].value,l:"Réponse"},{v:e.metrics[0].value,l:"Exp."}].map((s,i)=>(
+          {[{v:noteValue,l:"Note"},{v:`+${e.reviews||0}`,l:"Sessions"},{v:repValue,l:"Réponse"},{v:expValue,l:"Exp."}].map((s,i)=>(
             <div key={i} style={{ textAlign:"center",borderRight:i<3?`1px solid rgba(255,255,255,.1)`:"none" }}>
               <div style={{ fontSize:15,fontWeight:700,color:C.white,fontFamily:SERIF }}>{s.v}</div>
               <div style={{ fontSize:10,color:"rgba(253,252,248,.4)",marginTop:1 }}>{s.l}</div>
@@ -54,12 +60,12 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
         </div>
       </div>
       <div style={{ background:C.white,padding:"14px 18px",borderBottom:`1px solid ${C.border}`,boxShadow:`0 2px 8px ${C.sh}` }}>
-        <button onClick={() => onBook && onBook(e, e.phases[0])} style={{ width:"100%",padding:"14px",borderRadius:13,border:"none",cursor:"pointer",fontWeight:700,fontSize:16,background:C.ink,color:C.white,fontFamily:SERIF }}>
+        <button onClick={() => onBook && onBook(e, phases[0])} style={{ width:"100%",padding:"14px",borderRadius:13,border:"none",cursor:"pointer",fontWeight:700,fontSize:16,background:C.ink,color:C.white,fontFamily:SERIF }}>
           Réserver une session →
         </button>
         <div style={{ display:"flex",justifyContent:"center",gap:18,marginTop:8 }}>
-          <span style={{ fontSize:12,color:C.muted }}>💶 dès <b style={{ color:C.ink }}>{e.phases[0].price}€</b></span>
-          <span style={{ fontSize:12,color:C.muted }}>⚡ {e.metrics[3].value}</span>
+          <span style={{ fontSize:12,color:C.muted }}>💶 dès <b style={{ color:C.ink }}>{phases[0].price}€</b></span>
+          <span style={{ fontSize:12,color:C.muted }}>⚡ {repValue}</span>
           <span style={{ fontSize:12,color:C.muted }}>✅ Vérifié</span>
         </div>
       </div>
@@ -69,7 +75,7 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
         <div style={{ marginBottom:24 }}>
           <div style={{ fontSize:16,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:4 }}>Mes offres</div>
           <div style={{ fontSize:12,color:C.muted,marginBottom:14 }}>Choisis la session qui te correspond</div>
-          {e.phases.map((p,i)=>{
+          {phases.map((p,i)=>{
             const fmtIcons = {video:"🎥",audio:"📞",doc:"📄",chat:"💬"};
             const fmts = p.formats||[p.format||"video"];
             return (
@@ -123,7 +129,7 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
           </div>
         ))}
         <div style={{ display:"flex",flexDirection:"column",gap:10,paddingBottom:10,marginTop:8 }}>
-          <button onClick={() => onBook && onBook(e, e.phases[0])} style={{ width:"100%",padding:"14px",borderRadius:13,border:"none",cursor:"pointer",fontWeight:700,fontSize:15,background:C.ink,color:C.white,fontFamily:SERIF }}>
+          <button onClick={() => onBook && onBook(e, phases[0])} style={{ width:"100%",padding:"14px",borderRadius:13,border:"none",cursor:"pointer",fontWeight:700,fontSize:15,background:C.ink,color:C.white,fontFamily:SERIF }}>
             Réserver avec {e.name.split(" ")[0]} →
           </button>
           <button onClick={() => onMsg && onMsg(e)} style={{ width:"100%",padding:"12px",borderRadius:13,border:`1.5px solid ${C.border}`,cursor:"pointer",fontWeight:600,fontSize:13,background:C.white,color:C.ink,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8 }}>

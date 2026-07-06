@@ -80,6 +80,25 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
   const [savvyMsgs, setSavvyMsgs]       = useState([
     {from:"savvy", txt:"Bonjour ! Je suis ton assistant Savvy. Comment puis-je t'aider aujourd'hui ?"}
   ]);
+  const sendSupport = async () => {
+    const txt = savvyInput.trim();
+    if (!txt) return;
+    setSavvyInput("");
+    setSavvyMsgs(m => [...m, { from:"moi", txt }]);
+    // Envoyer le message au support (email équipe)
+    let delivered = false;
+    if (isRealUser && authUser?.id) {
+      try {
+        const { data } = await supabase.functions.invoke("send-support-message", {
+          body: { message: txt, fromName: authUser?.name || "Utilisateur", fromEmail: authUser?.email || null, userId: authUser.id },
+        });
+        delivered = !!data?.ok;
+      } catch { delivered = false; }
+    }
+    setSavvyMsgs(m => [...m, { from:"savvy", txt: delivered
+      ? "Merci ! Ton message a bien été transmis à l'équipe Savvy. On te répond par email dans les 24h."
+      : "Merci pour ton message ! Écris-nous directement à contact@getsavvy.fr et on te répond au plus vite." }]);
+  };
   const [searchQ, setSearchQ]           = useState("");
   const [showSearch, setShowSearch]     = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -247,7 +266,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
         <div style={{width:38,height:38,borderRadius:"50%",background:`linear-gradient(135deg,${C.ink},#2C2825)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>✦</div>
         <div>
           <div style={{fontSize:15,fontWeight:700,color:C.ink,fontFamily:SERIF}}>✦ Assistance Savvy</div>
-          <div style={{fontSize:11,color:C.sage}}>● En ligne · Réponse &lt; 5 min</div>
+          <div style={{fontSize:11,color:C.sage}}>● Réponse par email sous 24h</div>
         </div>
       </div>
       <div style={{flex:1,overflowY:"auto",padding:"16px 18px",display:"flex",flexDirection:"column",gap:10}}>
@@ -261,8 +280,8 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
         ))}
       </div>
       <div style={{padding:"12px 18px 28px",borderTop:`1px solid ${C.border}`,background:C.white,display:"flex",gap:10}}>
-        <input value={savvyInput} onChange={e=>setSavvyInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&savvyInput.trim()){const txt=savvyInput.trim();setSavvyMsgs(m=>[...m,{from:"moi",txt},{from:"savvy",txt:"Merci pour votre message ! Notre équipe vous répondra dans les plus brefs délais. En attendant, consultez notre centre d'aide pour les réponses aux questions fréquentes."}]);setSavvyInput("");e.preventDefault();}}} placeholder="Écris ton message…" style={{flex:1,padding:"10px 13px",borderRadius:22,border:`1px solid ${C.border}`,fontSize:13,fontFamily:"inherit",outline:"none",background:C.cream2}}/>
-        <button onClick={()=>{ if(!savvyInput.trim()) return; const txt=savvyInput.trim(); setSavvyMsgs(m=>[...m,{from:"moi",txt},{from:"savvy",txt:"Merci pour votre message ! Notre équipe vous répondra dans les plus brefs délais. En attendant, consultez notre centre d'aide pour les réponses aux questions fréquentes."}]); setSavvyInput(""); }} style={{width:42,height:42,borderRadius:"50%",border:"none",background:C.ink,color:C.white,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+        <input value={savvyInput} onChange={e=>setSavvyInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&savvyInput.trim()){sendSupport();e.preventDefault();}}} placeholder="Écris ton message…" style={{flex:1,padding:"10px 13px",borderRadius:22,border:`1px solid ${C.border}`,fontSize:13,fontFamily:"inherit",outline:"none",background:C.cream2}}/>
+        <button onClick={sendSupport} style={{width:42,height:42,borderRadius:"50%",border:"none",background:C.ink,color:C.white,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
           <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
         </button>
       </div>

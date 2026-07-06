@@ -46,7 +46,7 @@ function ExpertScreen({ e: eProp, onBack, onBook, onMsg }) {
   const phases = e.phases?.length ? e.phases : [{id:1,name:"Session conseil",what:"Conseil personnalisé basé sur mon expérience",format:"Vidéo 1h",price:e.price||50,tag:"",inc:[]}];
   const metrics = e.metrics?.length ? e.metrics : [
     {label:"Expérience", value: e.yearsExp || (e.reviews>20?"10+ ans":e.reviews>5?"5+ ans":"Récent")},
-    {label:"Note", value:`⭐ ${e.rating||"Nouveau"}`},
+    {label:"Note", value: e.reviews > 0 && e.rating ? `⭐ ${e.rating}` : "Nouveau"},
     {label:"Sessions", value:`+${e.reviews||0}`},
   ];
   const photoSrc = e.photo_url || e.photoUrl || null;
@@ -105,7 +105,7 @@ function ExpertScreen({ e: eProp, onBack, onBook, onMsg }) {
         <div style={{ borderTop:"1px solid rgba(0,0,0,.07)", display:"grid", gridTemplateColumns:"1fr 1fr 1fr" }}>
           {[
             {l:"Expérience", v:metrics[0].value},
-            {l:"Note", v:e.rating?`⭐ ${e.rating}`:"Nouveau"},
+            {l:"Note", v: e.reviews > 0 && e.rating ? `⭐ ${e.rating}` : "Nouveau"},
             {l:"Sessions", v:`+${e.reviews||0}`},
           ].map((s,i) => (
             <div key={s.l} style={{ padding:"12px 8px", textAlign:"center", borderRight:i<2?"1px solid rgba(0,0,0,.07)":"none" }}>

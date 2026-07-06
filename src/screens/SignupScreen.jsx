@@ -190,11 +190,19 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
     proof1Type:"lien",
   });
   const patch = (p) => setForm(f => ({...f,...p}));
-  // Sync photo from authUser if it arrives after mount
+  // Sync photo + name from authUser if it arrives after mount (Google OAuth)
   React.useEffect(() => {
     if (authUser?.photoUrl && !form.photoUrl) patch({ photoUrl: authUser.photoUrl });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser?.photoUrl]);
+  React.useEffect(() => {
+    if (!authUser?.name) return;
+    const parts = authUser.name.trim().split(" ");
+    const prenom = parts[0] || "";
+    const nom = parts.slice(1).join(" ") || "";
+    if (prenom && !form.prenom && !form.nom) patch({ prenom, nom });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser?.name]);
   const [showCguModal, setShowCguModal] = useState(false);
   const [stepErr, setStepErr] = useState("");
   const TOTAL_STEPS = 6;
@@ -418,10 +426,10 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
     ? [{k:"1",l:"Lu"},{k:"2",l:"Ma"},{k:"3",l:"Mi"},{k:"4",l:"Ju"},{k:"5",l:"Vi"},{k:"6",l:"Sá"},{k:"0",l:"Do"}]
     : [{k:"1",l:"Lu"},{k:"2",l:"Ma"},{k:"3",l:"Me"},{k:"4",l:"Je"},{k:"5",l:"Ve"},{k:"6",l:"Sa"},{k:"0",l:"Di"}];
   const FMT   = [
-    {id:"video", icon:"🎥", label:"Vidéocall",  sub:"En direct",         durs:["30min","1h","2h"]},
-    {id:"audio", icon:"🎧", label:"Appel audio",sub:"Par téléphone",     durs:["15min","30min","1h"]},
-    {id:"chat",  icon:"💬", label:"Échange écrit", sub:"Messagerie",        durs:["30min","1h"]},
-    {id:"doc",   icon:"📄", label:"Document",   sub:"Livrable écrit",    durs:["24h","48h","72h"]},
+    {id:"video", icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>, label:"Vidéocall",     sub:"En direct",      durs:["30min","1h","2h"]},
+    {id:"audio", icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>, label:"Appel audio",   sub:"Par téléphone",  durs:["15min","30min","1h"]},
+    {id:"chat",  icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,                                                                                                                                                                   label:"Échange écrit", sub:"Messagerie",      durs:["30min","1h"]},
+    {id:"doc",   icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1={16} y1={13} x2={8} y2={13}/><line x1={16} y1={17} x2={8} y2={17}/><polyline points="10 9 9 9 8 9"/></svg>, label:"Document",      sub:"Livrable écrit",  durs:["24h","48h","72h"]},
   ];
   const patchFmt = (id, key, val) => patch({formats:{...form.formats,[id]:{...form.formats[id],[key]:val}}});
 
@@ -640,7 +648,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
                   }
                 }}
                   style={{width:"100%",padding:"14px 16px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",background:on?C.ink:"transparent",border:"none",display:"flex",alignItems:"center",gap:14}}>
-                  <div style={{fontSize:22,flexShrink:0}}>{f.icon}</div>
+                  <div style={{width:22,height:22,flexShrink:0,color:on?C.white:C.ink,display:"flex",alignItems:"center",justifyContent:"center"}}>{f.icon}</div>
                   <div style={{flex:1}}>
                     <div style={{fontSize:13,fontWeight:700,color:on?C.white:C.ink}}>{f.label}</div>
                     <div style={{fontSize:11,color:on?"rgba(253,252,248,.55)":C.muted}}>{f.sub}</div>
@@ -817,7 +825,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
           if (expertId) {
             const rows = Object.entries(form.dispoJours)
               .filter(([,v]) => v)
-              .map(([dow]) => ({ expert_id: expertId, day_of_week: Number(dow), start_time: form.dispoStart||"09:00", end_time: form.dispoEnd||"18:00" }));
+              .map(([dow]) => ({ expert_id: expertId, day_of_week: (Number(dow)+6)%7, start_time: form.dispoStart||"09:00", end_time: form.dispoEnd||"18:00" }));
             await supabase.from("availability").delete().eq("expert_id", expertId);
             if (rows.length > 0) await supabase.from("availability").insert(rows);
           }

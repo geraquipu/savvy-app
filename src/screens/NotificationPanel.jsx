@@ -1,7 +1,7 @@
 import React from 'react';
 import { C, SERIF } from '../constants/colors';
 
-function NotificationPanel({ onClose, onNavigate, isExpert, readNotifIds=[], onMarkRead, isNewExpert=false, expRequestsCount=0, unreadMsgsCount=0 }) {
+function NotificationPanel({ onClose, onNavigate, isExpert, readNotifIds=[], onMarkRead, isNewExpert=false, expRequestsCount=0, unreadMsgsCount=0, isRealUser=false, pendingPayCount=0 }) {
   const NIcon = {
     msg:  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
     bell: <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
@@ -11,7 +11,16 @@ function NotificationPanel({ onClose, onNavigate, isExpert, readNotifIds=[], onM
     info: <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={10}/><line x1={12} y1={8} x2={12} y2={12}/><line x1={12} y1={16} x2={12.01} y2={16}/></svg>,
     user: <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx={12} cy={7} r={4}/></svg>,
   };
-  const NOTIFS_DATA = isNewExpert ? [
+  // Utilisateurs réels → notifications basées sur des signaux réels (pas de démo)
+  const buildRealNotifs = () => {
+    const out = [];
+    if (unreadMsgsCount > 0) out.push({ id:"real-msg", svg:NIcon.msg, title:`${unreadMsgsCount} message${unreadMsgsCount>1?"s":""} non lu${unreadMsgsCount>1?"s":""}`, sub:"Consulte tes échanges", time:"Récemment", screen:"messages" });
+    if (isExpert && expRequestsCount > 0) out.push({ id:"real-req", svg:NIcon.bell, title:`${expRequestsCount} demande${expRequestsCount>1?"s":""} de session en attente`, sub:"Réponds vite pour augmenter ton taux d'acceptation", time:"Récemment", screen:"exp-sessions" });
+    if (!isExpert && pendingPayCount > 0) out.push({ id:"real-pay", svg:NIcon.euro, title:`${pendingPayCount} session${pendingPayCount>1?"s":""} à finaliser`, sub:"Confirme le paiement pour valider ta session", time:"Récemment", screen:"reservations" });
+    return out;
+  };
+
+  const NOTIFS_DATA = isRealUser ? buildRealNotifs() : isNewExpert ? [
     { id:1, svg:NIcon.user,  title:"Bienvenue sur Savvy !",           sub:"Ton profil est en cours de validation · 24-48h", time:"À l'instant",   screen:"profile" },
     { id:2, svg:NIcon.check, title:"Profil créé avec succès",          sub:"Complète ta bio et ajoute une photo pour 3× plus de visibilité", time:"À l'instant", screen:"profile" },
     { id:3, svg:NIcon.info,  title:"Conseil : fixe tes disponibilités",sub:"Les experts avec des créneaux visibles reçoivent 5× plus de demandes", time:"Il y a 1 min", screen:"profile" },
@@ -42,6 +51,13 @@ function NotificationPanel({ onClose, onNavigate, isExpert, readNotifIds=[], onM
           </div>
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:C.muted, fontSize:20, lineHeight:1 }}>×</button>
         </div>
+        {NOTIFS_DATA.length === 0 && (
+          <div style={{ padding:"40px 24px", textAlign:"center" }}>
+            <div style={{ width:48, height:48, borderRadius:14, background:C.cream2, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px", color:C.faint }}>{NIcon.bell}</div>
+            <div style={{ fontSize:14, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:5 }}>Pas de notification</div>
+            <div style={{ fontSize:12, color:C.muted, lineHeight:1.5 }}>Tu seras notifié ici dès qu'il se passe quelque chose sur ton compte.</div>
+          </div>
+        )}
         {NOTIFS_DATA.map(n => {
           const isRead = readIds.includes(n.id);
           return (

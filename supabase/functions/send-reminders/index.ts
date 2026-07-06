@@ -35,8 +35,8 @@ serve(async () => {
 
   let sent = 0;
   for (const b of bookings) {
-    const date = new Date(b.date_session).toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long" });
-    const time = new Date(b.date_session).toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit" });
+    const date = new Date(b.date_session).toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long", timeZone:"Europe/Paris" });
+    const time = new Date(b.date_session).toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit", timeZone:"Europe/Paris" });
     const phase = b.phase_name || "Session";
     const price = b.phase_price || 0;
     const roomId = b.id.replace(/-/g,"").slice(0,16);

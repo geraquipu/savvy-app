@@ -260,8 +260,15 @@ function CancelModal({ session, onClose, onMsg }) {
               💡 Ta proposition sera envoyée à {expert.name.split(" ")[0]} pour confirmation.
             </div>
             <CalendarPicker expert={expert} onSelect={({date,slot}) => setNewBooking({date,slot})}/>
-            <button onClick={() => {
+            <button onClick={async () => {
               if (!newBooking.date || !newBooking.slot) { alert("Choisis une date et un créneau."); return; }
+              // Réservation réelle → mettre à jour la date et repasser en attente de confirmation
+              if (session._fromSB && session.id) {
+                const [h, m] = newBooking.slot.split(":").map(Number);
+                const dt = new Date(newBooking.date); dt.setHours(h||0, m||0, 0, 0);
+                const { error } = await supabase.from("bookings").update({ date_session: dt.toISOString(), status: "pending" }).eq("id", session.id);
+                if (error) { alert("Erreur : " + error.message); return; }
+              }
               setStep("done_reprog");
             }} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:14, fontFamily:SERIF, marginTop:8,
               background: newBooking.date && newBooking.slot ? C.gold : C.cream3,
@@ -311,7 +318,7 @@ function CancelModal({ session, onClose, onMsg }) {
               <b style={{ color:C.ink }}>{newBooking.date?.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}</b> à <b style={{ color:C.ink }}>{newBooking.slot}</b>
             </div>
             <div style={{ fontSize:11, color:C.muted, marginBottom:24 }}>En attente de confirmation par {expert.name.split(" ")[0]}</div>
-            <button onClick={onClose} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:15, background:C.ink, color:C.white, fontFamily:SERIF }}>Parfait !</button>
+            <button onClick={() => onClose(false)} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:15, background:C.ink, color:C.white, fontFamily:SERIF }}>Parfait !</button>
           </div>
         )}
 
@@ -328,7 +335,7 @@ function CancelModal({ session, onClose, onMsg }) {
             <div style={{ background:"#FEF3C7", borderRadius:12, padding:"11px 14px", marginBottom:22, fontSize:12, color:"#92400E", lineHeight:1.6 }}>
               ⏳ Le remboursement sera traité après confirmation de l\'expert.
             </div>
-            <button onClick={onClose} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:15, background:C.ink, color:C.white, fontFamily:SERIF }}>Compris</button>
+            <button onClick={() => onClose(true)} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:15, background:C.ink, color:C.white, fontFamily:SERIF }}>Compris</button>
           </div>
         )}
       </div>
@@ -671,7 +678,9 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
           <button onClick={() => onMsg && onMsg(expert, "reservations")} style={{ flex:1, padding:"10px", borderRadius:11, border:`1px solid ${C.border}`, cursor:"pointer", fontWeight:600, fontSize:12, background:C.white, color:C.ink, fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
             <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message
           </button>
-          <button onClick={() => onCancel && onCancel(s)} style={{ flex:1, padding:"10px", borderRadius:11, border:`1px solid #FCA5A5`, cursor:"pointer", fontWeight:600, fontSize:12, background:"#FFF5F5", color:"#B91C1C", fontFamily:"inherit" }}>Annuler</button>
+          <button onClick={() => onCancel && onCancel(s)} style={{ flex:1, padding:"10px", borderRadius:11, border:`1px solid ${C.border}`, cursor:"pointer", fontWeight:600, fontSize:12, background:C.white, color:C.ink, fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
+            <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={3}/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Gérer
+          </button>
         </div>
       </div>
     </div>
@@ -899,25 +908,40 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
         </div>
 
         {/* Vue calendrier */}
-        {calView && (
+        {calView && (()=>{
+          // Vue calendrier — sessions confirmées triées par date
+          const calSessions = allAvenir
+            .filter(s => s.status === "confirmed")
+            .sort((a,b) => (a.hoursUntil||0) - (b.hoursUntil||0));
+          return (
           <div style={{ padding:"14px 18px", background:C.cream2, borderBottom:`1px solid ${C.border}` }}>
             <div style={{ fontSize:13, fontWeight:700, color:C.ink, marginBottom:12, fontFamily:SERIF }}>Tes sessions · vue calendrier</div>
+            {calSessions.length === 0 ? (
+              <div style={{ background:C.white, borderRadius:14, border:`1px solid ${C.border}`, padding:"22px 16px", textAlign:"center" }}>
+                <div style={{ fontSize:13, color:C.muted }}>Aucune session confirmée pour le moment.</div>
+              </div>
+            ) : (
             <div style={{ background:C.white, borderRadius:14, border:`1px solid ${C.border}`, overflow:"hidden" }}>
-              {[{date:"Demain",time:"10:00",expert:"Clément R.",color:C.gold,bg:C.goldL},{date:"Jeu. 29 mai",time:"14:00",expert:"Patrick G.",color:C.teal,bg:C.tealL}].map((s,i) => (
-                <div key={i} style={{ display:"flex", alignItems:"center", gap:12, padding:"11px 14px", borderBottom:i===0?`1px solid ${C.borderF}`:"none" }}>
-                  <div style={{ width:48, height:48, borderRadius:11, background:s.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <div style={{ fontSize:9, fontWeight:600, color:s.color, textTransform:"uppercase" }}>{s.date.split(" ")[0]}</div>
-                    <div style={{ fontSize:14, fontWeight:800, color:s.color, fontFamily:SERIF }}>{s.time}</div>
+              {calSessions.map((s,i) => {
+                const jour = (s.date||"").split(" ").slice(0,2).join(" ") || "À définir";
+                return (
+                <div key={s.id||i} style={{ display:"flex", alignItems:"center", gap:12, padding:"11px 14px", borderBottom:i<calSessions.length-1?`1px solid ${C.borderF}`:"none" }}>
+                  <div style={{ width:56, height:48, borderRadius:11, background:C.goldL, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <div style={{ fontSize:9, fontWeight:600, color:C.gold, textTransform:"uppercase" }}>{jour}</div>
+                    <div style={{ fontSize:14, fontWeight:800, color:C.gold, fontFamily:SERIF }}>{s.time||"—"}</div>
                   </div>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, fontWeight:700, color:C.ink }}>{s.expert}</div>
-                    <div style={{ fontSize:11, color:C.muted }}>Session confirmée · 🎥 Vidéo</div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:C.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.expertData?.name || s.expertName || EXPERTS[s.eid]?.name || "Expert"}</div>
+                    <div style={{ fontSize:11, color:C.muted }}>Session confirmée · {s.format||"🎥 Vidéo"}</div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
+            )}
           </div>
-        )}
+          );
+        })()}
 
         <div style={{ padding:"16px 18px 0" }}>
 
@@ -1026,13 +1050,23 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
 
       {cancelSession && (
         <CancelModal
-          session={{ ...cancelSession, expert: EXPERTS[cancelSession.eid] }}
-          onClose={(wasCancelled) => {
+          session={{ ...cancelSession, expert: EXPERTS[cancelSession.eid] || cancelSession.expertData || { name: cancelSession.expertName || "Expert", initials: cancelSession.expertInitials || "?", bg: "#EDE8DF", color: "#8B7355" } }}
+          onClose={async (wasCancelled) => {
             if (wasCancelled) {
-              // Move session from avenir to annulées
               const s = cancelSession;
-              setSessionsAvenir(prev => prev.filter(x => x.id !== s.id));
-              setSessionsCancelees(prev => [...prev, { ...s, annuledBy:"client", annuledDate:"Aujourd\'hui" }]);
+              // Réservation réelle (Supabase) → persister l'annulation
+              if (s._fromSB && s.id) {
+                const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", s.id);
+                if (error) { console.warn("[cancel booking]", error.message); alert("Erreur lors de l'annulation : " + error.message); }
+                else { setSbBookings(prev => prev.map(b => b.id === s.id ? { ...b, status: "cancelled", statusLabel: "Annulée" } : b)); }
+              } else if (s._fromLS && s.id) {
+                updateBooking(s.id, { status: "cancelled" });
+                setLsBookings(getBookings());
+              } else {
+                // session démo
+                setSessionsAvenir(prev => prev.filter(x => x.id !== s.id));
+                setSessionsCancelees(prev => [...prev, { ...s, annuledBy:"client", annuledDate:"Aujourd\'hui" }]);
+              }
             }
             setCancelSession(null);
           }}

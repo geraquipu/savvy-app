@@ -25,6 +25,7 @@ const OFFER_DUREES = ["15 min","30 min","45 min","1h","1h30","2h"];
 
 function OfferEditForm({ initial, onSave, onCancel }) {
   const [name, setName] = useState(initial.name||"");
+  const [what, setWhat] = useState(initial.what||initial.desc||"");
   const [price, setPrice] = useState(initial.price ? String(initial.price) : "");
   const [duree, setDuree] = useState(initial.duree||"30 min");
   const [formats, setFormats] = useState(initial.formats||["video"]);
@@ -53,6 +54,18 @@ function OfferEditForm({ initial, onSave, onCancel }) {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Description */}
+      <div style={{marginBottom:10}}>
+        <label style={{fontSize:10,fontWeight:700,color:C.muted,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.4}}>Description <span style={{fontWeight:400,textTransform:"none"}}>(ce que le client obtient)</span></label>
+        <textarea
+          value={what}
+          onChange={e=>setWhat(e.target.value)}
+          placeholder="Ex : Un plan d'action concret pour réussir ton examen dès le premier passage"
+          rows={2}
+          style={{width:"100%",padding:"10px 12px",borderRadius:10,border:`1.5px solid ${C.border}`,fontSize:13,fontFamily:"inherit",color:C.ink,outline:"none",boxSizing:"border-box",background:C.white,resize:"none",lineHeight:1.5}}
+        />
       </div>
 
       {/* Prix + Durée */}
@@ -109,7 +122,7 @@ function OfferEditForm({ initial, onSave, onCancel }) {
         <button onClick={()=>{
           if(!name.trim()||!price){alert("Remplis le titre et le prix.");return;}
           if(formats.length===0){alert("Sélectionne au moins un format.");return;}
-          onSave({name:name.trim(),price:Number(price),duree,formats});
+          onSave({name:name.trim(),what:what.trim(),desc:what.trim(),price:Number(price),duree,formats});
         }} style={{flex:2,padding:"10px",borderRadius:10,border:"none",background:C.ink,color:C.white,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:SERIF}}>Enregistrer ✓</button>
       </div>
     </div>
@@ -375,15 +388,35 @@ export function ExpertView({
   editParamVal, setEditParamVal,
   setShowPwdModal, setShowDeleteModal,
   onRequestsChange,
+  realPaidBookings = [],
 }) {
     const section = expSection; const setSection = setExpSection;
     const subSection = expSubSection; const setSubSection = setExpSubSection;
     const sessionFilter = expSessionFilter; const setSessionFilter = setExpSessionFilter;
     const revFilter = expRevFilter; const setRevFilter = setExpRevFilter;
+
+    // Ingresos reales calculados desde reservas pagadas
+    const getStart = (filter) => {
+      const now = new Date();
+      if (filter === "hoy") return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      if (filter === "semana") return new Date(now.getTime() - 7*24*3600000);
+      return new Date(now.getFullYear(), now.getMonth(), 1);
+    };
+    const realRevenuTotal = authUser?.real ? realPaidBookings.reduce((s,b)=>s+(b.phase_price||0)*0.8,0) : EXPERT_DATA.impact.revenu;
+    const realRevenu = authUser?.real
+      ? realPaidBookings.filter(b=>new Date(b.date_session)>=getStart(revFilter)).reduce((s,b)=>s+(b.phase_price||0)*0.8,0)
+      : EXPERT_DATA.impact.revenu;
+    const calcRevenu = (filter) => authUser?.real
+      ? realPaidBookings.filter(b=>new Date(b.date_session)>=getStart(filter)).reduce((s,b)=>s+(b.phase_price||0)*0.8,0)
+      : EXPERT_DATA.impact.revenu;
+    const realClientsCount = authUser?.real ? new Set(realPaidBookings.map(b=>b.client_id)).size : EXPERT_DATA.impact.clients;
+    const realSessionsCount = authUser?.real ? realPaidBookings.length : EXPERT_DATA.impact.sessions;
     const toggleExpN = k => setExpNotifToggles(s=>({...s,[k]:!s[k]}));
     const showShareModal = expShowShareModal; const setShowShareModal = setExpShowShareModal;
     const setCancelModalExp = (v) => setCancelModal(v ? {...v, type:"exp"} : null);
-    const expertProfileUrl = "https://savvy.fr/p/"+(USER.prenom+"-"+USER.nom).toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
+    const expertProfileUrl = resolvedExpertId
+      ? "https://getsavvy.fr/p/"+resolvedExpertId
+      : "https://getsavvy.fr";
 
     const ToggleExp = ({ on, onToggle }) => (
       <div onClick={e=>{e.stopPropagation();onToggle();}} style={{width:44,height:26,borderRadius:13,background:on?"#10B981":"#D1D5DB",position:"relative",cursor:"pointer",transition:"background .25s",flexShrink:0}}>
@@ -669,7 +702,7 @@ export function ExpertView({
     if (section === "disponibilidades") {
       const JOURS = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
       // weekSchedule: { 0: {active,start,end}, …, 6: {…} } (0=lundi, 6=dimanche)
-      const [weekSchedule, setWeekSchedule] = React.useState(() => {
+      const deriveWeek = () => {
         const def = {};
         for (let i = 0; i < 7; i++) def[i] = { active: false, start: "09:00", end: "18:00" };
         // Init from existing dispoSelected/dispoHours (date-based → derive dow)
@@ -681,13 +714,21 @@ export function ExpertView({
           def[dowMon] = { active: true, start, end };
         });
         return def;
-      });
+      };
+      const [weekSchedule, setWeekSchedule] = React.useState(deriveWeek);
 
-      const activeDays = Object.values(weekSchedule).filter(d => d.active).length;
+      // Les dispos Supabase arrivent après le premier rendu → re-sync tant que
+      // l'utilisateur n'a rien touché manuellement
+      if (!weekSchedule._touched && ![0,1,2,3,4,5,6].some(i => weekSchedule[i]?.active)) {
+        const derived = deriveWeek();
+        if ([0,1,2,3,4,5,6].some(i => derived[i]?.active)) setWeekSchedule({ ...derived, _touched: true });
+      }
 
-      const toggle = (i) => setWeekSchedule(s => ({ ...s, [i]: { ...s[i], active: !s[i].active } }));
-      const setStart = (i, v) => setWeekSchedule(s => ({ ...s, [i]: { ...s[i], start: v } }));
-      const setEnd = (i, v) => setWeekSchedule(s => ({ ...s, [i]: { ...s[i], end: v } }));
+      const activeDays = [0,1,2,3,4,5,6].filter(i => weekSchedule[i]?.active).length;
+
+      const toggle = (i) => setWeekSchedule(s => ({ ...s, _touched: true, [i]: { ...s[i], active: !s[i].active } }));
+      const setStart = (i, v) => setWeekSchedule(s => ({ ...s, _touched: true, [i]: { ...s[i], start: v } }));
+      const setEnd = (i, v) => setWeekSchedule(s => ({ ...s, _touched: true, [i]: { ...s[i], end: v } }));
 
       return (
         <div>
@@ -703,11 +744,11 @@ export function ExpertView({
           </div>
 
           <div style={{display:"flex",gap:8,marginBottom:12}}>
-            <button onClick={()=>setWeekSchedule(s=>{const n={...s};for(let i=0;i<5;i++)n[i]={...n[i],active:true};return n;})}
+            <button onClick={()=>setWeekSchedule(s=>{const n={...s,_touched:true};for(let i=0;i<5;i++)n[i]={...n[i],active:true};return n;})}
               style={{flex:1,padding:"8px",borderRadius:20,border:`1px solid ${C.border}`,background:C.white,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Lun–Ven</button>
-            <button onClick={()=>setWeekSchedule(s=>{const n={...s};for(let i=0;i<7;i++)n[i]={...n[i],active:true};return n;})}
+            <button onClick={()=>setWeekSchedule(s=>{const n={...s,_touched:true};for(let i=0;i<7;i++)n[i]={...n[i],active:true};return n;})}
               style={{flex:1,padding:"8px",borderRadius:20,border:`1px solid ${C.border}`,background:C.white,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Tous les jours</button>
-            <button onClick={()=>setWeekSchedule(s=>{const n={...s};for(let i=0;i<7;i++)n[i]={...n[i],active:false};return n;})}
+            <button onClick={()=>setWeekSchedule(s=>{const n={...s,_touched:true};for(let i=0;i<7;i++)n[i]={...n[i],active:false};return n;})}
               style={{flex:1,padding:"8px",borderRadius:20,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Effacer</button>
           </div>
 
@@ -752,6 +793,16 @@ export function ExpertView({
               .map(([dow, d]) => ({ expert_id: resolvedExpertId, day_of_week: Number(dow), start_time: d.start, end_time: d.end }));
             await supabase.from("availability").delete().eq("expert_id", resolvedExpertId);
             if (rows.length > 0) await supabase.from("availability").insert(rows);
+            // Sync immédiat du compteur dashboard + barre de profil
+            const sel = {}, hrs = {};
+            const today0 = new Date(); today0.setHours(0,0,0,0);
+            for (let i = 0; i < 60; i++) {
+              const d = new Date(today0); d.setDate(today0.getDate() + i);
+              const dowMon = d.getDay() === 0 ? 6 : d.getDay() - 1;
+              const day = weekSchedule[dowMon];
+              if (day?.active) { const key = d.toISOString().slice(0,10); sel[key] = true; hrs[key] = day.start + "-" + day.end; }
+            }
+            setDispoSelected(sel); setDispoHours(hrs);
             setDispoSaved(true); setTimeout(()=>setDispoSaved(false), 3000);
           }} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:dispoSaved?"#10B981":C.ink,color:C.white,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:SERIF,transition:"background .3s"}}>
             {dispoSaved ? "✓ Planning enregistré" : "Enregistrer mon planning"}
@@ -882,7 +933,7 @@ export function ExpertView({
           <div style={{background:`linear-gradient(135deg,${C.ink},#2C2825)`,borderRadius:16,padding:"18px 20px",marginBottom:14,color:C.white}}>
             <div style={{fontSize:11,color:"rgba(253,252,248,.5)",marginBottom:4,textTransform:"uppercase",letterSpacing:.6}}>Solde disponible</div>
             <div style={{display:"flex",alignItems:"flex-end",gap:8,marginBottom:4}}>
-              <div style={{fontSize:32,fontWeight:700,fontFamily:SERIF}}>{showRevenu?(EXPERT_DATA.impact.revenu>0?EXPERT_DATA.impact.revenu+"€":"0€"):"••••€"}</div>
+              <div style={{fontSize:32,fontWeight:700,fontFamily:SERIF}}>{showRevenu?(realRevenuTotal>0?realRevenuTotal.toFixed(0)+"€":"0€"):"••••€"}</div>
               <button onClick={()=>setShowRevenu(v=>!v)} style={{marginBottom:6,fontSize:12,background:"rgba(255,255,255,.12)",border:"none",borderRadius:20,padding:"3px 10px",color:"rgba(253,252,248,.7)",cursor:"pointer",fontFamily:"inherit"}}>
                 {showRevenu?"Masquer":"Voir"}
               </button>
@@ -909,21 +960,54 @@ export function ExpertView({
             <button onClick={()=>setShowCardModal(true)} style={{width:"100%",marginTop:10,padding:"9px",borderRadius:10,border:`1px dashed ${C.gold}`,background:"transparent",color:C.gold,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>✏️ Modifier les coordonnées bancaires</button>
           </div>
           <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"13px 15px"}}>
-            <div style={{fontSize:12,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:10}}>Historique des revenus</div>
-            <div style={{textAlign:"center",padding:"18px 0",color:C.faint,fontSize:12}}>Aucune activité sur cette période</div>
-            <button onClick={()=>generateFacturesPDF(EXPERT_DATA.prenom+" "+EXPERT_DATA.nom, true)} style={{width:"100%",marginTop:6,padding:"9px",borderRadius:10,border:`1px solid ${C.gold}`,background:C.goldL,color:C.gold,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>📄 Télécharger mes factures PDF</button>
+            <div style={{fontSize:12,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:10}}>
+              Revenus ({revFilter==="hoy"?"Aujourd'hui":revFilter==="semana"?"Cette semaine":"Ce mois"})
+            </div>
+            {(() => {
+              const now = new Date();
+              let start;
+              if (revFilter==="hoy") start = new Date(now.getFullYear(),now.getMonth(),now.getDate());
+              else if (revFilter==="semana") start = new Date(now-7*24*3600000);
+              else start = new Date(now.getFullYear(),now.getMonth(),1);
+              const filtered = authUser?.real
+                ? realPaidBookings.filter(b=>new Date(b.date_session)>=start)
+                : [];
+              if (!filtered.length) return <div style={{textAlign:"center",padding:"18px 0",color:C.faint,fontSize:12}}>Aucune activité sur cette période</div>;
+              return filtered.map((b,i)=>(
+                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:i<filtered.length-1?`1px solid ${C.borderF}`:"none"}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:600,color:C.ink}}>{b.phase_name||"Session"}</div>
+                    <div style={{fontSize:11,color:C.muted}}>{b.date_session?new Date(b.date_session).toLocaleDateString("fr-FR",{day:"numeric",month:"short"}):"—"}</div>
+                  </div>
+                  <div style={{fontSize:14,fontWeight:700,color:C.gold}}>+{((b.phase_price||0)*0.8).toFixed(0)}€</div>
+                </div>
+              ));
+            })()}
+            {realRevenu>0 && <div style={{marginTop:10,paddingTop:8,borderTop:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",fontSize:13,fontWeight:700,color:C.ink}}>
+              <span>Total net (80%)</span><span style={{color:C.gold}}>{realRevenu.toFixed(0)}€</span>
+            </div>}
+            <button onClick={()=>generateFacturesPDF(EXPERT_DATA.prenom+" "+EXPERT_DATA.nom, true)} style={{width:"100%",marginTop:10,padding:"9px",borderRadius:10,border:`1px solid ${C.gold}`,background:C.goldL,color:C.gold,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>📄 Télécharger mes factures PDF</button>
           </div>
         </div>
       );
 
       // Mes clients aidés
       if (subSection === "clients") {
-        const clientsData = isNewExpert ? [] : [
-          {ini:"SM", bg:"#EDE9FE", col:"#7C3AED", nom:"Sophie Martin",  nb:3, derniere:"15 mai 2025",    note:5},
-          {ini:"LB", bg:"#DBEAFE", col:"#1D4ED8", nom:"Lucas Bernard",  nb:1, derniere:"8 mai 2025",     note:5},
-          {ini:"EP", bg:"#D1FAE5", col:"#065F46", nom:"Emma Petit",     nb:2, derniere:"2 mai 2025",     note:4},
-          {ini:"PD", bg:"#FEF3C7", col:"#92400E", nom:"Pierre Durand",  nb:1, derniere:"18 avril 2025",  note:5},
-        ];
+        // Agrupa por client_id para sacar clientes únicos con sus bookings
+        const clientMap = {};
+        (authUser?.real ? realPaidBookings : []).forEach(b => {
+          const cid = b.client_id;
+          if (!clientMap[cid]) clientMap[cid] = { nom: b.client_name || "Client", sessions: [], derniere: b.date_session };
+          clientMap[cid].sessions.push(b);
+          if (new Date(b.date_session) > new Date(clientMap[cid].derniere)) clientMap[cid].derniere = b.date_session;
+        });
+        const clientsData = Object.entries(clientMap).map(([cid, d]) => ({
+          cid, nom: d.nom, nb: d.sessions.length,
+          derniere: d.derniere ? new Date(d.derniere).toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"}) : "—",
+          ini: d.nom.split(" ").map(w=>w[0]||"").join("").slice(0,2).toUpperCase()||"??"
+        }));
+        const BGSPALETTE = ["#EDE9FE","#DBEAFE","#D1FAE5","#FEF3C7","#FCE7F3"];
+        const COLPALETTE = ["#7C3AED","#1D4ED8","#065F46","#92400E","#9D174D"];
         return (
           <div>
             <BackHeaderExp title="Mes clients aidés" sub="Personnes que tu as accompagnées" onBack={goBackToCompte}/>
@@ -933,21 +1017,17 @@ export function ExpertView({
                   <div style={{fontSize:15,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:6}}>Pas encore de clients</div>
                   <div style={{fontSize:13,color:C.muted,lineHeight:1.6}}>Tes premiers clients apparaîtront ici après ta première session confirmée.</div>
                 </div>
-              : clientsData.map(c=>(
-                <div key={c.ini} style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"13px 15px",marginBottom:10,display:"flex",alignItems:"center",gap:12,boxShadow:`0 1px 4px ${C.sh}`}}>
-                  <div style={{width:44,height:44,borderRadius:"50%",background:c.bg,color:c.col,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:15,flexShrink:0}}>{c.ini}</div>
+              : clientsData.map((c,i)=>(
+                <div key={c.cid} style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"13px 15px",marginBottom:10,display:"flex",alignItems:"center",gap:12,boxShadow:`0 1px 4px ${C.sh}`}}>
+                  <div style={{width:44,height:44,borderRadius:"50%",background:BGSPALETTE[i%5],color:COLPALETTE[i%5],display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:15,flexShrink:0}}>{c.ini}</div>
                   <div style={{flex:1}}>
                     <div style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF}}>{c.nom}</div>
                     <div style={{fontSize:11,color:C.muted,marginTop:2}}>{c.nb} session{c.nb>1?"s":""} · Dernière : {c.derniere}</div>
                   </div>
-                  <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3}}>
-                    <div style={{display:"flex",gap:1}}>{[1,2,3,4,5].map(s=><svg key={s} width={11} height={11} viewBox="0 0 12 12" fill={s<=c.note?"#B8864A":"#E5E0D8"}><path d="M6 1l1.5 3H11l-2.5 2 1 3L6 7.5 2.5 9l1-3L1 4h3.5z"/></svg>)}</div>
-                    <div style={{fontSize:10,color:C.muted}}>{c.note}/5</div>
-                  </div>
                 </div>
               ))
             }
-            {clientsData.length>0 && <div style={{textAlign:"center",marginTop:8,fontSize:11,color:C.muted}}>{clientsData.length} clients accompagnés · {clientsData.reduce((s,c)=>s+c.nb,0)} sessions au total</div>}
+            {clientsData.length>0 && <div style={{textAlign:"center",marginTop:8,fontSize:11,color:C.muted}}>{clientsData.length} client{clientsData.length>1?"s":""} accompagné{clientsData.length>1?"s":""} · {realPaidBookings.length} session{realPaidBookings.length>1?"s":""} au total</div>}
           </div>
         );
       }
@@ -1125,7 +1205,7 @@ export function ExpertView({
       const nextSession = expConfirmed.length > 0 ? expConfirmed[0] : null;
       const pendingCount = expRequests.length;
       const sessionsThisWeek = expConfirmed.filter(s => (s.hoursUntil||0) <= 168).length;
-      const revenuMois = isNewExpert ? 0 : EXPERT_DATA.impact.revenu;
+      const revenuMois = isNewExpert ? 0 : calcRevenu("mes");
 
       // Completion % for new expert
       // Pour les experts réels (newExpertProfile peut être null si inscrit en session précédente)
@@ -1182,9 +1262,9 @@ export function ExpertView({
               ) : (
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
                   {[
-                    {v: revenuMois+"€", l:"💰 revenus ce mois"},
-                    {v: String(EXPERT_DATA.impact.clients), l:"👥 clients aidés"},
-                    {v: EXPERT_DATA.rating ? EXPERT_DATA.rating.toFixed(1)+"★" : "—", l:"⭐ note moyenne"},
+                    {v: revenuMois.toFixed(0)+"€", l:"💰 revenus ce mois"},
+                    {v: String(realClientsCount), l:"👥 clients aidés"},
+                    {v: authUser?.real ? "—" : (EXPERT_DATA.rating ? EXPERT_DATA.rating.toFixed(1)+"★" : "—"), l:"⭐ note moyenne"},
                     {v: String(sessionsThisWeek), l:"📅 sessions sem."},
                   ].map(s=>(
                     <div key={s.l} style={{background:"rgba(255,255,255,.07)",borderRadius:12,padding:"11px 10px",textAlign:"center"}}>
@@ -1199,7 +1279,7 @@ export function ExpertView({
 
           {/* ── Impact humain ── */}
           {(()=>{
-            const n = authUser?.real ? (authUser?.sessionsCount || 0) : (isNewExpert ? 0 : (EXPERT_DATA.impact.clients || 0));
+            const n = authUser?.real ? realSessionsCount : (isNewExpert ? 0 : (EXPERT_DATA.impact.clients || 0));
             const label = n === 0
               ? "Tu n'as pas encore aidé quelqu'un — prêt pour ta première ?"
               : `${n} personne${n>1?"s":""} ont avancé grâce à ton expérience.`;
@@ -1251,7 +1331,7 @@ export function ExpertView({
           )}
 
           {/* ── Réputation (active expert) ── */}
-          {!isNewExpert && EXPERT_DATA.rating && (
+          {!isNewExpert && !authUser?.real && EXPERT_DATA.rating && (
             <div style={{background:C.white,borderRadius:16,border:`1px solid ${C.border}`,padding:"16px 18px",marginBottom:14,boxShadow:`0 2px 8px ${C.sh}`}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
                 <div style={{fontSize:14,fontWeight:700,color:C.ink}}>⭐ Réputation</div>
@@ -1462,7 +1542,7 @@ export function ExpertView({
               <div style={{fontSize:11,color:C.muted,marginTop:2}}>{authUser?.real ? (authUser?.expertDomain || profileEdits?.domain || "Conseiller Savvy") : EXPERT_DATA.domain}</div>
               <div style={{display:"flex",alignItems:"center",gap:6,marginTop:4}}>
                 {authUser?.real ? (
-                  <span style={{fontSize:10,color:C.muted}}>0 session · Pas encore d'avis</span>
+                  <span style={{fontSize:10,color:C.muted}}>{realSessionsCount} session{realSessionsCount!==1?"s":""} · {realSessionsCount===0?"Pas encore d'avis":"En attente d'avis"}</span>
                 ) : (<>
                   <div style={{display:"flex",gap:1}}>{[1,2,3,4,5].map(s=><svg key={s} width={11} height={11} viewBox="0 0 12 12" fill={s<=Math.round(EXPERT_DATA.rating||4.8)?"#B8864A":"#E5E0D8"}><path d="M6 1l1.5 3H11l-2.5 2 1 3L6 7.5 2.5 9l1-3L1 4h3.5z"/></svg>)}</div>
                   <span style={{fontSize:11,fontWeight:700,color:C.gold}}>{EXPERT_DATA.rating||"4.8"}</span>
@@ -1471,20 +1551,30 @@ export function ExpertView({
               </div>
             </div>
             <div onClick={()=>setShowRevenu(v=>!v)} style={{textAlign:"right",cursor:"pointer",flexShrink:0}}>
-              <div style={{fontSize:20,fontWeight:800,color:EXPERT_DATA.impact.revenu>0?C.gold:C.muted,fontFamily:SERIF}}>{showRevenu?(EXPERT_DATA.impact.revenu>0?EXPERT_DATA.impact.revenu+"€":"0€"):"••••€"}</div>
+              <div style={{fontSize:20,fontWeight:800,color:realRevenuTotal>0?C.gold:C.muted,fontFamily:SERIF}}>{showRevenu?(realRevenuTotal>0?realRevenuTotal.toFixed(0)+"€":"0€"):"••••€"}</div>
               <div style={{fontSize:9,color:C.muted,marginTop:1,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:3}}>revenus {showRevenu?<svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx={12} cy={12} r={3}/></svg>:<svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1={1} y1={1} x2={23} y2={23}/></svg>}</div>
             </div>
           </div>
           {/* ── Profil Savvy progress ── */}
           {(()=>{
-            const checks = [
-              !!(photoUrl || USER.initials), // photo ou initiales = profil de base
-              !!(expOffres||EXPERT_DATA.offres).length,
-              !!EXPERT_DATA.preuves.length,
-              Object.values(dispoSelected||{}).some(Boolean),
-              EXPERT_DATA.impact.sessions > 0,
-              EXPERT_DATA.rating >= 4,
+            // Pour les experts réels : champs réels du profil (sbExpertData)
+            const items = authUser?.real ? [
+              {ok: !!(photoUrl || sbExpertData?.photo_url), l:"Photo"},
+              {ok: !!sbExpertData?.tagline?.trim(), l:"Tagline"},
+              {ok: !!sbExpertData?.bio?.trim(), l:"Bio"},
+              {ok: (expOffres || sbExpertData?.phases || []).length > 0, l:"Offre"},
+              {ok: (sbExpertData?.creds || []).length > 0, l:"Preuves"},
+              {ok: Object.values(dispoSelected||{}).some(Boolean), l:"Disponibilités"},
+            ] : [
+              {ok: !!(photoUrl || USER.initials), l:"Photo"},
+              {ok: !!(expOffres||EXPERT_DATA.offres).length, l:"Offre"},
+              {ok: !!EXPERT_DATA.preuves.length, l:"Preuves"},
+              {ok: Object.values(dispoSelected||{}).some(Boolean), l:"Disponibilités"},
+              {ok: EXPERT_DATA.impact.sessions > 0, l:"Première session"},
+              {ok: EXPERT_DATA.rating >= 4, l:"Note 4+"},
             ];
+            const checks = items.map(i=>i.ok);
+            const missing = items.filter(i=>!i.ok).map(i=>i.l);
             const pct = Math.round(checks.filter(Boolean).length / checks.length * 100);
             const color = pct >= 80 ? C.sage : pct >= 50 ? C.gold : "#F59E0B";
             return (
@@ -1504,13 +1594,21 @@ export function ExpertView({
                 {pct < 100 && (
                   <>
                     <button onClick={()=>{
+                      if(authUser?.real){
+                        if(!(photoUrl || sbExpertData?.photo_url)) { photoInputRef?.current?.click(); return; }
+                        if(!(expOffres || sbExpertData?.phases || []).length) { setOffresOpen(true); return; }
+                        if(!Object.values(dispoSelected||{}).some(Boolean)) { setSection("disponibilidades"); return; }
+                        setShowEditExpert(true); return;
+                      }
                       if(!(expOffres||EXPERT_DATA.offres).length) setOffresOpen(true);
                       else if(!Object.values(dispoSelected||{}).some(Boolean)) setSection("disponibilidades");
                       else setShowEditExpert(true);
                     }} style={{marginTop:8,width:"100%",padding:"8px",borderRadius:10,border:`1px solid ${color}`,background:"transparent",color,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",textAlign:"center"}}>
                       Compléter mon profil → {pct}%
                     </button>
-                    <div style={{marginTop:5,fontSize:10,color:C.faint,textAlign:"center"}}>Plus ton profil est complet, plus tu reçois de demandes.</div>
+                    <div style={{marginTop:5,fontSize:10,color:C.faint,textAlign:"center"}}>
+                      {missing.length ? `Il manque : ${missing.join(" · ")}` : "Plus ton profil est complet, plus tu reçois de demandes."}
+                    </div>
                   </>
                 )}
               </div>
@@ -1615,7 +1713,7 @@ export function ExpertView({
           <div style={{padding:"18px 20px 6px",fontSize:13,fontWeight:600,color:C.muted,letterSpacing:".4px",textTransform:"uppercase"}}>Compte</div>
           <MenuRowExp icon="⚙️" title="Paramètres" sub="Informations personnelles · Notifications" onClick={()=>{setSection("compte");setSubSection("parametres");}}/>
           <MenuRowExp icon="💰" title="Mes revenus" sub="Solde disponible · SEPA · Factures" onClick={()=>{setSection("compte");setSubSection("revenus");}}/>
-          <MenuRowExp icon="🤝" title="Mes clients aidés" sub={(()=>{const n=EXPERT_DATA.impact.clients; return n>0?`${n} personne${n>1?"s":""} accompagnée${n>1?"s":""} grâce à Savvy`:"Personnes que tu as accompagnées";})()}  onClick={()=>{setSection("compte");setSubSection("clients");}}/>
+          <MenuRowExp icon="🤝" title="Mes clients aidés" sub={realClientsCount>0?`${realClientsCount} personne${realClientsCount>1?"s":""} accompagnée${realClientsCount>1?"s":""} grâce à Savvy`:"Personnes que tu as accompagnées"} onClick={()=>{setSection("compte");setSubSection("clients");}}/>
         </div>
 
         {/* ── Aide ── */}

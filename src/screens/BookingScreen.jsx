@@ -23,7 +23,7 @@ function CalendarPicker({ expert, onDone, onSelect }) {
     const from = new Date();
     from.setHours(0,0,0,0);
     supabase.from("bookings")
-      .select("date_session, time")
+      .select("date_session")
       .eq("expert_id", expert.id)
       .in("status", ["pending","confirmed"])
       .gte("date_session", from.toISOString())
@@ -32,9 +32,11 @@ function CalendarPicker({ expert, onDone, onSelect }) {
         const map = {};
         data.forEach(b => {
           if (!b.date_session) return;
-          const key = b.date_session.slice(0,10);
+          const dt = new Date(b.date_session);
+          const key = dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");
+          const t = String(dt.getHours()).padStart(2,"0")+":"+String(dt.getMinutes()).padStart(2,"0");
           if (!map[key]) map[key] = [];
-          if (b.time) map[key].push(b.time);
+          map[key].push(t);
         });
         setBookedSlots(map);
       });

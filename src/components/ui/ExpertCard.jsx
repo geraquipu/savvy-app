@@ -35,11 +35,15 @@ function ExpertCard({ e, onClick, onBook }) {
           <div style={{ fontSize:17, fontWeight:700, color:C.ink, fontFamily:SERIF, letterSpacing:"-.3px", marginBottom:2, lineHeight:1.3 }}>{e.name}</div>
           <div style={{ fontSize:12, color:C.muted, marginBottom:8, lineHeight:1.4 }}>{e.role}{e.location ? ` · ${e.location}` : ""}</div>
 
-          {/* Rating */}
-          {e.rating != null && (
+          {/* Rating — solo con avis reales; sinon badge Nouveau */}
+          {e.reviews > 0 && e.rating != null ? (
           <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
             <span style={{ fontSize:13, fontWeight:700, color:"#D97706" }}>★ {e.rating}</span>
-            {e.reviews && <span style={{ fontSize:11, color:C.faint }}>({e.reviews} avis)</span>}
+            <span style={{ fontSize:11, color:C.faint }}>({e.reviews} avis)</span>
+          </div>
+          ) : (
+          <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
+            <span style={{ fontSize:11, fontWeight:700, color:C.sage, background:C.sageL, padding:"2px 9px", borderRadius:20 }}>✦ Nouveau conseiller</span>
           </div>
           )}
 
