@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { C, SERIF } from '../constants/colors';
-import { CATS, SUBCATS, CAT_MAP } from '../constants/data';
+import { CATS, SUBCATS } from '../constants/data';
 import { ExpertCard } from '../components/ui';
 
 function SkeletonCard() {
@@ -44,7 +44,7 @@ function SearchScreen({ initQ="", initCat=null, onExpert, onBack, experts=[], ex
 
   // Filter experts
   let filtered = [...experts];
-  if (activeCat) { const ids = CAT_MAP[activeCat]||[]; filtered = filtered.filter(e=>e.cat===activeCat||ids.includes(e.id)); }
+  if (activeCat) { filtered = filtered.filter(e=>e.cat===activeCat); }
   if (pilier==="top")      filtered = [...filtered].sort((a,b)=>b.rating-a.rating);
   if (pilier==="verifies") filtered = filtered.filter(e=>e.verified);
   if (q.trim().length>1) {
@@ -225,7 +225,7 @@ function SearchScreen({ initQ="", initCat=null, onExpert, onBack, experts=[], ex
                     <div>
                       <div style={{ fontSize:12, fontWeight:700, color:C.ink, lineHeight:1.3 }}>{cat.label}</div>
                       <div style={{ fontSize:10, color:C.muted, marginTop:3, lineHeight:1.3 }}>{cat.sub}</div>
-                      {(()=>{ const ids=CAT_MAP[cat.id]||[]; const n=experts.filter(e=>e.cat===cat.id||ids.includes(e.id)).length; return n>0 ? <div style={{ fontSize:10, color:cat.color, marginTop:4, fontWeight:600 }}>{n} expert{n>1?"s":""}</div> : null; })()}
+                      {(()=>{ const n=experts.filter(e=>e.cat===cat.id).length; return n>0 ? <div style={{ fontSize:10, color:cat.color, marginTop:4, fontWeight:600 }}>{n} expert{n>1?"s":""}</div> : null; })()}
                     </div>
                   </button>
                 ))}
