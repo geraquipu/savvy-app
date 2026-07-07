@@ -637,7 +637,7 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
         <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:14 }}>
           <span style={{ fontSize:12, color:C.muted, display:"flex", gap:4, alignItems:"center" }}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>{s.date} · {s.time}</span>
           <span style={{ fontSize:12, color:C.muted, display:"flex", gap:4, alignItems:"center" }}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>{s.duration}</span>
-          <span style={{ fontSize:12, color:C.muted, display:"flex", alignItems:"center", gap:4 }}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>{s.format}</span>
+          <span style={{ fontSize:12, color:C.muted, display:"flex", alignItems:"center", gap:4 }}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>{(s.format||"Vidéo").replace(/[\u{1F300}-\u{1FAFF}]/gu,"").trim()}</span>
           <span style={{ fontSize:12, color:C.muted, display:"flex", gap:3, alignItems:"center" }}><svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><line x1={12} y1={1} x2={12} y2={23}/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>{s.price}€</span>
         </div>
         {/* Pending action hint */}
@@ -665,16 +665,26 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
           </div>
         )}
         <div style={{ display:"flex", gap:8 }}>
-          {s.status==="confirmed" && s.paid && (
-            <button onClick={()=>{
+          {s.status==="confirmed" && s.paid && (()=>{
+            // Fenêtre d'accès : 15 min avant → 75 min après le début
+            const now = Date.now();
+            const canJoin = !s.startTs || (now >= s.startTs - 15*60000 && now <= s.startTs + 75*60000);
+            const minsUntil = s.startTs ? Math.round((s.startTs - now)/60000) : 0;
+            const label = canJoin ? "Rejoindre la session"
+              : minsUntil > 0 ? (minsUntil >= 60 ? `Ouvre 15 min avant · ${s.time||""}` : `Ouvre dans ${Math.max(1,minsUntil-15)} min`)
+              : "Session terminée";
+            return (
+            <button disabled={!canJoin} onClick={()=>{
+              if (!canJoin) return;
               const customLink = s.expertData?.meet_link;
               const roomId = s.id ? s.id.replace(/-/g,"").slice(0,16) : "savvy";
               window.open(customLink || `https://meet.jit.si/savvy-${roomId}`, "_blank");
-            }} style={{ flex:2, padding:"10px", borderRadius:11, border:"none", cursor:"pointer", fontWeight:700, fontSize:12, background:C.sage, color:C.white, fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-              <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>
-              Rejoindre la session
+            }} style={{ flex:2, padding:"10px", borderRadius:11, border:"none", cursor:canJoin?"pointer":"default", fontWeight:700, fontSize:12, background:canJoin?C.sage:C.cream3, color:canJoin?C.white:C.muted, fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+              <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>
+              {label}
             </button>
-          )}
+            );
+          })()}
           <button onClick={() => onMsg && onMsg(expert, "reservations")} style={{ flex:1, padding:"10px", borderRadius:11, border:`1px solid ${C.border}`, cursor:"pointer", fontWeight:600, fontSize:12, background:C.white, color:C.ink, fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
             <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message
           </button>
@@ -688,7 +698,7 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
 }
 
 function PastCard({ s, onExpert, onResume, onReview }) {
-  const expert = EXPERTS[s.eid];
+  const expert = EXPERTS[s.eid] || s.expertData || { name: s.expertName || "Expert", initials: s.expertInitials || "?", bg: "#EDE8DF", color: "#8B7355", id: s.eid };
   if (!expert) return null;
   return (
     <div style={{ background:C.white, borderRadius:16, border:`1px solid ${C.border}`, padding:"14px 16px", marginBottom:12 }}>
@@ -696,7 +706,7 @@ function PastCard({ s, onExpert, onResume, onReview }) {
         <div style={{ width:40, height:40, borderRadius:"50%", background:expert.bg, color:expert.color, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:14, border:`1.5px solid ${C.border}` }}>{expert.initials}</div>
         <div style={{ flex:1 }}>
           <div style={{ fontSize:13, fontWeight:700, color:C.ink, fontFamily:SERIF }}>{expert.name}</div>
-          <div style={{ fontSize:11, color:C.muted }}>{s.date} · {s.format}</div>
+          <div style={{ fontSize:11, color:C.muted }}>{s.date} · {(s.format||"").replace(/[\u{1F300}-\u{1FAFF}]/gu,"").trim()}</div>
         </div>
         <div style={{ fontSize:18, fontWeight:700, color:C.muted, fontFamily:SERIF }}>{s.price}€</div>
       </div>
@@ -792,6 +802,8 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           status: b.status,
           statusLabel: b.status === "confirmed" ? "Confirmée" : b.status === "cancelled" ? "Annulée" : "En attente",
           paid: !!b.paid || !!localStorage.getItem(`savvy_paid_${b.id}`),
+          startTs: b.date_session ? new Date(b.date_session).getTime() : null,
+          isPast: b.date_session ? (Date.now() > new Date(b.date_session).getTime() + 90*60000) : false,
           _fromSB: true,
           expertName: exp.name || "Expert",
         };
@@ -831,8 +843,9 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
   const [sessionsCancelees, setSessionsCancelees] = useState(isRealUser ? [] : [...SESSIONS_ANNULEES]);
 
   // Pour les vrais utilisateurs, utiliser Supabase en priorité
-  const sbPending   = sbBookings.filter(b=>b.status==="pending");
-  const sbConfirmed = sbBookings.filter(b=>b.status==="confirmed");
+  const sbPending   = sbBookings.filter(b=>b.status==="pending" && !b.isPast);
+  const sbConfirmed = sbBookings.filter(b=>b.status==="confirmed" && !b.isPast);
+  const sbPast      = sbBookings.filter(b=>b.status==="confirmed" && b.isPast);
   const sbCancelled = sbBookings.filter(b=>b.status==="cancelled");
 
   // Filter demo sessions to exclude experts already in LS bookings
@@ -854,7 +867,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
 
   const TABS = [
     { id:"avenir",   label:"À venir",   count:allAvenir.length   },
-    { id:"passees",  label:"Passées",   count:isRealUser ? 0 : SESSIONS_PASSEES.length  },
+    { id:"passees",  label:"Passées",   count:isRealUser ? sbPast.length : SESSIONS_PASSEES.length  },
     { id:"annulees", label:"Annulées",  count:allAnnulees.length },
   ];
 
@@ -932,7 +945,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontSize:13, fontWeight:700, color:C.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.expertData?.name || s.expertName || EXPERTS[s.eid]?.name || "Expert"}</div>
-                    <div style={{ fontSize:11, color:C.muted }}>Session confirmée · {s.format||"Vidéo"}</div>
+                    <div style={{ fontSize:11, color:C.muted }}>Session confirmée · {(s.format||"Vidéo").replace(/[\u{1F300}-\u{1FAFF}]/gu,"").trim()}</div>
                   </div>
                 </div>
                 );
@@ -979,9 +992,9 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           {/* Passées */}
           {tab === "passees" && (
             authUser?.real
-              ? sbBookings.filter(b=>b.status==="confirmed" && b.paid).length > 0
-                ? sbBookings.filter(b=>b.status==="confirmed" && b.paid).map(s => (
-                    <PastCard key={s.id} s={{...s, expert: s.expert || {name:s.expertName, initials:(s.expertName||"?")[0], bg:C.cream2, color:C.ink, id:s.expertId}}} onExpert={onExpert} onResume={setResumeSession} onReview={setReviewSession}/>
+              ? sbPast.length > 0
+                ? sbPast.map(s => (
+                    <PastCard key={s.id} s={{...s, expert: s.expertData}} onExpert={onExpert} onResume={setResumeSession} onReview={setReviewSession}/>
                   ))
                 : <div style={{ textAlign:"center", padding:"48px 0", color:C.muted }}>Aucune session passée.</div>
               : (!isRealUser && SESSIONS_PASSEES.length > 0)
@@ -1014,7 +1027,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
                       </div>
                       <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:10 }}>
                         <span style={{ fontSize:11, color:C.muted, display:"flex", gap:4, alignItems:"center" }}><svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>{s.date} · {s.time}</span>
-                        <span style={{ fontSize:11, color:C.muted }}>{s.format}</span>
+                        <span style={{ fontSize:11, color:C.muted }}>{(s.format||"").replace(/[\u{1F300}-\u{1FAFF}]/gu,"").trim()}</span>
                         <span style={{ fontSize:11, color:C.muted, display:"flex", gap:3, alignItems:"center" }}><svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><line x1={12} y1={1} x2={12} y2={23}/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>{s.price}€</span>
                       </div>
                       {(s.annuledBy || s.motif) && (

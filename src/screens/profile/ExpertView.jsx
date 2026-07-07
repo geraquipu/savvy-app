@@ -627,12 +627,15 @@ export function ExpertView({
                 Aucune session confirmée
               </div>
             );
-            const sorted = [...visible].sort((a,b)=>a.hoursUntil-b.hoursUntil);
+            const isDone = (x) => x.startTs ? Date.now() > x.startTs + 90*60000 : x.hoursUntil < -1;
+            const sorted = [...visible].filter(x=>!isDone(x)).sort((a,b)=>a.hoursUntil-b.hoursUntil);
+            const doneSessions = [...visible].filter(isDone).sort((a,b)=>(b.startTs||0)-(a.startTs||0));
             const expGroups = [
               {label:"Aujourd'hui", color:"#EF4444", bg:"#FEF2F2", sessions: sorted.filter(s=>s.hoursUntil<=24)},
               {label:"Demain",      color:"#6366F1", bg:"#EEF2FF", sessions: sorted.filter(s=>s.hoursUntil>24&&s.hoursUntil<=48)},
               {label:"Cette semaine",color:"#F59E0B",bg:"#FFFBEB", sessions: sorted.filter(s=>s.hoursUntil>48&&s.hoursUntil<=168)},
               {label:"Plus tard",   color:C.muted,   bg:C.cream2,  sessions: sorted.filter(s=>s.hoursUntil>168)},
+              {label:"Terminées",   color:C.sage,    bg:C.sageL,   sessions: doneSessions},
             ].filter(g=>g.sessions.length>0);
             return expGroups.map(group=>(
               <div key={group.label}>
@@ -677,14 +680,19 @@ export function ExpertView({
                           <button onClick={()=>onNavigate&&onNavigate("messages")} style={{flex:1,padding:"8px",borderRadius:9,border:`1px solid ${C.border}`,background:C.cream2,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
                             <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message
                           </button>
-                          {s.statut==="confirmé"&&(
-                            <button onClick={()=>{
+                          {s.statut==="confirmé"&&(()=>{
+                            const now = Date.now();
+                            const canJoin = !s.startTs || (now >= s.startTs - 15*60000 && now <= s.startTs + 75*60000);
+                            return (
+                            <button disabled={!canJoin} onClick={()=>{
+                              if(!canJoin) return;
                               const roomId = s.id ? String(s.id).replace(/-/g,"").slice(0,16) : "savvy";
                               window.open(`https://meet.jit.si/savvy-${roomId}`, "_blank");
-                            }} style={{flex:1,padding:"8px",borderRadius:9,border:"none",background:C.sage,color:C.white,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:SERIF,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
-                              <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>Rejoindre
+                            }} style={{flex:1,padding:"8px",borderRadius:9,border:"none",background:canJoin?C.sage:C.cream3,color:canJoin?C.white:C.muted,fontSize:11,fontWeight:700,cursor:canJoin?"pointer":"default",fontFamily:SERIF,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+                              <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>{canJoin?"Rejoindre":"15 min avant"}
                             </button>
-                          )}
+                            );
+                          })()}
                           <button onClick={()=>setCancelModal({session:s,step:"choose",type:"exp"})} style={{padding:"8px 11px",borderRadius:9,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>✕</button>
                         </div>
                       </div>
@@ -1202,7 +1210,7 @@ export function ExpertView({
     if (section === "dashboard") {
       const hour = new Date().getHours();
       const greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
-      const nextSession = expConfirmed.length > 0 ? expConfirmed[0] : null;
+      const nextSession = [...expConfirmed].filter(x=>!(x.startTs && Date.now() > x.startTs + 90*60000)).sort((a,b)=>(a.startTs||Infinity)-(b.startTs||Infinity))[0] || null;
       const pendingCount = expRequests.length;
       const sessionsThisWeek = expConfirmed.filter(s => (s.hoursUntil||0) <= 168).length;
       const revenuMois = isNewExpert ? 0 : calcRevenu("mes");

@@ -24,6 +24,9 @@ function AdminScreen({ authUser, onBack }) {
   const [bookings, setBookings] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [pendingExperts, setPendingExperts] = useState([]);
+  const [expertsList, setExpertsList] = useState([]);
+  const [payouts, setPayouts] = useState([]);
+  const [payoutsTableMissing, setPayoutsTableMissing] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const isAdmin = ADMIN_EMAILS.includes(authUser?.email);
@@ -67,7 +70,7 @@ function AdminScreen({ authUser, onBack }) {
       const revs  = r.data || [];
       const exps  = e.data || [];
       const msgCount = m.count || 0;
-      const revenue = books.filter(x => x.paid).reduce((s, x) => s + (x.amount || 0), 0);
+      const revenue = books.filter(x => x.paid).reduce((s, x) => s + (x.phase_price || 0), 0);
       setStats({
         users: profs.length,
         experts: exps.length,
@@ -80,7 +83,13 @@ function AdminScreen({ authUser, onBack }) {
       setUsers(profs);
       setBookings(books);
       setReviews(revs);
+      setExpertsList(exps);
       setLoading(false);
+      // Virements déjà effectués (table payouts optionnelle)
+      supabase.from("payouts").select("*").then(({ data, error }) => {
+        if (error) setPayoutsTableMissing(true);
+        else setPayouts(data || []);
+      });
     }).catch(() => setLoading(false));
   }, [isAdmin]);
 
@@ -100,6 +109,7 @@ function AdminScreen({ authUser, onBack }) {
     { id: "users", l: `Utilisateurs (${stats.users})` },
     { id: "bookings", l: `Réservations (${stats.bookings})` },
     { id: "reviews", l: `Avis (${stats.reviews})` },
+    { id: "payouts", l: "Virements experts" },
   ];
 
   return (
@@ -242,6 +252,66 @@ function AdminScreen({ authUser, onBack }) {
         )}
 
         {/* ── Reviews ── */}
+        {!loading && tab === "payouts" && (()=>{
+          // Dû par expert = 80% des sessions payées − virements déjà effectués
+          const byExpert = {};
+          bookings.filter(b => b.paid).forEach(b => {
+            if (!b.expert_id) return;
+            if (!byExpert[b.expert_id]) byExpert[b.expert_id] = { gross: 0, sessions: 0 };
+            byExpert[b.expert_id].gross += (b.phase_price || 0);
+            byExpert[b.expert_id].sessions += 1;
+          });
+          const paidOut = {};
+          payouts.forEach(p => { paidOut[p.expert_id] = (paidOut[p.expert_id] || 0) + (p.amount || 0); });
+          const rows = Object.entries(byExpert).map(([eid, d]) => {
+            const exp = expertsList.find(e => e.id === eid);
+            const due = Math.round(d.gross * 0.8 * 100) / 100 - (paidOut[eid] || 0);
+            return { eid, name: exp?.name || eid.slice(0, 8), sessions: d.sessions, gross: d.gross, due };
+          }).sort((a, b) => b.due - a.due);
+          const markPaid = async (r) => {
+            if (!confirm(`Confirmer le virement de ${r.due}€ à ${r.name} ? (à faire manuellement par SEPA, ceci ne fait qu'enregistrer)`)) return;
+            const { error } = await supabase.from("payouts").insert({ expert_id: r.eid, amount: r.due, note: `${r.sessions} session(s)` });
+            if (error) { alert("Erreur : " + error.message); return; }
+            const { data } = await supabase.from("payouts").select("*");
+            setPayouts(data || []);
+          };
+          return (
+            <div>
+              {payoutsTableMissing && (
+                <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 12, padding: "12px 14px", marginBottom: 14, fontSize: 12, color: "#92400E", lineHeight: 1.6 }}>
+                  Table <b>payouts</b> absente. Exécute dans le SQL Editor :<br/>
+                  <code style={{ fontSize: 11 }}>create table payouts (id uuid primary key default gen_random_uuid(), expert_id uuid references experts(id), amount numeric not null, note text, created_at timestamptz default now());</code>
+                </div>
+              )}
+              {rows.length === 0 && <div style={{ textAlign: "center", padding: "40px 0", color: C.muted, fontSize: 13 }}>Aucune session payée pour le moment.</div>}
+              {rows.map(r => (
+                <div key={r.eid} style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "14px 16px", marginBottom: 10, display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, fontFamily: SERIF }}>{r.name}</div>
+                    <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{r.sessions} session(s) payée(s) · brut {r.gross}€ · commission 20%</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: r.due > 0 ? C.gold : C.sage, fontFamily: SERIF }}>{r.due > 0 ? `${r.due}€ dû` : "À jour ✓"}</div>
+                    {r.due > 0 && !payoutsTableMissing && (
+                      <button onClick={() => markPaid(r)} style={{ marginTop: 6, padding: "6px 12px", borderRadius: 9, border: "none", background: C.ink, color: C.white, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Marquer viré</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {payouts.length > 0 && (
+                <div style={{ marginTop: 18 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: .5, marginBottom: 8 }}>Historique des virements</div>
+                  {payouts.slice().reverse().map(p => (
+                    <div key={p.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: C.soft, padding: "7px 0", borderBottom: `1px solid ${C.borderF}` }}>
+                      <span>{expertsList.find(e => e.id === p.expert_id)?.name || p.expert_id?.slice(0, 8)} · {p.note || ""}</span>
+                      <span style={{ fontWeight: 700 }}>{p.amount}€ · {new Date(p.created_at).toLocaleDateString("fr-FR")}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
         {!loading && tab === "reviews" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {reviews.map(r => (
