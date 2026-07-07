@@ -668,7 +668,10 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
             <div style={{display:"flex",gap:10}}>
               <button onClick={async()=>{
                 if(r._fromLS) updateBooking(r.id, {status:"cancelled"});
-                if(!r._fromLS && r.id) await supabase.from("bookings").update({status:"cancelled"}).eq("id", r.id);
+                if(!r._fromLS && r.id){
+                  const { error } = await supabase.from("bookings").update({status:"cancelled", cancel_reason:"Demande refusée par l'expert", cancelled_by:"expert"}).eq("id", r.id);
+                  if(error) await supabase.from("bookings").update({status:"cancelled"}).eq("id", r.id);
+                }
                 setExpCancelled(prev=>[{...r,statut:"refusé",motif:"Refusé par l'expert"},...prev]);
                 setExpRequests(prev=>prev.filter(x=>x.id!==r.id));
                 setClientProfileModal(null);
@@ -778,6 +781,25 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                 style={{width:"100%",padding:"11px 13px",borderRadius:11,border:`1px solid ${C.border}`,fontSize:12,fontFamily:"inherit",resize:"none",minHeight:70,outline:"none",boxSizing:"border-box",marginBottom:12}}/>
             )}
 
+            {/* Politique d'annulation */}
+            <div style={{background:C.cream2,border:`1px solid ${C.border}`,borderRadius:12,padding:"12px 14px",marginBottom:16}}>
+              <div style={{fontSize:11,fontWeight:700,color:C.ink,marginBottom:6,textTransform:"uppercase",letterSpacing:.4}}>Politique d'annulation Savvy</div>
+              {cancelModal.type==="exp" ? (
+                <ul style={{margin:0,paddingLeft:16,fontSize:11,color:C.muted,lineHeight:1.7}}>
+                  <li>Ton client est notifié immédiatement (email + notification).</li>
+                  <li>S'il avait payé, il est <strong>remboursé à 100%</strong> sous 5 à 10 jours ouvrés.</li>
+                  <li>Le motif choisi lui est communiqué.</li>
+                  <li>Les annulations répétées réduisent ta visibilité sur Savvy.</li>
+                </ul>
+              ) : (
+                <ul style={{margin:0,paddingLeft:16,fontSize:11,color:C.muted,lineHeight:1.7}}>
+                  <li>Annulation gratuite jusqu'à <strong>24h avant</strong> la session.</li>
+                  <li>Moins de 24h avant : la session peut ne pas être remboursée.</li>
+                  <li>L'expert est notifié de ton annulation.</li>
+                </ul>
+              )}
+            </div>
+
             <div style={{display:"flex",gap:10}}>
               <button onClick={()=>setCancelModal({...cancelModal,step:"choose"})} style={{flex:1,padding:"13px",borderRadius:12,border:`1px solid ${C.border}`,background:C.white,color:C.ink,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Retour</button>
               <button onClick={()=>{ if(!cancelModal.selectedMotif) return; setCancelModal({...cancelModal,step:"confirm"}); }}
@@ -807,14 +829,16 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
             <button onClick={async()=>{
               const s = cancelModal.session;
               const motif = cancelModal.selectedMotif==="Autre"?(cancelModal.motifTexte||"Autre"):cancelModal.selectedMotif;
+              const cancelledBy = cancelModal.type==="exp" ? "expert" : "client";
+              if(s._fromLS) updateBooking(s.id, {status:"cancelled"});
+              if(!s._fromLS && s.id){
+                // Tente d'enregistrer le motif ; retombe sur status seul si les colonnes n'existent pas encore
+                const { error } = await supabase.from("bookings").update({status:"cancelled", cancel_reason:motif||null, cancelled_by:cancelledBy}).eq("id", s.id);
+                if(error) await supabase.from("bookings").update({status:"cancelled"}).eq("id", s.id);
+              }
               if(cancelModal.type==="exp"){
-                if(s._fromLS) updateBooking(s.id, {status:"cancelled"});
-                if(!s._fromLS && s.id) await supabase.from("bookings").update({status:"cancelled"}).eq("id", s.id);
                 setExpCancelled(prev=>[{...s,statut:"annulé",motif},...prev]);
                 setExpConfirmed(prev=>prev.filter(x=>x.id!==s.id));
-              } else {
-                if(s._fromLS) updateBooking(s.id, {status:"cancelled"});
-                if(!s._fromLS && s.id) await supabase.from("bookings").update({status:"cancelled"}).eq("id", s.id);
               }
               setCancelModal(null);
             }} style={{flex:1,padding:"13px",borderRadius:12,border:"none",background:"#B91C1C",color:C.white,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>Confirmer</button>

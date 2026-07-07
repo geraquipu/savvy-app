@@ -285,16 +285,23 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
     onConfirm({date:booking.date, slot:booking.slot});
   };
 
-  // Determine available formats from the phase
-  const availableFormats = BOOKING_FORMATS.filter(f => {
-    if (!selectedPhase?.format) return true;
-    const pf = (selectedPhase?.format||"").toLowerCase();
-    if (pf.includes("vid")) return f.id === "video";
-    if (pf.includes("audio")) return f.id === "audio";
-    if (pf.includes("doc") || pf.includes("pdf")) return f.id === "doc";
-    if (pf.includes("chat") || pf.includes("mess")) return f.id === "chat";
-    return true;
-  });
+  // Determine available formats from the phase.
+  // Priorité au tableau `formats` (l'expert peut en activer plusieurs),
+  // sinon on retombe sur le champ `format` unique.
+  const normFmt = (raw) => {
+    const pf = (raw||"").toLowerCase();
+    if (pf.includes("vid")) return "video";
+    if (pf.includes("audio") || pf.includes("appel")) return "audio";
+    if (pf.includes("doc") || pf.includes("pdf")) return "doc";
+    if (pf.includes("chat") || pf.includes("mess")) return "chat";
+    return null;
+  };
+  const phaseFormatIds = Array.isArray(selectedPhase?.formats) && selectedPhase.formats.length
+    ? selectedPhase.formats.map(normFmt).filter(Boolean)
+    : (selectedPhase?.format ? [normFmt(selectedPhase.format)].filter(Boolean) : []);
+  const availableFormats = phaseFormatIds.length
+    ? BOOKING_FORMATS.filter(f => phaseFormatIds.includes(f.id))
+    : BOOKING_FORMATS;
   const formatsToShow = availableFormats.length > 0 ? availableFormats : BOOKING_FORMATS;
 
   const Header = () => (

@@ -126,16 +126,28 @@ serve(async (req) => {
     );
   }
 
-  // ── Annulée → notifier le client ──
-  if (type === "UPDATE" && status === "cancelled" && clientEmail) {
-    await sendEmail(
+  // ── Annulée → notifier le client (email + push) ──
+  if (type === "UPDATE" && status === "cancelled") {
+    const byExpert = booking.cancelled_by !== "client";
+    const reason = booking.cancel_reason || null;
+    // Push au client seulement si c'est l'expert qui a annulé
+    if (byExpert) {
+      await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}` },
+        body: JSON.stringify({ userId: clientId, title: "Session annulée", body: `${expertName} a annulé votre session · ${phase}`, url: "/" }),
+      }).catch(() => {});
+    }
+    if (byExpert && clientEmail) await sendEmail(
       clientEmail,
-      `❌ Session annulée — ${phase}`,
+      `Session annulée — ${phase}`,
       `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
         <h2 style="color:#1C1917">Session annulée</h2>
         <p style="color:#57534E">Bonjour ${clientName},</p>
-        <p style="color:#57534E">Malheureusement, <strong>${expertName}</strong> a annulé votre session ${phase} du ${date}.</p>
+        <p style="color:#57534E">Malheureusement, <strong>${expertName}</strong> a dû annuler votre session ${phase} du ${date}${time ? " à " + time : ""}.</p>
+        ${reason ? `<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:14px 16px;margin:16px 0"><p style="margin:0;color:#991B1B;font-size:14px"><strong>Motif :</strong> ${reason.replace(/</g,"&lt;")}</p></div>` : ""}
+        <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:14px 16px;margin:16px 0"><p style="margin:0;color:#166534;font-size:14px">Si vous aviez déjà payé, vous êtes remboursé intégralement sous 5 à 10 jours ouvrés.</p></div>
         <p style="color:#57534E">Vous pouvez réserver une nouvelle session ou choisir un autre expert sur Savvy.</p>
         <a href="https://getsavvy.fr" style="display:inline-block;background:#1C1917;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;margin-top:8px">Trouver un expert →</a>
         <p style="color:#A8A29E;font-size:12px;margin-top:24px">Savvy · L'expertise humaine, accessible à tous</p>
