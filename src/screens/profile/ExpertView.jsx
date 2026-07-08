@@ -637,7 +637,10 @@ export function ExpertView({
                       setExpRequests(remaining);
                       if(onRequestsChange) onRequestsChange(remaining.length);
                       if(r._fromLS) updateBooking(r.id, {status:"confirmed"});
-                      if(r._fromSB) await supabase.from("bookings").update({status:"confirmed"}).eq("id",r.id);
+                      if(r._fromSB) {
+                        const { data: upd } = await supabase.from("bookings").update({status:"confirmed"}).eq("id",r.id).select().single();
+                        if(upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{});
+                      }
                       setSessionConfirmToast({name:r.client, type:"confirmed"});
                       setTimeout(()=>setSessionConfirmToast(null),3000);
                       setExpSessionTab("confirmees");
@@ -648,7 +651,10 @@ export function ExpertView({
                       setExpRequests(remaining);
                       if(onRequestsChange) onRequestsChange(remaining.length);
                       if(r._fromLS) updateBooking(r.id, {status:"cancelled"});
-                      if(r._fromSB) await supabase.from("bookings").update({status:"cancelled"}).eq("id",r.id);
+                      if(r._fromSB) {
+                        const { data: upd } = await supabase.from("bookings").update({status:"cancelled", cancelled_by:"expert", cancel_reason:"Refusé par l'expert"}).eq("id",r.id).select().single();
+                        if(upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{});
+                      }
                       setSessionConfirmToast({name:r.client, type:"refused"});
                       setTimeout(()=>setSessionConfirmToast(null),3000);
                     }} style={{flex:1,padding:"10px",borderRadius:10,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>✕ Refuser</button>

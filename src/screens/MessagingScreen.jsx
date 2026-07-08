@@ -27,7 +27,6 @@ async function getSugg(msg) {
 
 function MessagingScreen({ e, onBack, authUser }) {
   const _msgKey = `savvy_chat_${e.initials||e.id||"guest"}`;
-  const _defaultMsg = [{id:1,from:"expert",text:`Bonjour ! Je suis ${e.name.split(" ")[0]}. ${e.tagline||e.role||""}. Quelle est votre question ?`,time:"09:30"}];
   // Mode "expert répond à un client réel" : e.clientId vient de MessagesListScreen
   const isExpertReplyMode = !!e.clientId;
   // Expert a un vrai UUID Supabase si son id est une string UUID
@@ -35,6 +34,11 @@ function MessagingScreen({ e, onBack, authUser }) {
   // user_id = auth UUID del experto (para mensajes/RLS); id = UUID de la tabla experts
   const expertAuthId = isExpertReplyMode ? (e.clientId || null) : (e.user_id || null);
   const isRealUser = authUser?.real && authUser?.id;
+  // Conversation réelle (client<->expert) : pas de faux message d'accueil "IA".
+  // Seulement pour les experts démo (Claude) on garde le message d'ouverture.
+  const _defaultMsg = (isRealUser && expertSbId)
+    ? []
+    : [{id:1,from:"expert",text:`Bonjour ! Je suis ${e.name.split(" ")[0]}. ${e.tagline||e.role||""}. Quelle est votre question ?`,time:"09:30"}];
 
   const [msgs, setMsgs] = useState(() => {
     try { const saved = JSON.parse(localStorage.getItem(_msgKey)||"null"); return saved?.length ? saved : _defaultMsg; } catch { return _defaultMsg; }

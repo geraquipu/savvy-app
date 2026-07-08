@@ -7,6 +7,11 @@ const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+const cors = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
 const sendEmail = async (to: string, subject: string, html: string) => {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -25,9 +30,11 @@ const sendEmail = async (to: string, subject: string, html: string) => {
 };
 
 serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+
   const { record, type } = await req.json();
 
-  if (!record) return new Response("no record", { status: 400 });
+  if (!record) return new Response("no record", { status: 400, headers: cors });
 
   const booking = record;
   const expertId = booking.expert_id; // experts.id (PK), not the expert's auth user id
@@ -79,6 +86,7 @@ serve(async (req) => {
           <p style="margin:0 0 4px;color:#57534E">📅 ${date} ${time ? "à " + time : ""}</p>
           <p style="margin:0;color:#57534E">💶 ${price}€</p>
         </div>
+        ${booking.notes ? `<div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:12px;padding:14px 16px;margin:16px 0"><p style="margin:0 0 4px;color:#6D28D9;font-weight:700;font-size:13px">💬 Message de ${clientName}</p><p style="margin:0;color:#57534E;font-style:italic">${String(booking.notes).replace(/</g,"&lt;")}</p></div>` : ""}
         <p style="color:#57534E">Connectez-vous à Savvy pour <strong>confirmer ou décliner</strong> cette réservation.</p>
         <a href="https://getsavvy.fr" style="display:inline-block;background:#1C1917;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;margin-top:8px">Voir la réservation →</a>
         <p style="color:#A8A29E;font-size:12px;margin-top:24px">Savvy · Tu gardes 80% de chaque session</p>
@@ -157,6 +165,6 @@ serve(async (req) => {
   }
 
   return new Response(JSON.stringify({ ok: true }), {
-    headers: { "Content-Type": "application/json" },
+    headers: { ...cors, "Content-Type": "application/json" },
   });
 });

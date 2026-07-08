@@ -13,7 +13,7 @@ const ICN = {
   msg:  <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
 };
 
-function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, authUser}) {
+function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, bookingNote, authUser}) {
   const savedRef = useRef(false);
   const [saveError, setSaveError] = useState(null);
   useEffect(() => {
@@ -44,7 +44,7 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, authUser
       duration: ph?.format?.includes("30")?"30 min":ph?.format?.includes("2h")?"2h":"1h",
       price: ph?.price || 0,
       status: "pending",
-      topic: `${ph?.name||"Session"} – ${e.name.split(" ")[0]}`,
+      topic: (bookingNote && bookingNote.trim()) ? bookingNote.trim() : `${ph?.name||"Session"} – ${e.name.split(" ")[0]}`,
       timestamp: Date.now(),
       hoursUntil,
     };
@@ -53,20 +53,41 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, authUser
     if (authUser?.real && authUser?.id) {
       const expertId = typeof e.id === "string" && e.id.includes("-") ? e.id : null;
       if (expertId) {
-        supabase.from("bookings").insert({
-          client_id: authUser.id,
-          expert_id: expertId,
-          phase_name: bookingData.phase,
-          phase_price: bookingData.price,
-          status: "pending",
-          date_session: bookingDateTime ? bookingDateTime.toISOString() : null,
-          notes: bookingData.topic,
-        }).then(({error}) => {
+        (async () => {
+          const { data: inserted, error } = await supabase.from("bookings").insert({
+            client_id: authUser.id,
+            expert_id: expertId,
+            phase_name: bookingData.phase,
+            phase_price: bookingData.price,
+            status: "pending",
+            date_session: bookingDateTime ? bookingDateTime.toISOString() : null,
+            notes: bookingData.topic,
+          }).select().single();
           if (error) {
             console.warn("Booking Supabase:", error.message);
             setSaveError("La réservation n'a pas pu être enregistrée (" + error.message + "). Contactez le support.");
+            return;
           }
-        });
+          // Notifier l'expert (email + push) de la nouvelle demande
+          supabase.functions.invoke("notify-booking", { body: { record: inserted, type: "INSERT" } }).catch(()=>{});
+          // Envoyer le message du client dans la boîte de l'expert (s'il en a écrit un)
+          if (bookingNote && bookingNote.trim()) {
+            let receiverId = e.user_id || null;
+            if (!receiverId) {
+              const { data: exp } = await supabase.from("experts").select("user_id").eq("id", expertId).single();
+              receiverId = exp?.user_id || null;
+            }
+            if (receiverId) {
+              const { error: mErr } = await supabase.from("messages").insert({
+                sender_id: authUser.id,
+                receiver_id: receiverId,
+                expert_id: expertId,
+                content: bookingNote.trim(),
+              });
+              if (mErr) console.warn("Message initial Supabase:", mErr.message);
+            }
+          }
+        })();
       }
     }
     addThread({

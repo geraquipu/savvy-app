@@ -635,7 +635,7 @@ export default function App() {
       {screen==="expert"       && expert && <ExpertScreen e={expert} onBack={()=>{setScreen(prevScreen);}} onBook={goBook} onMsg={goMsg}/>}
       {screen==="message"      && expert && <Suspense fallback={ScreenFallback}><MessagingScreen e={expert} onBack={()=>{setScreen(prevMsgScreen);setNav(prevMsgScreen);}} authUser={authUser}/></Suspense>}
       {screen==="booking"      && expert && phase && <Suspense fallback={ScreenFallback}><BookingScreen e={expert} ph={phase} onBack={()=>setScreen("expert")} onConfirm={(info)=>{ setBookingInfo(info); setScreen("success"); }}/></Suspense>}
-      {screen==="success"      && expert && phase && <Suspense fallback={ScreenFallback}><SuccessScreen e={expert} ph={phase} onHome={goHome} onMsg={()=>goMsg(expert)} bookingDate={bookingInfo?.date} bookingSlot={bookingInfo?.slot} authUser={authUser}/></Suspense>}
+      {screen==="success"      && expert && phase && <Suspense fallback={ScreenFallback}><SuccessScreen e={expert} ph={phase} onHome={goHome} onMsg={()=>goMsg(expert)} bookingDate={bookingInfo?.date} bookingSlot={bookingInfo?.slot} bookingNote={bookingInfo?.note} authUser={authUser}/></Suspense>}
       {screen==="signup" && <Suspense fallback={ScreenFallback}><SignupScreen
   authUser={authUser}
   uploadPhoto={uploadPhoto}

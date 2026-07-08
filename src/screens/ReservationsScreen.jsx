@@ -1073,10 +1073,10 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
               const s = cancelSession;
               // Réservation réelle (Supabase) → persister l'annulation
               if (s._fromSB && s.id) {
-                let { error } = await supabase.from("bookings").update({ status: "cancelled", cancelled_by: "client" }).eq("id", s.id);
-                if (error) { ({ error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", s.id)); }
+                let { data: upd, error } = await supabase.from("bookings").update({ status: "cancelled", cancelled_by: "client" }).eq("id", s.id).select().single();
+                if (error) { ({ data: upd, error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", s.id).select().single()); }
                 if (error) { console.warn("[cancel booking]", error.message); alert("Erreur lors de l'annulation : " + error.message); }
-                else { setSbBookings(prev => prev.map(b => b.id === s.id ? { ...b, status: "cancelled", statusLabel: "Annulée", annuledBy: "client" } : b)); }
+                else { if(upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{}); setSbBookings(prev => prev.map(b => b.id === s.id ? { ...b, status: "cancelled", statusLabel: "Annulée", annuledBy: "client" } : b)); }
               } else if (s._fromLS && s.id) {
                 updateBooking(s.id, { status: "cancelled" });
                 setLsBookings(getBookings());
