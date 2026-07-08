@@ -298,7 +298,7 @@ function CancelModal({ session, onClose, onMsg }) {
               </div>
             </div>
             <div style={{ background:C.cream2, borderRadius:11, padding:"11px 13px", marginBottom:20, fontSize:12, color:C.muted, lineHeight:1.6 }}>
-              ℹ️ L\'expert devra confirmer. Remboursement gratuit si +24h avant la session.
+              ℹ️ {expert.name.split(" ")[0]} sera informé de l\'annulation. Remboursement automatique si +24h avant la session.
             </div>
             <div style={{ display:"flex", gap:9 }}>
               <button onClick={() => setStep("menu")} style={{ flex:1, padding:"13px", borderRadius:13, border:`1.5px solid ${C.border}`, cursor:"pointer", fontWeight:700, fontSize:13, background:C.white, color:C.ink, fontFamily:"inherit" }}>← Retour</button>
@@ -326,14 +326,14 @@ function CancelModal({ session, onClose, onMsg }) {
         {step === "done_cancel" && (
           <div style={{ padding:"32px 22px 36px", textAlign:"center" }}>
             <div style={{ width:36, height:4, borderRadius:2, background:C.cream3, margin:"0 auto 22px" }}/>
-            <div style={{ fontSize:44, marginBottom:14 }}>📋</div>
-            <div style={{ fontSize:18, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:8 }}>Demande envoyée</div>
+            <div style={{ fontSize:44, marginBottom:14 }}>✅</div>
+            <div style={{ fontSize:18, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:8 }}>Session annulée</div>
             <div style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:14 }}>
-              Ta demande a été transmise à {expert.name.split(" ")[0]}.<br/>
-              Statut : <b style={{ color:"#92400E" }}>En attente d\'annulation</b>
+              Ta session avec {expert.name.split(" ")[0]} a été annulée.<br/>
+              {expert.name.split(" ")[0]} vient d\'en être informé(e).
             </div>
-            <div style={{ background:"#FEF3C7", borderRadius:12, padding:"11px 14px", marginBottom:22, fontSize:12, color:"#92400E", lineHeight:1.6 }}>
-              Le remboursement sera traité après confirmation de l\'expert.
+            <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0", borderRadius:12, padding:"11px 14px", marginBottom:22, fontSize:12, color:"#166534", lineHeight:1.6 }}>
+              Si tu avais déjà payé, ton remboursement est traité automatiquement sous 5 à 10 jours ouvrés.
             </div>
             <button onClick={() => onClose(true)} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:15, background:C.ink, color:C.white, fontFamily:SERIF }}>Compris</button>
           </div>
@@ -863,6 +863,12 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
     : [...lsCancelled, ...sessionsCancelees];
   const pendingCount = allAvenir.filter(s=>s.status==="pending" || (s.status==="confirmed" && !s.paid)).length;
   useEffect(() => { onPendingChange && onPendingChange(pendingCount); }, [pendingCount]);
+  // Ouvre la vue calendrier automatiquement (une seule fois) s'il y a des sessions confirmées
+  const confirmedCount = allAvenir.filter(s=>s.status==="confirmed").length;
+  const calAutoOpened = useRef(false);
+  useEffect(() => {
+    if (!calAutoOpened.current && confirmedCount > 0) { calAutoOpened.current = true; setCalView(true); }
+  }, [confirmedCount]);
   if (!isLoggedIn) return (
     <LoginGate icon={<svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={1.6}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>} title="Tes réservations t\'attendent" sub="Connecte-toi pour voir et gérer tes sessions avec les experts." onLogin={onLogin}/>
   );

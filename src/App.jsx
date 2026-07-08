@@ -313,7 +313,10 @@ export default function App() {
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [sharedExpertId, setSharedExpertId] = useState(null); // profil partagé via /p/<id>
   const [readNotifIds, setReadNotifIds] = useState([]);
-  const [readMsgIds, setReadMsgIds] = useState([]);
+  const [readMsgIds, setReadMsgIds] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("savvy_read_msgs") || "[]"); } catch { return []; }
+  });
+  useEffect(() => { try { localStorage.setItem("savvy_read_msgs", JSON.stringify(readMsgIds)); } catch {} }, [readMsgIds]);
   const [expRequestsCount, setExpRequestsCount] = useState(() => (newExpertProfile || authUser?.real) ? 0 : 2); // synced from ProfileScreen
   const [showProfileSetup, setShowProfileSetup] = useState(false);
 

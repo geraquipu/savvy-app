@@ -451,7 +451,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
                   </div>
                 );
               } else {
-                const convKey="cli-"+conv.id;
+                const convKey="cli-"+(conv.clientId||conv.id);
                 const isRead=readMsgIds.includes(convKey)||conv.unread===0;
                 return (
                   <div key={conv.id} onClick={()=>{ markMsgRead(convKey); onConv&&onConv({name:conv.name,role:"Client",tagline:conv.lastMsg,color:conv.col,initials:conv.ini,avatar:conv.ini,bg:conv.bg,clientId:conv.clientId,photo_url:conv.photoUrl}); }} style={{display:"flex",gap:12,alignItems:"center",background:C.white,borderRadius:16,padding:"14px 15px",marginBottom:9,cursor:"pointer",border:`1px solid ${isRead?C.border:"#6EE7B7"}`,boxShadow:`0 1px 6px ${C.sh}`,transition:"border-color .25s"}}>
