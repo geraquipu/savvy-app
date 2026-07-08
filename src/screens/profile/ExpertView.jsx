@@ -214,29 +214,36 @@ function ExpertInbox({ authUser, onBack }) {
   const bottomRef = React.useRef(null);
 
   React.useEffect(() => {
-    if (!authUser?.id) return;
+    if (!authUser?.id || !authUser?.expertId) return;
     supabase.from("messages")
       .select("*")
-      .eq("expert_id", authUser.id)
+      .eq("expert_id", authUser.expertId)
       .order("created_at", { ascending: false })
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (!data) return;
-        // Group by client (messages where sender is client, expert_id is this expert)
+        // Group by client — the client is whoever is NOT the expert on each message
         const byClient = {};
         data.forEach(m => {
-          // Client is whoever is NOT the expert
-          const clientId = m.sender_id !== authUser.id ? m.sender_id : null;
-          if (!clientId) return;
+          const clientId = m.sender_id !== authUser.id ? m.sender_id : m.receiver_id;
+          if (!clientId || clientId === authUser.id) return;
           if (!byClient[clientId]) byClient[clientId] = { clientId, messages: [] };
           byClient[clientId].messages.push(m);
         });
+        // Fetch real client names
+        const ids = Object.keys(byClient);
+        const nameMap = {};
+        if (ids.length > 0) {
+          const { data: profs } = await supabase.from("profiles").select("id, name").in("id", ids);
+          (profs||[]).forEach(p => { nameMap[p.id] = p.name; });
+        }
         setThreads(Object.values(byClient).map(t => ({
           ...t,
+          name: nameMap[t.clientId] || "Client Savvy",
           latest: t.messages[0],
           unread: t.messages.filter(m => m.sender_id !== authUser.id && !m.read_at).length,
         })));
       });
-  }, [authUser?.id]);
+  }, [authUser?.id, authUser?.expertId]);
 
   const openThread = (thread) => {
     setActiveThread(thread);
@@ -247,7 +254,7 @@ function ExpertInbox({ authUser, onBack }) {
     // Subscribe to new messages in real time
     const ch = supabase.channel(`expert-inbox-${thread.clientId}`)
       .on("postgres_changes", { event:"INSERT", schema:"public", table:"messages",
-        filter:`expert_id=eq.${authUser.id}` }, ({ new: m }) => {
+        filter:`expert_id=eq.${authUser.expertId}` }, ({ new: m }) => {
         const cid = m.sender_id === authUser.id ? m.receiver_id : m.sender_id;
         if (cid !== thread.clientId) return;
         setMsgs(prev => prev.some(x=>x.id===m.id) ? prev : [...prev,m]);
@@ -261,9 +268,11 @@ function ExpertInbox({ authUser, onBack }) {
     setSending(true);
     const { data, error } = await supabase.from("messages").insert({
       sender_id: authUser.id,
-      expert_id: authUser.id,
+      receiver_id: activeThread.clientId,
+      expert_id: authUser.expertId,
       content: replyText.trim(),
     }).select().single();
+    if (error) console.warn("sendReply error:", error.message);
     if (!error && data) {
       setMsgs(prev => [...prev, data]);
       setReplyText("");
@@ -273,7 +282,8 @@ function ExpertInbox({ authUser, onBack }) {
   };
 
   if (activeThread) {
-    const initials = activeThread.clientId.slice(0,2).toUpperCase();
+    const clientDisplayName = activeThread.name || "Client Savvy";
+    const initials = clientDisplayName.split(" ").map(w=>w[0]||"").join("").toUpperCase().slice(0,2) || "CS";
     return (
       <div style={{display:"flex",flexDirection:"column",height:"100vh",background:C.cream}}>
         <div style={{background:C.white,padding:"12px 16px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:11,flexShrink:0}}>
@@ -282,7 +292,7 @@ function ExpertInbox({ authUser, onBack }) {
           </button>
           <div style={{width:40,height:40,borderRadius:"50%",background:"#EDE9FE",color:"#7C3AED",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,flexShrink:0}}>{initials}</div>
           <div style={{flex:1}}>
-            <div style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF}}>Client</div>
+            <div style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF}}>{clientDisplayName}</div>
             <div style={{fontSize:11,color:C.muted}}>Conversation privée</div>
           </div>
         </div>
@@ -331,7 +341,8 @@ function ExpertInbox({ authUser, onBack }) {
             <div style={{fontSize:13,color:C.muted}}>Les messages de tes clients apparaîtront ici.</div>
           </div>
         ) : threads.map(t => {
-          const initials = t.clientId.slice(0,2).toUpperCase();
+          const tName = t.name || "Client Savvy";
+          const initials = tName.split(" ").map(w=>w[0]||"").join("").toUpperCase().slice(0,2) || "CS";
           return (
             <div key={t.clientId} onClick={()=>openThread(t)} style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"13px 15px",marginBottom:10,display:"flex",alignItems:"center",gap:12,cursor:"pointer",boxShadow:`0 1px 4px ${C.sh}`}}>
               <div style={{position:"relative",flexShrink:0}}>
@@ -339,7 +350,7 @@ function ExpertInbox({ authUser, onBack }) {
                 {t.unread>0&&<div style={{position:"absolute",top:-2,right:-2,width:16,height:16,borderRadius:"50%",background:C.ink,color:C.white,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,border:`2px solid ${C.white}`}}>{t.unread}</div>}
               </div>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:13,fontWeight:t.unread>0?700:500,color:C.ink,marginBottom:2}}>Client</div>
+                <div style={{fontSize:13,fontWeight:t.unread>0?700:500,color:C.ink,marginBottom:2}}>{tName}</div>
                 <div style={{fontSize:12,color:C.muted,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{t.latest?.content||""}</div>
               </div>
               <div style={{fontSize:10,color:C.faint,flexShrink:0}}>{t.latest?new Date(t.latest.created_at).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"}):""}</div>
@@ -392,6 +403,33 @@ export function ExpertView({
 }) {
     const section = expSection; const setSection = setExpSection;
     const subSection = expSubSection; const setSubSection = setExpSubSection;
+    const [joinNotice, setJoinNotice] = React.useState(null);
+    // Rejoindre : ouvre la salle si on est dans la fenêtre (15 min avant → 75 min après),
+    // sinon affiche un message amical avec l'heure exacte.
+    const handleJoin = (s) => {
+      const now = Date.now();
+      if (!s?.startTs) {
+        const roomId = s?.id ? String(s.id).replace(/-/g,"").slice(0,16) : "savvy";
+        window.open(`https://meet.jit.si/savvy-${roomId}`, "_blank");
+        return;
+      }
+      const openAt = s.startTs - 15*60000, closeAt = s.startTs + 75*60000;
+      if (now >= openAt && now <= closeAt) {
+        const roomId = String(s.id).replace(/-/g,"").slice(0,16) || "savvy";
+        window.open(`https://meet.jit.si/savvy-${roomId}`, "_blank");
+        return;
+      }
+      const hhmm = new Date(s.startTs).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+      const dayStr = new Date(s.startTs).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+      if (now < openAt) {
+        const mins = Math.round((openAt - now)/60000);
+        const wait = mins < 60 ? `dans ${mins} min` : mins < 1440 ? `dans ${Math.round(mins/60)} h` : `le ${dayStr}`;
+        setJoinNotice({ type:"early", text:`La salle s'ouvre 15 min avant, à ${new Date(openAt).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}. Reviens ${wait} — ta session avec ${s.client||"ton client"} est à ${hhmm}. ☕` });
+      } else {
+        setJoinNotice({ type:"late", text:`Cette session (${hhmm}) est terminée. Retrouve-la dans tes sessions passées.` });
+      }
+      setTimeout(()=>setJoinNotice(null), 6000);
+    };
     const sessionFilter = expSessionFilter; const setSessionFilter = setExpSessionFilter;
     const revFilter = expRevFilter; const setRevFilter = setExpRevFilter;
 
@@ -586,7 +624,7 @@ export function ExpertView({
                       style={{flex:1,padding:"8px",borderRadius:10,border:`1px solid ${C.border}`,background:C.cream2,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
                       👤 Voir le profil
                     </button>
-                    <button onClick={()=>onNavigate&&onNavigate("messages")} style={{flex:1,padding:"8px",borderRadius:10,border:`1px solid ${C.border}`,background:C.cream2,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+                    <button onClick={()=>setSection("messages")} style={{flex:1,padding:"8px",borderRadius:10,border:`1px solid ${C.border}`,background:C.cream2,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
                       <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                       Message
                     </button>
@@ -677,7 +715,7 @@ export function ExpertView({
                           ))}
                         </div>
                         <div style={{display:"flex",gap:7}}>
-                          <button onClick={()=>onNavigate&&onNavigate("messages")} style={{flex:1,padding:"8px",borderRadius:9,border:`1px solid ${C.border}`,background:C.cream2,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+                          <button onClick={()=>setSection("messages")} style={{flex:1,padding:"8px",borderRadius:9,border:`1px solid ${C.border}`,background:C.cream2,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
                             <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message
                           </button>
                           {s.statut==="confirmé"&&(()=>{
@@ -1372,10 +1410,16 @@ export function ExpertView({
                   <div style={{fontSize:13,fontWeight:700,color:C.ink}}>{nextSession.client}</div>
                   <div style={{fontSize:11,color:"#92400E",marginTop:2}}>{nextSession.duree} · {nextSession.format}</div>
                 </div>
-                <button style={{padding:"9px 14px",borderRadius:11,border:"none",background:"#F59E0B",color:C.white,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+                <button onClick={()=>handleJoin(nextSession)} style={{padding:"9px 14px",borderRadius:11,border:"none",background:"#F59E0B",color:C.white,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
                   Rejoindre →
                 </button>
               </div>
+              {joinNotice && (
+                <div style={{marginTop:11,background:joinNotice.type==="late"?"#FEF2F2":"#FFF7ED",border:`1px solid ${joinNotice.type==="late"?"#FECACA":"#FED7AA"}`,borderRadius:11,padding:"10px 13px",fontSize:12,color:joinNotice.type==="late"?"#B91C1C":"#92400E",lineHeight:1.5,display:"flex",gap:8,alignItems:"flex-start"}}>
+                  <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{flexShrink:0,marginTop:1}}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span>{joinNotice.text}</span>
+                </div>
+              )}
             </div>
           )}
 

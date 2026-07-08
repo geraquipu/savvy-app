@@ -782,7 +782,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
       const expertIds = [...new Set(bookingsData.map(b=>b.expert_id).filter(Boolean))];
       const expertMap = {};
       if (expertIds.length > 0) {
-        const { data: experts } = await supabase.from("experts").select("id, name, initials, bg, color, role, meet_link").in("id", expertIds);
+        const { data: experts } = await supabase.from("experts").select("id, user_id, name, initials, bg, color, role, meet_link").in("id", expertIds);
         (experts||[]).forEach(e => { expertMap[e.id] = e; });
       }
       const mapped = bookingsData.map(b => {
@@ -791,7 +791,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           id: b.id,
           eid: b.expert_id,
           expertInitials: exp.initials || "?",
-          expertData: { name: exp.name || "Expert", initials: exp.initials || "?", bg: exp.bg || "#EDE8DF", color: exp.color || "#8B7355", role: exp.role || "", id: b.expert_id, meet_link: exp.meet_link || null },
+          expertData: { name: exp.name || "Expert", initials: exp.initials || "?", bg: exp.bg || "#EDE8DF", color: exp.color || "#8B7355", role: exp.role || "", id: b.expert_id, user_id: exp.user_id || null, meet_link: exp.meet_link || null },
           topic: b.notes || b.phase_name || "Session",
           date: b.date_session ? new Date(b.date_session).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}) : "À confirmer",
           time: b.date_session ? new Date(b.date_session).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "À confirmer",

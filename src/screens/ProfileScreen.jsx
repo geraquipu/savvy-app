@@ -1147,7 +1147,9 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           <div style={{background:C.white,borderRadius:"20px 20px 0 0",padding:"28px 20px 36px",width:"100%",maxWidth:480}}>
             <div style={{width:36,height:4,borderRadius:2,background:C.border,margin:"0 auto 22px"}}/>
             <div style={{textAlign:"center",marginBottom:24}}>
-              <div style={{fontSize:40,marginBottom:10}}>🗑️</div>
+              <div style={{width:56,height:56,borderRadius:"50%",background:"#FEE2E2",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 10px"}}>
+                <svg width={26} height={26} viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth={2}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1={10} y1={11} x2={10} y2={17}/><line x1={14} y1={11} x2={14} y2={17}/></svg>
+              </div>
               <div style={{fontSize:18,fontWeight:800,color:"#DC2626",fontFamily:SERIF,marginBottom:8}}>Supprimer le compte</div>
               <div style={{fontSize:13,color:C.muted,lineHeight:1.6}}>Cette action est <strong>irréversible</strong>. Toutes tes données, sessions et messages seront supprimés définitivement.</div>
             </div>

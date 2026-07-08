@@ -49,14 +49,14 @@ const SIGNUP_T = {
     // step 4
     step4Title: "Ta crédibilité",
     step4H: "Montre ce que tu as fait.", step4Sub: "Les clients choisissent des personnes qui ont des résultats — pas des diplômes.",
-    resultLabel: "🎯 Décris un résultat réel", resultReq: "obligatoire",
+    resultLabel: "Décris un résultat réel", resultReq: "obligatoire",
     resultPh: "Ex : Trouver un appart sans garant, c'est possible — je l'ai fait 12 fois. Demande-moi comment.",
     resultOk: "✓ Parfait — concret et personnel", resultHint: "1–2 lignes · mesurable · personnel",
-    proofLabel: "🔗 Renforce ta crédibilité", proofOpt: "",
-    proofLien: "🔗 Lien URL", proofFile: "📎 Fichier",
+    proofLabel: "Renforce ta crédibilité", proofOpt: "",
+    proofLien: "Lien URL", proofFile: "Fichier",
     proofFilePh: "Choisir un fichier (PDF, image)",
     proofUrlPh: "https://linkedin.com/in/tonprofil ou lien portfolio",
-    bioLabel: "📖 Ton histoire", bioOpt: "",
+    bioLabel: "Ton histoire", bioOpt: "",
     bioNote: "Ajoute-la plus tard si tu veux — tu peux aussi la générer avec l'IA depuis ton profil.",
     bioPh: "Ex : Ancienne gestionnaire de copropriété pendant 6 ans…",
     errResult: "Décris un résultat réel (20 caractères min).",
@@ -132,14 +132,14 @@ const SIGNUP_T = {
     // step 4
     step4Title: "Tu credibilidad",
     step4H: "Muestra lo que has logrado.", step4Sub: "Los clientes eligen personas con resultados — no títulos.",
-    resultLabel: "🎯 Describe un resultado real", resultReq: "obligatorio",
+    resultLabel: "Describe un resultado real", resultReq: "obligatorio",
     resultPh: "Ej: Encontrar piso sin aval es posible — lo hice 12 veces. Pregúntame cómo.",
     resultOk: "✓ Perfecto — concreto y personal", resultHint: "1–2 líneas · medible · personal",
-    proofLabel: "🔗 Prueba", proofOpt: "(opcional)",
-    proofLien: "🔗 Link URL", proofFile: "📎 Archivo",
+    proofLabel: "Prueba", proofOpt: "(opcional)",
+    proofLien: "Link URL", proofFile: "Archivo",
     proofFilePh: "Elegir archivo (PDF, imagen)",
     proofUrlPh: "https://linkedin.com/in/tuperfil o enlace a tu portfolio",
-    bioLabel: "📝 Bio", bioOpt: "(opcional)",
+    bioLabel: "Bio", bioOpt: "(opcional)",
     bioNote: "Puedes añadirla más tarde — también puedes generarla con IA desde tu perfil.",
     bioPh: "Ej: Exgestora de comunidades durante 6 años…",
     errResult: "Describe un resultado real (mínimo 20 caracteres).",
@@ -758,8 +758,11 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
           <div style={{display:"flex",gap:8,marginBottom:10}}>
             {["lien","fichier"].map(t=>(
               <button key={t} onClick={()=>patch({proof1Type:t,proof1:""})}
-                style={{flex:1,padding:"8px",borderRadius:10,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:600,border:"none",
+                style={{flex:1,padding:"8px",borderRadius:10,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:600,border:"none",display:"flex",alignItems:"center",justifyContent:"center",gap:6,
                   background:form.proof1Type===t?C.ink:C.cream3,color:form.proof1Type===t?C.white:C.soft,transition:"all .15s"}}>
+                {t==="lien"
+                  ? <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  : <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>}
                 {t==="lien"?T.proofLien:T.proofFile}
               </button>
             ))}
