@@ -223,7 +223,9 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           heure: b.date_session ? new Date(b.date_session).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "",
           duree:"1h", format:"Vidéo", domaine:b.phase_name||"Conseil",
           msg:`Demande : ${b.phase_name||"Session"}`, why:b.notes||"", pays:"France", langue:"FR",
-          status: b.status, hoursUntil: b.date_session ? Math.round((new Date(b.date_session) - Date.now()) / 3600000) : 999,
+          status: b.status,
+          statut: b.status==="confirmed" ? "confirmé" : b.status==="cancelled" ? "annulé" : "en attente",
+          hoursUntil: b.date_session ? Math.round((new Date(b.date_session) - Date.now()) / 3600000) : 999,
           startTs: b.date_session ? new Date(b.date_session).getTime() : null,
         };
       };
