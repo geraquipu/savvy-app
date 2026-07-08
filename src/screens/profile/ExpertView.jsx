@@ -1437,7 +1437,7 @@ export function ExpertView({
                   <div style={{fontSize:11,color:C.muted,marginTop:2}}>{nextSession.date} · {nextSession.heure}</div>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                  <button onClick={()=>setSection("sesiones")} style={{padding:"7px 12px",borderRadius:10,border:`1px solid ${C.goldB}`,background:C.goldL,color:C.gold,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>
+                  <button onClick={()=>{setExpSessionTab("confirmees");setSection("sesiones");}} style={{padding:"7px 12px",borderRadius:10,border:`1px solid ${C.goldB}`,background:C.goldL,color:C.gold,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>
                     Voir →
                   </button>
                   <button onClick={()=>downloadICS({expertName:nextSession.client,topic:nextSession.msg||"Session Savvy",date:nextSession.date,slot:nextSession.heure,durationH:.5})}

@@ -456,9 +456,14 @@ export default function App() {
     const paymentStatus = urlParams.get("payment");
     const bookingId = urlParams.get("booking");
     if (paymentStatus === "success" && bookingId) {
-      supabase.from("bookings").update({ paid: true }).eq("id", bookingId).then(() => {});
+      // Le webhook Stripe (service role) marque paid:true côté serveur.
+      // On tente aussi côté client mais sans bloquer si RLS le refuse.
+      supabase.from("bookings").update({ paid: true }).eq("id", bookingId)
+        .then(({ error }) => { if (error) console.warn("[paid] update client refusé (le webhook s'en charge):", error.message); });
       try { localStorage.setItem(`savvy_paid_${bookingId}`, "1"); } catch {}
       window.history.replaceState({}, "", window.location.pathname);
+      // Emmener l'utilisateur vers ses réservations pour voir la session payée
+      setScreen("reservations"); setNav("reservations");
       setShowPaymentSuccess(true);
       setTimeout(() => setShowPaymentSuccess(false), 5000);
     }
