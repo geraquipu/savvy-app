@@ -73,6 +73,12 @@ function MessagingScreen({ e, onBack, authUser }) {
           const localOnly = prev.filter(m=>!m._fromSB && !sbIds.has(m.id));
           return [..._defaultMsg, ...sbMsgs, ...localOnly].slice(0,200);
         });
+        // Marquer comme lus (read_at) les messages reçus dans cette conversation
+        // → le badge "non lu" ne réapparaît plus en changeant de mode.
+        let mk = supabase.from("messages").update({ read_at: new Date().toISOString() })
+          .eq("expert_id", expertSbId).eq("receiver_id", authUser.id).is("read_at", null);
+        if (expertAuthId) mk = mk.eq("sender_id", expertAuthId);
+        mk.then(({ error }) => { if (error) console.warn("mark read:", error.message); });
       });
 
     const channel = supabase

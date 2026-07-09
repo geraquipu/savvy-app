@@ -250,6 +250,11 @@ function ExpertInbox({ authUser, onBack }) {
     const sorted = [...thread.messages].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
     setMsgs(sorted);
     setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),100);
+    // Marquer les messages du client comme lus (read_at)
+    supabase.from("messages").update({ read_at: new Date().toISOString() })
+      .eq("expert_id", authUser.expertId).eq("sender_id", thread.clientId).is("read_at", null)
+      .then(({ error }) => { if (error) console.warn("mark read inbox:", error.message); });
+    setThreads(prev => prev.map(t => t.clientId===thread.clientId ? { ...t, unread: 0 } : t));
 
     // Subscribe to new messages in real time
     const ch = supabase.channel(`expert-inbox-${thread.clientId}`)
@@ -778,9 +783,24 @@ export function ExpertView({
 
       const activeDays = [0,1,2,3,4,5,6].filter(i => weekSchedule[i]?.active).length;
 
+      // Helpers horaires : "HH:MM" <-> minutes, pour garder start < end
+      const toMin = (t) => { const [h,m] = (t||"0:0").split(":").map(Number); return (h||0)*60 + (m||0); };
+      const toHHMM = (mins) => { const m = Math.max(0, Math.min(1439, mins)); return String(Math.floor(m/60)).padStart(2,"0") + ":" + String(m%60).padStart(2,"0"); };
       const toggle = (i) => setWeekSchedule(s => ({ ...s, [i]: { ...s[i], active: !s[i].active } }));
-      const setStart = (i, v) => setWeekSchedule(s => ({ ...s, [i]: { ...s[i], start: v } }));
-      const setEnd = (i, v) => setWeekSchedule(s => ({ ...s, [i]: { ...s[i], end: v } }));
+      const setStart = (i, v) => setWeekSchedule(s => {
+        const cur = s[i]; const end = cur.end;
+        // Si le début dépasse (ou égale) la fin, on repousse la fin à début + 1h
+        const nextEnd = toMin(v) >= toMin(end) ? toHHMM(toMin(v) + 60) : end;
+        return { ...s, [i]: { ...cur, start: v, end: nextEnd } };
+      });
+      const setEnd = (i, v) => setWeekSchedule(s => {
+        const cur = s[i];
+        // La fin doit être au moins 15 min après le début
+        const minEnd = toMin(cur.start) + 15;
+        const nextEnd = toMin(v) < minEnd ? toHHMM(minEnd) : v;
+        return { ...s, [i]: { ...cur, end: nextEnd } };
+      });
+      const hasInvalid = [0,1,2,3,4,5,6].some(i => weekSchedule[i]?.active && toMin(weekSchedule[i].end) <= toMin(weekSchedule[i].start));
 
       return (
         <div>
@@ -815,15 +835,18 @@ export function ExpertView({
                     <div style={{position:"absolute",top:3,left:day.active?21:3,width:20,height:20,borderRadius:"50%",background:C.white,transition:"left .2s",boxShadow:"0 1px 4px rgba(0,0,0,.2)"}}/>
                   </button>
                   <div style={{fontSize:13,fontWeight:600,color:day.active?C.ink:C.muted,minWidth:80}}>{label}</div>
-                  {day.active ? (
+                  {day.active ? (()=>{
+                    const invalid = toMin(day.end) <= toMin(day.start);
+                    return (
                     <div style={{display:"flex",alignItems:"center",gap:6,flex:1}}>
                       <input type="time" value={day.start} onChange={e=>setStart(i,e.target.value)}
-                        style={{flex:1,padding:"5px 8px",borderRadius:8,border:`1px solid ${C.border}`,fontSize:12,fontFamily:"inherit",color:C.ink}}/>
-                      <span style={{fontSize:11,color:C.muted}}>→</span>
+                        style={{flex:1,padding:"5px 8px",borderRadius:8,border:`1px solid ${invalid?"#FCA5A5":C.border}`,fontSize:12,fontFamily:"inherit",color:C.ink}}/>
+                      <span style={{fontSize:11,color:invalid?"#B91C1C":C.muted}}>→</span>
                       <input type="time" value={day.end} onChange={e=>setEnd(i,e.target.value)}
-                        style={{flex:1,padding:"5px 8px",borderRadius:8,border:`1px solid ${C.border}`,fontSize:12,fontFamily:"inherit",color:C.ink}}/>
+                        style={{flex:1,padding:"5px 8px",borderRadius:8,border:`1px solid ${invalid?"#FCA5A5":C.border}`,fontSize:12,fontFamily:"inherit",color:invalid?"#B91C1C":C.ink}}/>
                     </div>
-                  ) : (
+                    );
+                  })() : (
                     <div style={{fontSize:11,color:C.faint,flex:1}}>Fermé</div>
                   )}
                 </div>
@@ -831,11 +854,19 @@ export function ExpertView({
             })}
           </div>
 
-          <div style={{fontSize:12,fontWeight:700,color:activeDays>0?C.sage:C.faint,textAlign:"center",marginBottom:14}}>
+          <div style={{fontSize:12,fontWeight:700,color:activeDays>0?C.sage:C.faint,textAlign:"center",marginBottom:hasInvalid?8:14}}>
             {activeDays > 0 ? `✓ ${activeDays} jour${activeDays>1?"s":""} ouverts à la réservation chaque semaine` : "Aucun jour sélectionné"}
           </div>
 
-          <button onClick={async ()=>{
+          {hasInvalid && (
+            <div style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:11,padding:"10px 13px",marginBottom:14,fontSize:12,color:"#B91C1C",lineHeight:1.5,display:"flex",gap:8,alignItems:"flex-start"}}>
+              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{flexShrink:0,marginTop:1}}><circle cx={12} cy={12} r={10}/><line x1={12} y1={8} x2={12} y2={12}/><line x1={12} y1={16} x2={12.01} y2={16}/></svg>
+              <span>L'heure de fin doit être après l'heure de début. Corrige les créneaux en rouge avant d'enregistrer.</span>
+            </div>
+          )}
+
+          <button disabled={hasInvalid} onClick={async ()=>{
+            if (hasInvalid) return;
             if (!resolvedExpertId) {
               alert("Profil expert introuvable. Déconnecte-toi et reconnecte-toi pour réessayer.");
               return;
@@ -856,7 +887,7 @@ export function ExpertView({
             }
             setDispoSelected(sel); setDispoHours(hrs);
             setDispoSaved(true); setTimeout(()=>setDispoSaved(false), 3000);
-          }} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:dispoSaved?"#10B981":C.ink,color:C.white,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:SERIF,transition:"background .3s"}}>
+          }} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:hasInvalid?C.cream3:dispoSaved?"#10B981":C.ink,color:hasInvalid?C.muted:C.white,fontSize:14,fontWeight:700,cursor:hasInvalid?"not-allowed":"pointer",fontFamily:SERIF,transition:"background .3s"}}>
             {dispoSaved ? "✓ Planning enregistré" : "Enregistrer mon planning"}
           </button>
 

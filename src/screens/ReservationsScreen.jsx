@@ -1040,7 +1040,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
                       </div>
                       {(s.annuledBy || s.motif) && (
                       <div style={{ background:C.cream2, borderRadius:9, padding:"8px 12px", fontSize:11, color:C.muted, display:"flex", gap:7, alignItems:"center" }}>
-                        {s.annuledBy && <span>Annulée par : <b style={{ color:C.ink }}>{s.annuledBy==="client"?"le client":"l\'expert"}</b></span>}
+                        {s.annuledBy && <span>Annulée par : <b style={{ color:C.ink }}>{s.annuledBy==="client"?"toi":(s.expertData?.name||s.expertName||"l\'expert")}</b></span>}
                         {s.annuledBy && s.motif && <span>·</span>}
                         {s.motif && <span>Motif : {s.motif}</span>}
                       </div>

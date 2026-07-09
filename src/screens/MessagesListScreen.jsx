@@ -30,7 +30,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
             eid, type:"expert", expert,
             lastMsg: m.content,
             time: new Date(m.created_at).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}),
-            unread: m.sender_id!==authUser.id ? 1 : 0,
+            unread: (m.sender_id!==authUser.id && !m.read_at) ? 1 : 0,
             id: eid, _fromSB: true,
           };
         }).filter(Boolean);
@@ -67,7 +67,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
             ini: (p?.name||"C").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase(),
             bg:"#EDE9FE", col:"#7C3AED", photoUrl: p?.photo_url,
             lastMsg: m.content, time: new Date(m.created_at).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}),
-            unread: m.sender_id!==authUser.id ? 1 : 0, session:null,
+            unread: (m.sender_id!==authUser.id && !m.read_at) ? 1 : 0, session:null,
           };
         });
         setRealClientConvs(convs);

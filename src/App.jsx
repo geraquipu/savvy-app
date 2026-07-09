@@ -399,7 +399,9 @@ export default function App() {
         let count = 0;
         for (const [key, m] of seen) {
           const convKey = isExpertMode ? "cli-"+key : "exp-"+key;
-          if (m.sender_id !== authUser.id && !readMsgIds.includes(convKey)) count++;
+          // Non lu = dernier message entrant, pas encore lu en base (read_at)
+          // ni marqué lu localement (readMsgIds).
+          if (m.sender_id !== authUser.id && !m.read_at && !readMsgIds.includes(convKey)) count++;
         }
         setRealUnreadCount(count);
       });
