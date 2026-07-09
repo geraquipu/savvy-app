@@ -586,6 +586,20 @@ function PaymentModal({ session, expert, onClose }) {
   );
 }
 
+// Fenêtre d'accès à la session + libellé de compte à rebours
+export function joinState(startTs) {
+  const now = Date.now();
+  if (!startTs) return { canJoin:true, label:"Rejoindre la session" };
+  const openAt = startTs - 15*60000, closeAt = startTs + 75*60000;
+  if (now >= openAt && now <= closeAt) return { canJoin:true, label:"Rejoindre la session" };
+  if (now > closeAt) return { canJoin:false, past:true, label:"Session terminée" };
+  const mins = Math.round((startTs - now)/60000);
+  const label = mins >= 1440 ? `Début dans ${Math.round(mins/1440)} j`
+    : mins >= 60 ? `Début dans ${Math.round(mins/60)} h`
+    : `Début dans ${Math.max(1,mins)} min`;
+  return { canJoin:false, label };
+}
+
 function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
   const expert = s.expertData || EXPERTS[s.eid] || EXPERTS.find(x=>x.initials===s.expertInitials);
   if (!expert) return null;
@@ -721,12 +735,7 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
         <div style={{ display:"flex", gap:8 }}>
           {s.status==="confirmed" && s.paid && (()=>{
             // Fenêtre d'accès : 15 min avant → 75 min après le début
-            const now = Date.now();
-            const canJoin = !s.startTs || (now >= s.startTs - 15*60000 && now <= s.startTs + 75*60000);
-            const minsUntil = s.startTs ? Math.round((s.startTs - now)/60000) : 0;
-            const label = canJoin ? "Rejoindre la session"
-              : minsUntil > 0 ? (minsUntil >= 60 ? `Ouvre 15 min avant · ${s.time||""}` : `Ouvre dans ${Math.max(1,minsUntil-15)} min`)
-              : "Session terminée";
+            const { canJoin, label } = joinState(s.startTs);
             return (
             <button disabled={!canJoin} onClick={()=>{
               if (!canJoin) return;

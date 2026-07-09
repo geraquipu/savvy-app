@@ -797,6 +797,32 @@ export function ExpertView({
                             </div>
                           ))}
                         </div>
+                        {/* Timeline de progression */}
+                        {(()=>{
+                          const done = s.startTs ? Date.now() > s.startTs + 90*60000 : false;
+                          const steps = [
+                            { label:"Reçue", done:true },
+                            { label:"Confirmée", done:s.statut==="confirmé" },
+                            { label:"Terminée", done:done },
+                            { label:"Versé", done:false },
+                          ];
+                          const curIdx = steps.findIndex(st=>!st.done);
+                          return (
+                            <div style={{display:"flex",alignItems:"flex-start",margin:"0 2px 11px"}}>
+                              {steps.map((st,i)=>(
+                                <React.Fragment key={i}>
+                                  <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,flexShrink:0}}>
+                                    <div style={{width:16,height:16,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",background:st.done?C.sage:i===curIdx?"#FEF3C7":C.cream3,border:i===curIdx?"1.5px solid #FCD34D":"none"}}>
+                                      {st.done ? <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.5}><polyline points="20 6 9 17 4 12"/></svg> : <div style={{width:4,height:4,borderRadius:"50%",background:i===curIdx?"#B45309":C.faint}}/>}
+                                    </div>
+                                    <span style={{fontSize:8,fontWeight:st.done||i===curIdx?700:500,color:st.done?C.sage:i===curIdx?"#B45309":C.faint,whiteSpace:"nowrap"}}>{st.label}</span>
+                                  </div>
+                                  {i<steps.length-1 && <div style={{flex:1,height:2,borderRadius:2,marginTop:7,background:steps[i+1].done?C.sage:C.borderF}}/>}
+                                </React.Fragment>
+                              ))}
+                            </div>
+                          );
+                        })()}
                         {(s.prix||0)>0 && (
                           <div style={{background:C.sageL||"#F0F5EF",borderRadius:8,padding:"8px 11px",marginBottom:11}}>
                             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -813,14 +839,15 @@ export function ExpertView({
                           {s.statut==="confirmé"&&(()=>{
                             const now = Date.now();
                             const canJoin = !s.startTs || (now >= s.startTs - 15*60000 && now <= s.startTs + 75*60000);
+                            const mins = s.startTs ? Math.round((s.startTs - now)/60000) : 0;
+                            const label = canJoin ? "Rejoindre"
+                              : now > (s.startTs||0) ? "Terminée"
+                              : mins >= 1440 ? `Dans ${Math.round(mins/1440)} j`
+                              : mins >= 60 ? `Dans ${Math.round(mins/60)} h`
+                              : `Dans ${Math.max(1,mins)} min`;
                             return (
-                            <button disabled={!canJoin} onClick={()=>{
-                              if(!canJoin) return;
-                              const roomId = s.id ? String(s.id).replace(/-/g,"").slice(0,16) : "savvy";
-                              window.open(`https://meet.jit.si/savvy-${roomId}`, "_blank");
-                            }} style={{flex:1,padding:"8px",borderRadius:9,border:"none",background:canJoin?C.sage:C.cream3,color:canJoin?C.white:C.muted,fontSize:11,fontWeight:700,cursor:canJoin?"pointer":"default",fontFamily:SERIF,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
-                              <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>{canJoin?"Rejoindre":"15 min avant"}
-                            </button>
+                            <button onClick={()=>handleJoin(s)} style={{flex:1,padding:"8px",borderRadius:9,border:"none",background:canJoin?C.sage:C.cream3,color:canJoin?C.white:C.muted,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:SERIF,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+                              <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>{label}</button>
                             );
                           })()}
                           <button onClick={()=>setCancelModal({session:s,step:"choose",type:"exp"})} style={{padding:"8px 11px",borderRadius:9,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",flexShrink:0,display:"flex",alignItems:"center"}}><svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><line x1={18} y1={6} x2={6} y2={18}/><line x1={6} y1={6} x2={18} y2={18}/></svg></button>
