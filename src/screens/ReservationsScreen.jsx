@@ -621,7 +621,9 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
       <div style={{ padding:"14px 16px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
           <div style={{ display:"flex", gap:10, alignItems:"center" }}>
-            <div style={{ width:42, height:42, borderRadius:"50%", background:expert.bg, color:expert.color, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:15, border:`1.5px solid ${C.border}` }}>{expert.initials}</div>
+            {expert.photoUrl
+              ? <img src={expert.photoUrl} alt="" style={{ width:42, height:42, borderRadius:"50%", objectFit:"cover", border:`1.5px solid ${C.border}`, flexShrink:0 }}/>
+              : <div style={{ width:42, height:42, borderRadius:"50%", background:expert.bg, color:expert.color, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:15, border:`1.5px solid ${C.border}` }}>{expert.initials}</div>}
             <div>
               <div style={{ fontSize:13, fontWeight:700, color:C.ink, fontFamily:SERIF }}>{expert.name}</div>
               <div style={{ fontSize:11, color:C.muted }}>{expert.role.split("·")[0].trim()}</div>
@@ -703,7 +705,9 @@ function PastCard({ s, onExpert, onResume, onReview }) {
   return (
     <div style={{ background:C.white, borderRadius:16, border:`1px solid ${C.border}`, padding:"14px 16px", marginBottom:12 }}>
       <div style={{ display:"flex", gap:10, alignItems:"center", marginBottom:10 }}>
-        <div style={{ width:40, height:40, borderRadius:"50%", background:expert.bg, color:expert.color, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:14, border:`1.5px solid ${C.border}` }}>{expert.initials}</div>
+        {expert.photoUrl
+          ? <img src={expert.photoUrl} alt="" style={{ width:40, height:40, borderRadius:"50%", objectFit:"cover", border:`1.5px solid ${C.border}`, flexShrink:0 }}/>
+          : <div style={{ width:40, height:40, borderRadius:"50%", background:expert.bg, color:expert.color, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:14, border:`1.5px solid ${C.border}` }}>{expert.initials}</div>}
         <div style={{ flex:1 }}>
           <div style={{ fontSize:13, fontWeight:700, color:C.ink, fontFamily:SERIF }}>{expert.name}</div>
           <div style={{ fontSize:11, color:C.muted }}>{s.date} · {(s.format||"").replace(/[\u{1F300}-\u{1FAFF}]/gu,"").trim()}</div>
@@ -782,7 +786,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
       const expertIds = [...new Set(bookingsData.map(b=>b.expert_id).filter(Boolean))];
       const expertMap = {};
       if (expertIds.length > 0) {
-        const { data: experts } = await supabase.from("experts").select("id, user_id, name, initials, bg, color, role, meet_link").in("id", expertIds);
+        const { data: experts } = await supabase.from("experts").select("id, user_id, name, initials, bg, color, role, meet_link, photo_url").in("id", expertIds);
         (experts||[]).forEach(e => { expertMap[e.id] = e; });
       }
       const mapped = bookingsData.map(b => {
@@ -791,7 +795,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           id: b.id,
           eid: b.expert_id,
           expertInitials: exp.initials || "?",
-          expertData: { name: exp.name || "Expert", initials: exp.initials || "?", bg: exp.bg || "#EDE8DF", color: exp.color || "#8B7355", role: exp.role || "", id: b.expert_id, user_id: exp.user_id || null, meet_link: exp.meet_link || null },
+          expertData: { name: exp.name || "Expert", initials: exp.initials || "?", bg: exp.bg || "#EDE8DF", color: exp.color || "#8B7355", role: exp.role || "", id: b.expert_id, user_id: exp.user_id || null, meet_link: exp.meet_link || null, photoUrl: exp.photo_url || null },
           topic: b.notes || b.phase_name || "Session",
           date: b.date_session ? new Date(b.date_session).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}) : "À confirmer",
           time: b.date_session ? new Date(b.date_session).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "À confirmer",
@@ -1029,7 +1033,9 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
                     <div style={{ height:4, background:"linear-gradient(90deg,#B91C1C,#FEE2E2)" }}/>
                     <div style={{ padding:"14px 16px" }}>
                       <div style={{ display:"flex", gap:11, alignItems:"center", marginBottom:11 }}>
-                        <div style={{ width:42, height:42, borderRadius:"50%", background:expert.bg, color:expert.color, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:15, border:`1.5px solid ${C.border}`, flexShrink:0 }}>{expert.initials}</div>
+                        {expert.photoUrl
+                          ? <img src={expert.photoUrl} alt="" style={{ width:42, height:42, borderRadius:"50%", objectFit:"cover", border:`1.5px solid ${C.border}`, flexShrink:0 }}/>
+                          : <div style={{ width:42, height:42, borderRadius:"50%", background:expert.bg, color:expert.color, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:15, border:`1.5px solid ${C.border}`, flexShrink:0 }}>{expert.initials}</div>}
                         <div style={{ flex:1 }}>
                           <div style={{ fontSize:13, fontWeight:700, color:C.ink, fontFamily:SERIF }}>{expert.name}</div>
                           <div style={{ fontSize:11, color:C.muted }}>{(expert.role||"").split("·")[0].trim()}</div>
