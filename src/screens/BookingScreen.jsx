@@ -455,7 +455,7 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
         </div>
 
         <div style={{ fontSize:13, fontWeight:700, color:C.ink, marginBottom:12, fontFamily:SERIF }}>Choisir une date & un créneau</div>
-        <CalendarPicker expert={e} slotMinutes={parseDuree(selectedPhase?.duree)} onSelect={({date,slot})=>setBooking({date,slot})}/>
+        <CalendarPicker expert={e} slotMinutes={parseDuree(selectedPhase?.duree || selectedPhase?.format)} onSelect={({date,slot})=>setBooking({date,slot})}/>
 
         <div style={{ fontSize:13, fontWeight:700, color:C.ink, marginBottom:8 }}>Décrivez votre besoin</div>
         <textarea value={note} onChange={ev=>setNote(ev.target.value)} placeholder="Quelques lignes pour que votre conseiller se prépare..." style={{ width:"100%", padding:"12px 14px", borderRadius:13, border:`1.5px solid ${C.border}`, fontSize:12, fontFamily:"inherit", color:C.ink, resize:"none", height:76, boxSizing:"border-box", outline:"none", marginBottom:14, background:C.cream2, lineHeight:1.6 }}/>

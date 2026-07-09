@@ -629,9 +629,17 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
               <div style={{ fontSize:11, color:C.muted }}>{expert.role.split("·")[0].trim()}</div>
             </div>
           </div>
-          <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:s.status==="confirmed"?C.sageL:s.status==="pending"?"#FEF3C7":C.cream2, color:s.status==="confirmed"?C.sage:s.status==="pending"?"#B45309":"#92400E", fontWeight:700, border:s.status==="pending"?"1.5px solid #FCD34D":"none" }}>
-            {s.statusLabel}
-          </span>
+          {(()=>{
+            const unpaidConfirmed = s.status==="confirmed" && !s.paid;
+            const bg = s.status==="confirmed" ? (unpaidConfirmed?"#FEF3C7":C.sageL) : s.status==="pending"?"#FEF3C7":C.cream2;
+            const col = s.status==="confirmed" ? (unpaidConfirmed?"#B45309":C.sage) : s.status==="pending"?"#B45309":"#92400E";
+            const label = unpaidConfirmed ? "À payer" : s.statusLabel;
+            return (
+            <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:bg, color:col, fontWeight:700, border:(s.status==="pending"||unpaidConfirmed)?"1.5px solid #FCD34D":"none" }}>
+              {label}
+            </span>
+            );
+          })()}
         </div>
         <div style={{ background:C.cream2, borderRadius:10, padding:"9px 12px", marginBottom:12, borderLeft:`2px solid ${expert.color}` }}>
           <div style={{ fontSize:12, color:C.soft, lineHeight:1.5 }}>{s.topic}</div>
