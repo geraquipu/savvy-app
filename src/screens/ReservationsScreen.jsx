@@ -90,7 +90,7 @@ function CalendarPicker({ expert, onDone, onSelect }) {
 
   if (done) return (
     <div style={{ textAlign:"center", padding:"20px 0" }}>
-      <div style={{ fontSize:36, marginBottom:12 }}>✅</div>
+      <div style={{ display:"flex", justifyContent:"center", marginBottom:12 }}><span style={{width:52,height:52,borderRadius:"50%",background:"#D1FAE5",display:"flex",alignItems:"center",justifyContent:"center"}}><svg width={26} height={26} viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg></span></div>
       <div style={{ fontSize:16, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:8 }}>Proposition envoyée !</div>
       <div style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:20 }}>
         Tu as proposé le <b style={{ color:C.ink }}>{selDate?.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}</b> à <b style={{ color:C.ink }}>{selSlot}</b>.<br/>
@@ -257,7 +257,7 @@ function CancelModal({ session, onClose, onMsg }) {
           </div>
           <div style={{ flex:1, overflowY:"auto", padding:"14px 18px 20px" }}>
             <div style={{ fontSize:12, color:C.gold, background:C.goldL, borderRadius:11, padding:"10px 13px", border:`1px solid ${C.goldB}`, marginBottom:14, lineHeight:1.6 }}>
-              💡 Ta proposition sera envoyée à {expert.name.split(" ")[0]} pour confirmation.
+              Ta proposition sera envoyée à {expert.name.split(" ")[0]} pour confirmation.
             </div>
             <CalendarPicker expert={expert} onSelect={({date,slot}) => setNewBooking({date,slot})}/>
             <button onClick={async () => {
@@ -274,7 +274,7 @@ function CancelModal({ session, onClose, onMsg }) {
               background: newBooking.date && newBooking.slot ? C.gold : C.cream3,
               color: newBooking.date && newBooking.slot ? C.white : C.muted }}>
               {newBooking.date && newBooking.slot
-                ? `✓ Proposer le ${newBooking.date.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})} à ${newBooking.slot}`
+                ? `Proposer le ${newBooking.date.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})} à ${newBooking.slot}`
                 : "Sélectionne une date →"}
             </button>
           </div>
@@ -311,7 +311,7 @@ function CancelModal({ session, onClose, onMsg }) {
         {step === "done_reprog" && (
           <div style={{ padding:"32px 22px 36px", textAlign:"center" }}>
             <div style={{ width:36, height:4, borderRadius:2, background:C.cream3, margin:"0 auto 22px" }}/>
-            <div style={{ fontSize:44, marginBottom:14 }}>✅</div>
+            <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}><span style={{width:60,height:60,borderRadius:"50%",background:"#D1FAE5",display:"flex",alignItems:"center",justifyContent:"center"}}><svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg></span></div>
             <div style={{ fontSize:18, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:8 }}>Session reprogrammée !</div>
             <div style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:6 }}>
               Nouvelle date proposée :<br/>
@@ -326,7 +326,7 @@ function CancelModal({ session, onClose, onMsg }) {
         {step === "done_cancel" && (
           <div style={{ padding:"32px 22px 36px", textAlign:"center" }}>
             <div style={{ width:36, height:4, borderRadius:2, background:C.cream3, margin:"0 auto 22px" }}/>
-            <div style={{ fontSize:44, marginBottom:14 }}>✅</div>
+            <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}><span style={{width:60,height:60,borderRadius:"50%",background:"#D1FAE5",display:"flex",alignItems:"center",justifyContent:"center"}}><svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg></span></div>
             <div style={{ fontSize:18, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:8 }}>Session annulée</div>
             <div style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:14 }}>
               Ta session avec {expert.name.split(" ")[0]} a été annulée.<br/>
@@ -382,7 +382,7 @@ function ReviewModal({ session, onClose, authUser }) {
           Ton évaluation alimente le <b style={{ color:C.ink }}>Savvy Trust Score</b> de {session.expert?.name?.split(" ")[0]} et aide la communauté à prendre de meilleures décisions.
         </div>
         <div style={{ background:C.goldL, borderRadius:13, padding:"11px 14px", marginBottom:22, border:`1px solid ${C.goldB}`, fontSize:12, color:C.gold, lineHeight:1.6 }}>
-          💡 Ton avis contribue à l\'Exartitude de la plateforme.
+          Ton avis contribue à l\'Exartitude de la plateforme.
         </div>
         <button onClick={onClose} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", background:C.ink, color:C.white, fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:SERIF }}>Parfait !</button>
       </div>
@@ -414,9 +414,9 @@ function ReviewModal({ session, onClose, authUser }) {
             <div style={{ fontSize:11, color:C.muted, marginBottom:12 }}>C\'est la question la plus importante.</div>
             <div style={{ display:"flex", gap:8 }}>
               {[
-                {v:"oui",    l:"✅ Oui, complètement",   bg:"#D1FAE5", border:"rgba(5,150,105,.4)",  color:"#065F46"},
-                {v:"partiel",l:"⚡ Partiellement",        bg:"#FEF3C7", border:"rgba(217,119,6,.4)",  color:"#92400E"},
-                {v:"non",    l:"❌ Non",                   bg:"#FEE2E2", border:"rgba(185,28,28,.4)",  color:"#B91C1C"},
+                {v:"oui",    l:"Oui, complètement",   bg:"#D1FAE5", border:"rgba(5,150,105,.4)",  color:"#065F46"},
+                {v:"partiel",l:"Partiellement",        bg:"#FEF3C7", border:"rgba(217,119,6,.4)",  color:"#92400E"},
+                {v:"non",    l:"Non",                   bg:"#FEE2E2", border:"rgba(185,28,28,.4)",  color:"#B91C1C"},
               ].map(opt => (
                 <button key={opt.v} onClick={()=>setQ1(opt.v)}
                   style={{ flex:1, padding:"10px 6px", borderRadius:12, border:`2px solid ${q1===opt.v?opt.border:"transparent"}`, background:q1===opt.v?opt.bg:C.cream2, cursor:"pointer", fontFamily:"inherit", fontSize:10, fontWeight:q1===opt.v?700:500, color:q1===opt.v?opt.color:C.muted, textAlign:"center", lineHeight:1.4, transition:"all .2s" }}>
@@ -434,8 +434,8 @@ function ReviewModal({ session, onClose, authUser }) {
             <div style={{ fontSize:11, color:C.muted, marginBottom:12 }}>Pas une formation — une vraie expérience vécue.</div>
             <div style={{ display:"flex", gap:8 }}>
               {[
-                {v:"oui", l:"✅ Oui, clairement", bg:"#D1FAE5", border:"rgba(5,150,105,.4)", color:"#065F46"},
-                {v:"non",  l:"❌ Je ne sais pas",  bg:"#FEE2E2", border:"rgba(185,28,28,.4)", color:"#B91C1C"},
+                {v:"oui", l:"Oui, clairement", bg:"#D1FAE5", border:"rgba(5,150,105,.4)", color:"#065F46"},
+                {v:"non",  l:"Je ne sais pas",  bg:"#FEE2E2", border:"rgba(185,28,28,.4)", color:"#B91C1C"},
               ].map(opt => (
                 <button key={opt.v} onClick={()=>setQ2(opt.v)}
                   style={{ flex:1, padding:"12px 10px", borderRadius:12, border:`2px solid ${q2===opt.v?opt.border:"transparent"}`, background:q2===opt.v?opt.bg:C.cream2, cursor:"pointer", fontFamily:"inherit", fontSize:12, fontWeight:q2===opt.v?700:500, color:q2===opt.v?opt.color:C.muted, textAlign:"center", transition:"all .2s" }}>
@@ -658,7 +658,7 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
               <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}><rect x={1} y={4} width={22} height={16} rx={2} ry={2}/><line x1={1} y1={10} x2={23} y2={10}/></svg>
             </div>
             <div style={{flex:1}}>
-              <div style={{fontSize:12,fontWeight:700,color:"#92400E"}}>✓ {expert.name.split(" ")[0]} a accepté votre demande !</div>
+              <div style={{fontSize:12,fontWeight:700,color:"#92400E",display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>{expert.name.split(" ")[0]} a accepté votre demande !</div>
               <div style={{fontSize:11,color:"#B45309",marginTop:1}}>Procédez au paiement pour confirmer · {s.price}€</div>
             </div>
             <div style={{padding:"6px 12px",borderRadius:20,background:"#F59E0B",color:"white",fontSize:12,fontWeight:700,flexShrink:0}}>Payer →</div>
@@ -884,16 +884,20 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
       <div style={{background:"linear-gradient(135deg,#1C1917,#292524)",borderRadius:22,padding:"22px 22px 24px",width:"100%",maxWidth:420,boxShadow:"0 8px 40px rgba(0,0,0,0.35)",pointerEvents:"auto",animation:"slideUp .4s cubic-bezier(.16,1,.3,1)"}}>
         <style>{`@keyframes slideUp{from{transform:translateY(120px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
         <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:14}}>
-          <div style={{width:48,height:48,borderRadius:16,background:"linear-gradient(135deg,#D97706,#F59E0B)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:22}}>✅</div>
+          <div style={{width:48,height:48,borderRadius:16,background:"linear-gradient(135deg,#D97706,#F59E0B)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,color:"#fff"}}><svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg></div>
           <div>
             <div style={{fontSize:16,fontWeight:800,color:"#FAFAF9",fontFamily:SERIF,lineHeight:1.2}}>Session confirmée !</div>
             <div style={{fontSize:12,color:"rgba(250,250,249,.6)",marginTop:3}}>{confirmNotif.expertName} a accepté votre demande</div>
           </div>
         </div>
         <div style={{display:"flex",gap:8,marginBottom:16}}>
-          {[{icon:"📅",val:confirmNotif.date||"À définir"},{icon:"⏰",val:confirmNotif.time||"—"},{icon:"💶",val:`${confirmNotif.price||0}€`}].map(({icon,val})=>(
+          {[
+            {svg:<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#FCD34D" strokeWidth={2}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>,val:confirmNotif.date||"À définir"},
+            {svg:<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#FCD34D" strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>,val:confirmNotif.time||"—"},
+            {svg:<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#FCD34D" strokeWidth={2}><line x1={12} y1={1} x2={12} y2={23}/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,val:`${confirmNotif.price||0}€`},
+          ].map(({svg,val})=>(
             <div key={val} style={{flex:1,background:"rgba(255,255,255,.07)",borderRadius:12,padding:"9px 6px",textAlign:"center"}}>
-              <div style={{fontSize:13}}>{icon}</div>
+              <div style={{display:"flex",justifyContent:"center"}}>{svg}</div>
               <div style={{fontSize:11,color:"rgba(250,250,249,.85)",fontWeight:600,marginTop:3}}>{val}</div>
             </div>
           ))}
@@ -915,7 +919,12 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
               <div style={{ fontSize:12, color:C.muted, marginTop:2 }}>Gérez vos sessions avec vos experts</div>
             </div>
             <button onClick={() => setCalView(v=>!v)} style={{ padding:"7px 13px", borderRadius:20, border:`1px solid ${C.border}`, background:calView?C.ink:C.cream2, color:calView?C.white:C.ink, fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
-              {calView ? "✕ Fermer" : "📅 Calendrier"}
+              <span style={{display:"inline-flex",alignItems:"center",gap:5}}>
+                {calView
+                  ? <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><line x1={18} y1={6} x2={6} y2={18}/><line x1={6} y1={6} x2={18} y2={18}/></svg>
+                  : <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>}
+                {calView ? "Fermer" : "Calendrier"}
+              </span>
             </button>
           </div>
           <div style={{ display:"flex", marginTop:14 }}>
@@ -1115,10 +1124,10 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
             </div>
             <div style={{ marginBottom:14 }}>
               <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:.5, marginBottom:8 }}>Sujet de la session</div>
-              <div style={{ background:C.cream2, borderRadius:11, padding:"11px 14px", fontSize:13, color:C.soft, lineHeight:1.6 }}>💡 {resumeSession.topic}</div>
+              <div style={{ background:C.cream2, borderRadius:11, padding:"11px 14px", fontSize:13, color:C.soft, lineHeight:1.6 }}>{resumeSession.topic}</div>
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:9, marginBottom:18 }}>
-              {[{l:"Format",v:resumeSession.format},{l:"Durée",v:resumeSession.duration||"1h"},{l:"Montant payé",v:`${resumeSession.price}€`},{l:"Statut",v:"✅ Terminée"}].map(item => (
+              {[{l:"Format",v:resumeSession.format},{l:"Durée",v:resumeSession.duration||"1h"},{l:"Montant payé",v:`${resumeSession.price}€`},{l:"Statut",v:"Terminée"}].map(item => (
                 <div key={item.l} style={{ background:C.cream2, borderRadius:10, padding:"10px 12px" }}>
                   <div style={{ fontSize:10, color:C.muted, marginBottom:3 }}>{item.l}</div>
                   <div style={{ fontSize:13, fontWeight:700, color:C.ink }}>{item.v}</div>
@@ -1128,7 +1137,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
             <div style={{ display:"flex", gap:9 }}>
               <button onClick={() => setResumeSession(null)} style={{ flex:1, padding:"12px", borderRadius:12, border:`1px solid ${C.border}`, cursor:"pointer", fontWeight:600, fontSize:13, background:C.white, color:C.ink, fontFamily:"inherit" }}>Fermer</button>
               <button onClick={() => { onExpert && onExpert(resumeSession.expert); setResumeSession(null); }} style={{ flex:2, padding:"12px", borderRadius:12, border:`1px solid ${C.goldB}`, cursor:"pointer", fontWeight:700, fontSize:13, background:C.goldL, color:C.gold, fontFamily:"inherit" }}>
-                🔁 Répéter cette session
+                Répéter cette session
               </button>
             </div>
           </div>
