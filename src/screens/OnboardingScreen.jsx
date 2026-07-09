@@ -19,7 +19,7 @@ function OnboardingScreen({ onDone }) {
         <div style={{ position:"relative", marginBottom:32 }}>
           <div style={{ position:"absolute", inset:-24, borderRadius:"50%", border:"1px solid rgba(185,134,74,.12)", animation:"spin 25s linear infinite" }}/>
           <div style={{ position:"absolute", inset:-14, borderRadius:"50%", border:"1px solid rgba(185,134,74,.08)", animation:"spin 18s linear infinite reverse" }}/>
-          <div style={{ width:88, height:88, borderRadius:26, background:"rgba(185,134,74,.1)", border:"1.5px solid rgba(185,134,74,.25)", display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
+          <div style={{ width:88, height:88, borderRadius:26, background:"rgba(185,134,74,.16)", border:"1.5px solid rgba(185,134,74,.4)", display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
             <span style={{ fontSize:38, fontWeight:900, fontFamily:SERIF, letterSpacing:"-2px", color:C.goldB }}>
               sav<em style={{ fontStyle:"italic" }}>vy</em>
             </span>
@@ -31,22 +31,25 @@ function OnboardingScreen({ onDone }) {
           Parlez avec quelqu'un<br/>
           <em style={{ color:C.goldB, fontStyle:"italic" }}>qui l'a déjà fait.</em>
         </h1>
-        <p style={{ fontSize:14, color:"rgba(253,252,248,.55)", lineHeight:1.7, margin:"0 0 40px", maxWidth:280 }}>
-          Des experts vérifiés, disponibles pour vous aider à prendre de meilleures décisions — rapidement.
+        <p style={{ fontSize:15, color:"rgba(253,252,248,.6)", lineHeight:1.7, margin:"0 0 40px", maxWidth:290 }}>
+          Chaque conseil vient d'une personne qui a vécu <em style={{ color:"rgba(253,252,248,.85)", fontStyle:"italic" }}>exactement</em> ta situation.
         </p>
 
-        {/* 3 piliers */}
+        {/* 3 piliers — le premier est mis en avant */}
         <div style={{ display:"flex", flexDirection:"column", gap:12, width:"100%", maxWidth:300, marginBottom:40 }}>
           {[
-            { icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, label:"Une expérience réellement vécue" },
-            { icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx={12} cy={7} r={4}/></svg>, label:"Adaptés à ta situation exacte" },
-            { icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>, label:"Gagnez des mois d'erreurs" },
-          ].map((p,i)=>(
-            <div key={i} style={{ display:"flex", alignItems:"center", gap:13, background:"rgba(255,255,255,.06)", borderRadius:13, padding:"13px 16px", border:"1px solid rgba(185,134,74,.15)" }}>
+            { icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, label:"Quelqu'un qui l'a vraiment vécu" },
+            { icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>, label:"Gagne des mois d'erreurs" },
+            { icon:<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.goldB} strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>, label:"Des conseils adaptés à ton cas" },
+          ].map((p,i)=>{
+            const hero = i===0;
+            return (
+            <div key={i} style={{ display:"flex", alignItems:"center", gap:13, background:hero?"rgba(185,134,74,.14)":"rgba(255,255,255,.06)", borderRadius:13, padding:"13px 16px", border:hero?"1px solid rgba(185,134,74,.4)":"1px solid rgba(185,134,74,.15)" }}>
               <div style={{ flexShrink:0 }}>{p.icon}</div>
-              <span style={{ fontSize:13, color:"rgba(253,252,248,.75)", fontWeight:500 }}>{p.label}</span>
+              <span style={{ fontSize:13, color:hero?"rgba(253,252,248,.95)":"rgba(253,252,248,.75)", fontWeight:hero?700:500 }}>{p.label}</span>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
