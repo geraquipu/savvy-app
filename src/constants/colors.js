@@ -21,5 +21,5 @@ export const C = {
   sh:"rgba(26,40,32,.06)", shM:"rgba(26,40,32,.12)",
 };
 
-export const SERIF = "'Cormorant Garant',Georgia,serif";
+export const SERIF = "'Cormorant Garamond',Georgia,serif";
 export const SANS  = "'DM Sans',-apple-system,BlinkMacSystemFont,'Inter',sans-serif";
