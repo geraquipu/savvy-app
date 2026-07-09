@@ -27,9 +27,9 @@ function OnboardingScreen({ onDone }) {
         </div>
 
         {/* Titre principal */}
-        <h1 style={{ fontSize:38, fontWeight:700, color:C.white, fontFamily:SERIF, lineHeight:1.08, margin:"0 0 16px", letterSpacing:"-1.2px", maxWidth:320, textShadow:"0 1px 24px rgba(0,0,0,.25)" }}>
+        <h1 style={{ fontSize:30, fontWeight:700, color:C.white, fontFamily:SERIF, lineHeight:1.25, margin:"0 0 14px", letterSpacing:"-.5px", maxWidth:300 }}>
           Parlez avec quelqu'un<br/>
-          <em style={{ color:C.goldB, fontStyle:"italic", fontWeight:600 }}>qui l'a déjà fait.</em>
+          <em style={{ color:C.goldB, fontStyle:"italic" }}>qui l'a déjà fait.</em>
         </h1>
         <p style={{ fontSize:15, color:"rgba(253,252,248,.6)", lineHeight:1.7, margin:"0 0 40px", maxWidth:290 }}>
           Chaque conseil vient d'une personne qui a vécu <em style={{ color:"rgba(253,252,248,.85)", fontStyle:"italic" }}>exactement</em> ta situation.
