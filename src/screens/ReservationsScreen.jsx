@@ -266,7 +266,10 @@ function CancelModal({ session, onClose, onMsg }) {
               if (session._fromSB && session.id) {
                 const [h, m] = newBooking.slot.split(":").map(Number);
                 const dt = new Date(newBooking.date); dt.setHours(h||0, m||0, 0, 0);
-                const { error } = await supabase.from("bookings").update({ date_session: dt.toISOString(), status: "pending" }).eq("id", session.id);
+                // Enregistre l'ancien créneau pour signaler une reprogrammation
+                const prevIso = session.startTs ? new Date(session.startTs).toISOString() : null;
+                let { error } = await supabase.from("bookings").update({ date_session: dt.toISOString(), status: "pending", reschedule_from: prevIso }).eq("id", session.id);
+                if (error) { ({ error } = await supabase.from("bookings").update({ date_session: dt.toISOString(), status: "pending" }).eq("id", session.id)); }
                 if (error) { alert("Erreur : " + error.message); return; }
               }
               setStep("done_reprog");
@@ -651,13 +654,25 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
           <span style={{ fontSize:12, color:C.muted, display:"flex", gap:3, alignItems:"center" }}><svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><line x1={12} y1={1} x2={12} y2={23}/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>{s.price}€</span>
         </div>
         {/* Pending action hint */}
-        {s.status==="pending" && (
+        {s.status==="pending" && !s.rescheduleFrom && (
           <div style={{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:10,padding:"9px 12px",marginBottom:10,display:"flex",alignItems:"center",gap:8}}>
             <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#92400E" strokeWidth={2} style={{flexShrink:0}}><circle cx={12} cy={12} r={9}/><polyline points="12 7 12 12 15 15"/></svg>
             <div>
               <div style={{fontSize:12,fontWeight:700,color:"#92400E"}}>En attente de confirmation</div>
               <div style={{fontSize:11,color:"#B45309",marginTop:1}}>L'expert doit accepter votre demande avant de pouvoir procéder au paiement.</div>
             </div>
+          </div>
+        )}
+        {/* Reprogrammation en attente */}
+        {s.status==="pending" && s.rescheduleFrom && (
+          <div style={{background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:10,padding:"10px 13px",marginBottom:10}}>
+            <div style={{fontSize:12,fontWeight:700,color:"#1D4ED8",marginBottom:6,display:"flex",alignItems:"center",gap:6}}><svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Reprogrammation demandée</div>
+            <div style={{fontSize:11,color:"#1E40AF",lineHeight:1.5,display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+              <span style={{textDecoration:"line-through",opacity:.7}}>{new Date(s.rescheduleFrom).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})} · {new Date(s.rescheduleFrom).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</span>
+              <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><line x1={5} y1={12} x2={19} y2={12}/><polyline points="12 5 19 12 12 19"/></svg>
+              <b>{s.date} · {s.time}</b>
+            </div>
+            <div style={{fontSize:11,color:"#3B82F6",marginTop:5}}>En attente de l'accord de {expert.name.split(" ")[0]}.</div>
           </div>
         )}
         {/* Payment CTA for confirmed unpaid sessions */}
@@ -814,6 +829,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           status: b.status,
           statusLabel: b.status === "confirmed" ? "Confirmée" : b.status === "cancelled" ? "Annulée" : "En attente",
           paid: !!b.paid || !!localStorage.getItem(`savvy_paid_${b.id}`),
+          rescheduleFrom: b.reschedule_from || null,
           startTs: b.date_session ? new Date(b.date_session).getTime() : null,
           isPast: b.date_session ? (Date.now() > new Date(b.date_session).getTime() + 90*60000) : false,
           motif: b.cancel_reason || null,

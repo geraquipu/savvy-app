@@ -632,6 +632,31 @@ export function ExpertView({
                     return <div style={{fontSize:10,color:C.faint,marginBottom:11}}>Réservation reçue {txt}</div>;
                   })()}
 
+                  {/* Bannière reprogrammation */}
+                  {r.rescheduleFrom && (()=>{
+                    const oldD = new Date(r.rescheduleFrom);
+                    const fmtD = d => d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+                    const fmtH = d => d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+                    return (
+                      <div style={{background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:12,padding:"12px 14px",marginBottom:12}}>
+                        <div style={{fontSize:11,fontWeight:800,color:"#1D4ED8",marginBottom:9,display:"flex",alignItems:"center",gap:6}}><svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Demande de reprogrammation</div>
+                        <div style={{display:"flex",alignItems:"center",gap:10}}>
+                          <div style={{flex:1,textAlign:"center",opacity:.6}}>
+                            <div style={{fontSize:9,color:C.muted,textTransform:"uppercase",letterSpacing:.4,marginBottom:2}}>Ancien</div>
+                            <div style={{fontSize:11,color:C.soft,textDecoration:"line-through"}}>{fmtD(oldD)}</div>
+                            <div style={{fontSize:12,fontWeight:700,color:C.soft,textDecoration:"line-through"}}>{fmtH(oldD)}</div>
+                          </div>
+                          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" strokeWidth={2.5} style={{flexShrink:0}}><line x1={5} y1={12} x2={19} y2={12}/><polyline points="12 5 19 12 12 19"/></svg>
+                          <div style={{flex:1,textAlign:"center"}}>
+                            <div style={{fontSize:9,color:"#1D4ED8",textTransform:"uppercase",letterSpacing:.4,marginBottom:2,fontWeight:700}}>Nouveau</div>
+                            <div style={{fontSize:11,color:C.ink,fontWeight:600}}>{r.date}</div>
+                            <div style={{fontSize:12,fontWeight:800,color:"#1D4ED8"}}>{r.heure}</div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* Sujet (une seule fois) */}
                   <div style={{marginBottom:11}}>
                     <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:4,display:"flex",alignItems:"center",gap:5}}><svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={10}/><circle cx={12} cy={12} r={6}/><circle cx={12} cy={12} r={2}/></svg>Demande</div>
@@ -692,7 +717,7 @@ export function ExpertView({
                       setSessionConfirmToast({name:r.client, type:"confirmed"});
                       setTimeout(()=>setSessionConfirmToast(null),3000);
                       setExpSessionTab("confirmees");
-                    }} style={{flex:2,padding:"10px",borderRadius:10,border:"none",background:C.sage,color:C.white,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:SERIF,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>Confirmer</button>
+                    }} style={{flex:2,padding:"10px",borderRadius:10,border:"none",background:C.sage,color:C.white,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:SERIF,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>{r.rescheduleFrom?"Accepter le nouveau créneau":"Confirmer"}</button>
                     <button onClick={async ()=>{
                       setExpCancelled(prev=>[{...r,statut:"refusé",motif:"Refusé par l'expert"},...prev]);
                       const remaining = expRequests.filter(x=>x.id!==r.id);
@@ -773,9 +798,12 @@ export function ExpertView({
                           ))}
                         </div>
                         {(s.prix||0)>0 && (
-                          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:C.sageL||"#F0F5EF",borderRadius:8,padding:"7px 11px",marginBottom:11}}>
-                            <span style={{fontSize:11,color:C.sage,fontWeight:600}}>Tu reçois</span>
-                            <span style={{fontSize:14,fontWeight:800,color:C.sage,fontFamily:SERIF}}>{Math.round((s.prix||0)*0.8)}€</span>
+                          <div style={{background:C.sageL||"#F0F5EF",borderRadius:8,padding:"8px 11px",marginBottom:11}}>
+                            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                              <span style={{fontSize:11,color:C.sage,fontWeight:600}}>Tu reçois</span>
+                              <span style={{fontSize:14,fontWeight:800,color:C.sage,fontFamily:SERIF}}>{Math.round((s.prix||0)*0.8)}€</span>
+                            </div>
+                            {s.statut==="confirmé" && <div style={{fontSize:9,color:C.muted,marginTop:2}}>Versé sous 24h après la session</div>}
                           </div>
                         )}
                         <div style={{display:"flex",gap:7}}>

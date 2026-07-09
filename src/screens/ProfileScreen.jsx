@@ -227,6 +227,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           duree:"1h", format:"Vidéo", domaine:b.phase_name||"Conseil", prix: b.phase_price || 0,
           msg:`Demande : ${b.phase_name||"Session"}`, why:clientMsg, pays:"France", langue:"FR",
           createdAt: b.date_requested || b.created_at || null,
+          rescheduleFrom: b.reschedule_from || null,
           status: b.status,
           statut: b.status==="confirmed" ? "confirmé" : b.status==="cancelled" ? "annulé" : "en attente",
           hoursUntil: b.date_session ? Math.round((new Date(b.date_session) - Date.now()) / 3600000) : 999,
