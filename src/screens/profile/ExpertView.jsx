@@ -764,7 +764,9 @@ export function ExpertView({
         for (let i = 0; i < 7; i++) def[i] = { active: false, start: "09:00", end: "18:00" };
         // Init from existing dispoSelected/dispoHours (date-based → derive dow)
         Object.keys(dispoSelected).filter(k => dispoSelected[k]).forEach(dateKey => {
-          const dow = new Date(dateKey).getDay();
+          // Parse la clé en LOCAL (new Date("YYYY-MM-DD") parse en UTC → décalage)
+          const [yy, mm, dd] = dateKey.split("-").map(Number);
+          const dow = new Date(yy, mm-1, dd).getDay();
           const dowMon = dow === 0 ? 6 : dow - 1;
           const hrs = dispoHours[dateKey] || "09:00-18:00";
           const [start, end] = hrs.split("-");
@@ -883,7 +885,7 @@ export function ExpertView({
               const d = new Date(today0); d.setDate(today0.getDate() + i);
               const dowMon = d.getDay() === 0 ? 6 : d.getDay() - 1;
               const day = weekSchedule[dowMon];
-              if (day?.active) { const key = d.toISOString().slice(0,10); sel[key] = true; hrs[key] = day.start + "-" + day.end; }
+              if (day?.active) { const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); sel[key] = true; hrs[key] = day.start + "-" + day.end; }
             }
             setDispoSelected(sel); setDispoHours(hrs);
             setDispoSaved(true); setTimeout(()=>setDispoSaved(false), 3000);

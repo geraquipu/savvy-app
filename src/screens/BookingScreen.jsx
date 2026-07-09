@@ -74,7 +74,8 @@ function CalendarPicker({ expert, onDone, onSelect }) {
             const dow = d.getDay() === 0 ? 6 : d.getDay() - 1;
             const row = data.find(r => r.day_of_week === dow);
             if (row) {
-              const key = d.toISOString().slice(0,10);
+              // Clé LOCAL pour matcher fmtKey() utilisé dans isAvail (sinon décalage d'un jour)
+              const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
               days[key] = true;
               hours[key] = row.start_time + "-" + row.end_time;
             }

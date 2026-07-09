@@ -277,7 +277,8 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
         const d = new Date(today); d.setDate(today.getDate() + i);
         const dow = d.getDay() === 0 ? 6 : d.getDay() - 1;
         if (dowMap[dow]) {
-          const key = d.toISOString().slice(0,10);
+          // Clé de date en LOCAL (pas toISOString, qui décale d'un jour en UTC+)
+          const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
           sel[key] = true;
           hrs[key] = dowMap[dow].start + "-" + dowMap[dow].end;
         }
