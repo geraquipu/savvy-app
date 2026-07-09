@@ -88,7 +88,7 @@ function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
           sav<em style={{color:C.goldB,fontStyle:"italic"}}>vy</em>
         </div>
         <p style={{fontSize:15,color:"rgba(253,252,248,.65)",margin:"0 0 36px",lineHeight:1.6}}>
-          Parlez avec quelqu\'un<br/>qui l\'a déjà fait.
+          Parlez avec quelqu'un<br/>qui l'a déjà fait.
         </p>
 
         {/* Social buttons — en premier */}
