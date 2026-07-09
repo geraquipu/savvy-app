@@ -224,7 +224,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           photoUrl: photoMap[b.client_id] || null,
           date: b.date_session ? new Date(b.date_session).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}) : "À définir",
           heure: b.date_session ? new Date(b.date_session).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "",
-          duree:"1h", format:"Vidéo", domaine:b.phase_name||"Conseil", prix: b.phase_price || 0,
+          duree:b.session_duration||"1h", format:b.session_format||"Vidéo", domaine:b.phase_name||"Conseil", prix: b.phase_price || 0,
           msg:`Demande : ${b.phase_name||"Session"}`, why:clientMsg, pays:"France", langue:"FR",
           createdAt: b.date_requested || b.created_at || null,
           rescheduleFrom: b.reschedule_from || null,

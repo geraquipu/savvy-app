@@ -13,7 +13,7 @@ const ICN = {
   msg:  <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
 };
 
-function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, bookingNote, authUser}) {
+function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, bookingNote, bookingFormat, bookingDuree, authUser}) {
   const savedRef = useRef(false);
   const [saveError, setSaveError] = useState(null);
   useEffect(() => {
@@ -38,10 +38,10 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, bookingN
       expertBg: e.bg,
       expertCol: e.color,
       phase: ph?.name || "Session conseil",
-      format: ph?.format || "Vidéo 1h",
+      format: bookingFormat || ph?.format || "Vidéo",
       date: dateStr,
       slot: bookingSlot || "À confirmer",
-      duration: ph?.format?.includes("30")?"30 min":ph?.format?.includes("2h")?"2h":"1h",
+      duration: bookingDuree || ph?.duree || (ph?.format?.includes("30")?"30 min":ph?.format?.includes("2h")?"2h":"1h"),
       price: ph?.price || 0,
       status: "pending",
       topic: (bookingNote && bookingNote.trim()) ? bookingNote.trim() : `${ph?.name||"Session"} – ${e.name.split(" ")[0]}`,
@@ -54,7 +54,7 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, bookingN
       const expertId = typeof e.id === "string" && e.id.includes("-") ? e.id : null;
       if (expertId) {
         (async () => {
-          const { data: inserted, error } = await supabase.from("bookings").insert({
+          let { data: inserted, error } = await supabase.from("bookings").insert({
             client_id: authUser.id,
             expert_id: expertId,
             phase_name: bookingData.phase,
@@ -62,7 +62,18 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, bookingN
             status: "pending",
             date_session: bookingDateTime ? bookingDateTime.toISOString() : null,
             notes: bookingData.topic,
+            session_format: bookingData.format,
+            session_duration: bookingData.duration,
           }).select().single();
+          if (error && /session_format|session_duration|column/.test(error.message||"")) {
+            // Colonnes pas encore créées → retente sans elles
+            ({ data: inserted, error } = await supabase.from("bookings").insert({
+              client_id: authUser.id, expert_id: expertId,
+              phase_name: bookingData.phase, phase_price: bookingData.price,
+              status: "pending", date_session: bookingDateTime ? bookingDateTime.toISOString() : null,
+              notes: bookingData.topic,
+            }).select().single());
+          }
           if (error) {
             console.warn("Booking Supabase:", error.message);
             setSaveError("La réservation n'a pas pu être enregistrée (" + error.message + "). Contactez le support.");

@@ -292,10 +292,10 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
   const formatExp  = v => { const d=v.replace(/[^0-9]/g,"").slice(0,4); return d.length>2?d.slice(0,2)+"/"+d.slice(2):d; };
   const isCardValid = cardNum.replace(/\s/g,"").length>=15 && cardExp.length===5 && cardCvv.length>=3 && cardName.length>2;
   const handlePay = async () => {
-    if (payMethod==="apple") { setPaying(true); await new Promise(r=>setTimeout(r,1500)); setPayDone(true); await new Promise(r=>setTimeout(r,900)); onConfirm({date:booking.date, slot:booking.slot, note}); return; }
+    if (payMethod==="apple") { setPaying(true); await new Promise(r=>setTimeout(r,1500)); setPayDone(true); await new Promise(r=>setTimeout(r,900)); onConfirm({date:booking.date, slot:booking.slot, note, format:chosenFormat, duree:chosenDuree}); return; }
     if (!isCardValid) { alert("Vérifie les informations de ta carte."); return; }
     setPaying(true); await new Promise(r=>setTimeout(r,1800)); setPayDone(true); await new Promise(r=>setTimeout(r,900));
-    onConfirm({date:booking.date, slot:booking.slot, note});
+    onConfirm({date:booking.date, slot:booking.slot, note, format:chosenFormat, duree:chosenDuree});
   };
 
   // Determine available formats from the phase.
@@ -316,6 +316,12 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
     ? BOOKING_FORMATS.filter(f => phaseFormatIds.includes(f.id))
     : BOOKING_FORMATS;
   const formatsToShow = availableFormats.length > 0 ? availableFormats : BOOKING_FORMATS;
+
+  // Format + durée réellement choisis, à transmettre à la réservation
+  const chosenFormat = { video:"Vidéo", audio:"Audio", doc:"Document", chat:"Chat" }[selectedFormat] || "Vidéo";
+  const chosenDuree = selectedPhase?.duree
+    || (selectedPhase?.format && String(selectedPhase.format).match(/\d+\s*h(?:\s*\d+)?|\d+\s*min/i)?.[0])
+    || "1h";
 
   const Header = () => (
     <div style={{ background:C.white, padding:"13px 16px 12px", borderBottom:`1px solid ${C.border}`, boxShadow:`0 1px 6px ${C.sh}` }}>
@@ -472,7 +478,7 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
   const handleSend = async () => {
     setSending(true);
     await new Promise(r=>setTimeout(r,1200));
-    onConfirm({date:booking.date, slot:booking.slot, note});
+    onConfirm({date:booking.date, slot:booking.slot, note, format:chosenFormat, duree:chosenDuree});
   };
 
   return (

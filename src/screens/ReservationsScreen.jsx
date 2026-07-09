@@ -644,6 +644,35 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
             );
           })()}
         </div>
+        {/* Timeline de progression */}
+        {s.status!=="cancelled" && (()=>{
+          const steps = [
+            { label:"Demandée", done:true },
+            { label:"Confirmée", done:s.status==="confirmed" },
+            { label:"Payée",     done:!!s.paid },
+            { label:"Session",   done:!!s.isPast },
+          ];
+          const curIdx = steps.findIndex(st=>!st.done);
+          return (
+            <div style={{ display:"flex", alignItems:"flex-start", margin:"0 4px 12px" }}>
+              {steps.map((st,i)=>(
+                <React.Fragment key={i}>
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, flexShrink:0 }}>
+                    <div style={{ width:18, height:18, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
+                      background: st.done?C.sage : i===curIdx?"#FEF3C7":C.cream3,
+                      border: i===curIdx?"1.5px solid #FCD34D":"none" }}>
+                      {st.done
+                        ? <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.5}><polyline points="20 6 9 17 4 12"/></svg>
+                        : <div style={{ width:5, height:5, borderRadius:"50%", background:i===curIdx?"#B45309":C.faint }}/>}
+                    </div>
+                    <span style={{ fontSize:8, fontWeight:st.done||i===curIdx?700:500, color: st.done?C.sage : i===curIdx?"#B45309":C.faint, whiteSpace:"nowrap" }}>{st.label}</span>
+                  </div>
+                  {i<steps.length-1 && <div style={{ flex:1, height:2, borderRadius:2, marginTop:8, background: steps[i+1].done?C.sage:C.borderF }}/>}
+                </React.Fragment>
+              ))}
+            </div>
+          );
+        })()}
         <div style={{ background:C.cream2, borderRadius:10, padding:"9px 12px", marginBottom:12, borderLeft:`2px solid ${expert.color}` }}>
           <div style={{ fontSize:12, color:C.soft, lineHeight:1.5 }}>{s.topic}</div>
         </div>
@@ -823,8 +852,8 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           date: b.date_session ? new Date(b.date_session).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}) : "À confirmer",
           time: b.date_session ? new Date(b.date_session).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "À confirmer",
           hoursUntil: b.date_session ? Math.max(1, Math.round((new Date(b.date_session) - new Date()) / 3600000)) : 48,
-          duration: "1h",
-          format: "Vidéo",
+          duration: b.session_duration || "1h",
+          format: b.session_format || "Vidéo",
           price: b.phase_price || 0,
           status: b.status,
           statusLabel: b.status === "confirmed" ? "Confirmée" : b.status === "cancelled" ? "Annulée" : "En attente",
