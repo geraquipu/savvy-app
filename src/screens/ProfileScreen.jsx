@@ -633,41 +633,53 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
 
           {/* Hero client */}
           <div style={{background:`linear-gradient(135deg,${C.ink},#2C2825)`,margin:"12px 16px 0",borderRadius:16,padding:"22px 20px",display:"flex",gap:14,alignItems:"center"}}>
-            <div style={{width:60,height:60,borderRadius:"50%",background:r.bg,color:r.col,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:22,flexShrink:0,fontFamily:SERIF}}>{r.ini}</div>
+            {r.photoUrl
+              ? <img src={r.photoUrl} alt="" style={{width:60,height:60,borderRadius:"50%",objectFit:"cover",flexShrink:0}}/>
+              : <div style={{width:60,height:60,borderRadius:"50%",background:r.bg,color:r.col,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:22,flexShrink:0,fontFamily:SERIF}}>{r.ini}</div>}
             <div>
               <div style={{fontSize:18,fontWeight:700,color:C.white,fontFamily:SERIF}}>{r.client}</div>
-              <div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
-                {r.pays&&<span style={{fontSize:10,fontWeight:600,padding:"2px 9px",borderRadius:20,background:"rgba(255,255,255,.12)",color:"rgba(253,252,248,.7)"}}>📍 {r.pays}</span>}
-                {r.langue&&<span style={{fontSize:10,fontWeight:600,padding:"2px 9px",borderRadius:20,background:"rgba(255,255,255,.12)",color:"rgba(253,252,248,.7)"}}>🗣 {r.langue}</span>}
+              <div style={{display:"flex",gap:10,marginTop:6,flexWrap:"wrap",fontSize:11,color:"rgba(253,252,248,.7)"}}>
+                {r.pays&&<span style={{display:"flex",alignItems:"center",gap:4}}><svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx={12} cy={10} r={3}/></svg>{r.pays}</span>}
+                {r.langue&&<span>· {r.langue}</span>}
               </div>
             </div>
           </div>
 
           <div style={{padding:"16px 16px 0"}}>
-            {/* Domaine demandé */}
+            {/* Demande (une seule fois) */}
             <div style={{background:C.white,borderRadius:13,border:`1px solid ${C.border}`,padding:"14px 16px",marginBottom:12}}>
-              <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:8}}>Ce qu'il·elle cherche</div>
-              <div style={{display:"flex",gap:8,marginBottom:10}}>
-                <span style={{fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:20,background:C.goldL,color:C.gold}}>{r.domaine}</span>
-                <span style={{fontSize:11,fontWeight:600,padding:"4px 12px",borderRadius:20,background:C.cream2,color:C.muted}}>{r.format} · {r.duree}</span>
-              </div>
-              <div style={{fontSize:13,color:C.soft,fontStyle:"italic",lineHeight:1.6}}>"{r.msg}"</div>
+              <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:8}}>Demande</div>
+              <div style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF,lineHeight:1.35}}>{r.domaine}</div>
             </div>
 
-            {/* Contexte / pourquoi */}
+            {/* Message du client */}
             {r.why&&(
-              <div style={{background:C.white,borderRadius:13,border:`1px solid ${C.border}`,padding:"14px 16px",marginBottom:12}}>
-                <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:8}}>Contexte</div>
+              <div style={{background:C.white,borderRadius:13,border:`1px solid ${C.border}`,padding:"14px 16px",marginBottom:12,borderLeft:`3px solid ${C.goldB}`}}>
+                <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:8,display:"flex",alignItems:"center",gap:5}}><svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message du client</div>
                 <div style={{fontSize:13,color:C.ink,lineHeight:1.6}}>{r.why}</div>
               </div>
             )}
 
-            {/* Créneau proposé */}
-            <div style={{background:C.white,borderRadius:13,border:`1px solid ${C.border}`,padding:"14px 16px",marginBottom:20}}>
-              <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:8}}>Créneau proposé</div>
-              <div style={{display:"flex",gap:8}}>
-                <span style={{fontSize:12,fontWeight:600,padding:"5px 12px",borderRadius:20,background:"#EEF2FF",color:"#4F46E5"}}>📅 {r.date}</span>
-                <span style={{fontSize:12,fontWeight:600,padding:"5px 12px",borderRadius:20,background:"#EEF2FF",color:"#4F46E5"}}>⏰ {r.heure}</span>
+            {/* Créneau + résumé */}
+            <div style={{background:C.white,borderRadius:13,border:`1px solid ${C.border}`,padding:"14px 16px",marginBottom:12}}>
+              <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:10}}>Créneau proposé</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:"8px 16px"}}>
+                <span style={{fontSize:12,color:C.soft,display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>{r.date}</span>
+                <span style={{fontSize:12,color:C.soft,display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>{r.heure}</span>
+                <span style={{fontSize:12,color:C.soft,display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 14 14"/></svg>{r.duree}</span>
+                <span style={{fontSize:12,color:C.soft,display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>{r.format}</span>
+              </div>
+            </div>
+
+            {/* Ce que tu reçois */}
+            <div style={{background:C.sageL||"#F0F5EF",borderRadius:13,padding:"14px 16px",marginBottom:20,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <div>
+                <div style={{fontSize:11,color:C.sage,fontWeight:600}}>Tu reçois</div>
+                <div style={{fontSize:22,fontWeight:800,color:C.sage,fontFamily:SERIF,lineHeight:1.1}}>{Math.round((r.prix||0)*0.8)}€</div>
+              </div>
+              <div style={{textAlign:"right",fontSize:11,color:C.muted,lineHeight:1.5}}>
+                <div>Prix client : {r.prix||0}€</div>
+                <div>Commission Savvy : {(r.prix||0)-Math.round((r.prix||0)*0.8)}€</div>
               </div>
             </div>
 
@@ -683,8 +695,9 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                 setExpCancelled(prev=>[{...r,statut:"refusé",motif:"Refusé par l'expert"},...prev]);
                 setExpRequests(prev=>prev.filter(x=>x.id!==r.id));
                 setClientProfileModal(null);
-              }} style={{flex:1,padding:"13px",borderRadius:13,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
-                ✕ Refuser
+              }} style={{flex:1,padding:"13px",borderRadius:13,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><line x1={18} y1={6} x2={6} y2={18}/><line x1={6} y1={6} x2={18} y2={18}/></svg>
+                Refuser
               </button>
               <button onClick={async()=>{
                 const confirmed={...r,statut:"confirmé",hoursUntil:r.date==="Demain"?22:r.date==="Aujourd'hui"?6:168};
@@ -697,8 +710,9 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                 setExpRequests(prev=>prev.filter(x=>x.id!==r.id));
                 setClientProfileModal(null);
                 setExpSessionTab("confirmees");
-              }} style={{flex:2,padding:"13px",borderRadius:13,border:"none",background:C.sage,color:C.white,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:SERIF}}>
-                ✓ Confirmer la session
+              }} style={{flex:2,padding:"13px",borderRadius:13,border:"none",background:C.sage,color:C.white,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:SERIF,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>
+                Confirmer la session
               </button>
             </div>
           </div>

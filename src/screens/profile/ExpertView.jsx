@@ -576,12 +576,14 @@ export function ExpertView({
                 : expCancelled.map(s=>(
                   <div key={s.id} style={{background:C.white,borderRadius:14,border:"1px solid #FEE2E2",padding:"13px 14px",marginBottom:10,opacity:.8}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <div style={{width:40,height:40,borderRadius:"50%",background:s.bg,color:s.col,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,flexShrink:0}}>{s.ini}</div>
+                      {s.photoUrl
+                        ? <img src={s.photoUrl} alt="" style={{width:40,height:40,borderRadius:"50%",objectFit:"cover",flexShrink:0}}/>
+                        : <div style={{width:40,height:40,borderRadius:"50%",background:s.bg,color:s.col,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,flexShrink:0}}>{s.ini}</div>}
                       <div style={{flex:1}}>
                         <div style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF}}>{s.client}</div>
                         <div style={{fontSize:11,color:C.muted}}>{s.date} · {s.heure} · {s.duree}</div>
                       </div>
-                      <div style={{padding:"3px 10px",borderRadius:20,fontSize:10,fontWeight:700,background:"#FEE2E2",color:"#B91C1C"}}>✕ {s.motif||"Annulée"}</div>
+                      <div style={{padding:"3px 10px",borderRadius:20,fontSize:10,fontWeight:700,background:"#FEE2E2",color:"#B91C1C",display:"flex",alignItems:"center",gap:4}}><svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><line x1={18} y1={6} x2={6} y2={18}/><line x1={6} y1={6} x2={18} y2={18}/></svg>{s.motif||"Annulée"}</div>
                     </div>
                     <div style={{marginTop:8,fontSize:11,color:"#B91C1C",background:"#FFF5F5",borderRadius:8,padding:"7px 10px",display:"flex",gap:6,alignItems:"center"}}>
                       <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{flexShrink:0}}><rect x={1} y={4} width={22} height={16} rx={2}/><line x1={1} y1={10} x2={23} y2={10}/></svg>
@@ -690,7 +692,7 @@ export function ExpertView({
                       setSessionConfirmToast({name:r.client, type:"confirmed"});
                       setTimeout(()=>setSessionConfirmToast(null),3000);
                       setExpSessionTab("confirmees");
-                    }} style={{flex:2,padding:"10px",borderRadius:10,border:"none",background:C.sage,color:C.white,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:SERIF}}>✓ Confirmer</button>
+                    }} style={{flex:2,padding:"10px",borderRadius:10,border:"none",background:C.sage,color:C.white,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:SERIF,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>Confirmer</button>
                     <button onClick={async ()=>{
                       setExpCancelled(prev=>[{...r,statut:"refusé",motif:"Refusé par l'expert"},...prev]);
                       const remaining = expRequests.filter(x=>x.id!==r.id);
@@ -703,7 +705,7 @@ export function ExpertView({
                       }
                       setSessionConfirmToast({name:r.client, type:"refused"});
                       setTimeout(()=>setSessionConfirmToast(null),3000);
-                    }} style={{flex:1,padding:"10px",borderRadius:10,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>✕ Refuser</button>
+                    }} style={{flex:1,padding:"10px",borderRadius:10,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}><svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><line x1={18} y1={6} x2={6} y2={18}/><line x1={6} y1={6} x2={18} y2={18}/></svg>Refuser</button>
                   </div>
                 </div>
                 );
@@ -746,16 +748,19 @@ export function ExpertView({
                       <div style={{height:3,background:topBar}}/>
                       <div style={{padding:"13px 15px"}}>
                         <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:12}}>
-                          <div style={{width:40,height:40,borderRadius:"50%",background:s.bg,color:s.col,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,flexShrink:0}}>{s.ini}</div>
+                          {s.photoUrl
+                            ? <img src={s.photoUrl} alt="" style={{width:40,height:40,borderRadius:"50%",objectFit:"cover",flexShrink:0}}/>
+                            : <div style={{width:40,height:40,borderRadius:"50%",background:s.bg,color:s.col,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,flexShrink:0}}>{s.ini}</div>}
                           <div style={{flex:1}}>
                             <div style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF}}>{s.client}</div>
                             <div style={{fontSize:11,color:C.muted,marginTop:1}}>{s.format}</div>
                           </div>
-                          <div style={{padding:"3px 10px",borderRadius:20,fontSize:10,fontWeight:700,background:s.statut==="confirmé"?C.sageL:"#FEF3C7",color:s.statut==="confirmé"?C.sage:"#92400E"}}>
-                            {s.statut==="confirmé"?"✓ Confirmé":"En attente"}
+                          <div style={{padding:"3px 10px",borderRadius:20,fontSize:10,fontWeight:700,background:s.statut==="confirmé"?C.sageL:"#FEF3C7",color:s.statut==="confirmé"?C.sage:"#92400E",display:"flex",alignItems:"center",gap:4}}>
+                            {s.statut==="confirmé"&&<svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><polyline points="20 6 9 17 4 12"/></svg>}
+                            {s.statut==="confirmé"?"Confirmé":"En attente"}
                           </div>
                         </div>
-                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:7,marginBottom:11}}>
+                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:7,marginBottom:10}}>
                           {[
                             {svg:<svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>,v:s.date},
                             {svg:<svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>,v:s.heure},
@@ -767,6 +772,12 @@ export function ExpertView({
                             </div>
                           ))}
                         </div>
+                        {(s.prix||0)>0 && (
+                          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:C.sageL||"#F0F5EF",borderRadius:8,padding:"7px 11px",marginBottom:11}}>
+                            <span style={{fontSize:11,color:C.sage,fontWeight:600}}>Tu reçois</span>
+                            <span style={{fontSize:14,fontWeight:800,color:C.sage,fontFamily:SERIF}}>{Math.round((s.prix||0)*0.8)}€</span>
+                          </div>
+                        )}
                         <div style={{display:"flex",gap:7}}>
                           <button onClick={()=>setSection("messages")} style={{flex:1,padding:"8px",borderRadius:9,border:`1px solid ${C.border}`,background:C.cream2,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
                             <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message
@@ -784,7 +795,7 @@ export function ExpertView({
                             </button>
                             );
                           })()}
-                          <button onClick={()=>setCancelModal({session:s,step:"choose",type:"exp"})} style={{padding:"8px 11px",borderRadius:9,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>✕</button>
+                          <button onClick={()=>setCancelModal({session:s,step:"choose",type:"exp"})} style={{padding:"8px 11px",borderRadius:9,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",flexShrink:0,display:"flex",alignItems:"center"}}><svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><line x1={18} y1={6} x2={6} y2={18}/><line x1={6} y1={6} x2={18} y2={18}/></svg></button>
                         </div>
                       </div>
                     </div>
