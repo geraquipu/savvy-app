@@ -9,7 +9,18 @@ const BOOKING_FORMATS = [
   { id:"chat",  icon:"💬", label:"Accompagnement", sub:"Échanges par messagerie" },
 ];
 
-function CalendarPicker({ expert, onDone, onSelect }) {
+// Convertit une durée ("15 min", "1h", "1h30", "2h"…) en minutes
+function parseDuree(str) {
+  if (!str) return 30;
+  const s = String(str).toLowerCase().trim();
+  const hm = s.match(/(\d+)\s*h\s*(\d+)/); if (hm) return Number(hm[1])*60 + Number(hm[2]);
+  const h = s.match(/(\d+)\s*h/);          if (h)  return Number(h[1])*60;
+  const m = s.match(/(\d+)\s*min/);        if (m)  return Number(m[1]);
+  const n = s.match(/(\d+)/);              if (n)  return Number(n[1]);
+  return 30;
+}
+
+function CalendarPicker({ expert, onDone, onSelect, slotMinutes = 30 }) {
   const today = new Date();
   const [selDate, setSelDate] = useState(null);
   const [selSlot, setSelSlot] = useState(null);
@@ -120,9 +131,10 @@ function CalendarPicker({ expert, onDone, onSelect }) {
     const slots = [];
     let cur = sh * 60 + (sm||0);
     const end = eh * 60 + (em||0);
-    while (cur + 30 <= end) {
+    const step = slotMinutes > 0 ? slotMinutes : 30;
+    while (cur + step <= end) {
       slots.push(String(Math.floor(cur/60)).padStart(2,"0")+":"+String(cur%60).padStart(2,"0"));
-      cur += 30;
+      cur += step;
     }
     return slots;
   };
@@ -443,7 +455,7 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
         </div>
 
         <div style={{ fontSize:13, fontWeight:700, color:C.ink, marginBottom:12, fontFamily:SERIF }}>Choisir une date & un créneau</div>
-        <CalendarPicker expert={e} onSelect={({date,slot})=>setBooking({date,slot})}/>
+        <CalendarPicker expert={e} slotMinutes={parseDuree(selectedPhase?.duree)} onSelect={({date,slot})=>setBooking({date,slot})}/>
 
         <div style={{ fontSize:13, fontWeight:700, color:C.ink, marginBottom:8 }}>Décrivez votre besoin</div>
         <textarea value={note} onChange={ev=>setNote(ev.target.value)} placeholder="Quelques lignes pour que votre conseiller se prépare..." style={{ width:"100%", padding:"12px 14px", borderRadius:13, border:`1.5px solid ${C.border}`, fontSize:12, fontFamily:"inherit", color:C.ink, resize:"none", height:76, boxSizing:"border-box", outline:"none", marginBottom:14, background:C.cream2, lineHeight:1.6 }}/>
