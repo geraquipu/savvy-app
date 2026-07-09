@@ -595,41 +595,82 @@ export function ExpertView({
 
           {expSessionTab==="recues" && EXP_REQUESTS.length>0 && (
             <div style={{marginBottom:18}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                <div style={{fontSize:11,fontWeight:700,color:"#B91C1C",textTransform:"uppercase",letterSpacing:1,display:"flex",alignItems:"center",gap:5}}><svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Demandes en attente</div>
-                <div style={{background:"#FEE2E2",color:"#B91C1C",borderRadius:20,minWidth:20,height:20,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,padding:"0 5px"}}>{EXP_REQUESTS.length}</div>
+              {/* Bandeau d'urgence */}
+              <div style={{background:`linear-gradient(135deg,#FFFBEB,#FEF3C7)`,border:"1px solid #FDE68A",borderRadius:12,padding:"10px 14px",marginBottom:12,display:"flex",alignItems:"center",gap:10}}>
+                <div style={{flexShrink:0,color:"#92400E"}}><svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg></div>
+                <div>
+                  <div style={{fontSize:12,fontWeight:800,color:"#92400E"}}>{EXP_REQUESTS.length} nouvelle{EXP_REQUESTS.length>1?"s":""} demande{EXP_REQUESTS.length>1?"s":""}</div>
+                  <div style={{fontSize:11,color:"#B45309",lineHeight:1.4}}>Réponds sous 24h — les clients apprécient les réponses rapides.</div>
+                </div>
               </div>
-              {EXP_REQUESTS.map(r=>(
-                <div key={r.id} style={{background:C.white,borderRadius:14,border:"1.5px solid #FEE2E2",padding:"13px 14px",marginBottom:10,boxShadow:"0 2px 8px rgba(185,28,28,.08)"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-                    <div style={{width:40,height:40,borderRadius:"50%",background:r.bg,color:r.col,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,flexShrink:0}}>{r.ini}</div>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF}}>{r.client}</div>
-                      <div style={{fontSize:11,color:C.muted}}>{r.domaine} · {r.format} · {r.duree}</div>
+              {EXP_REQUESTS.map(r=>{
+                const gain = Math.round((r.prix||0)*0.8);
+                const commission = (r.prix||0) - gain;
+                return (
+                <div key={r.id} style={{background:C.white,borderRadius:16,border:"1.5px solid #FDE68A",padding:"15px 16px",marginBottom:12,boxShadow:"0 2px 10px rgba(245,158,11,.10)"}}>
+                  {/* En-tête : client protagoniste */}
+                  <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:13}}>
+                    {r.photoUrl
+                      ? <img src={r.photoUrl} alt="" style={{width:48,height:48,borderRadius:"50%",objectFit:"cover",flexShrink:0}}/>
+                      : <div style={{width:48,height:48,borderRadius:"50%",background:r.bg,color:r.col,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:16,flexShrink:0}}>{r.ini}</div>}
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:16,fontWeight:700,color:C.ink,fontFamily:SERIF,lineHeight:1.2}}>{r.client}</div>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginTop:3,fontSize:11,color:C.muted}}>
+                        {r.pays&&<span style={{display:"flex",alignItems:"center",gap:3}}><svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx={12} cy={10} r={3}/></svg>{r.pays}</span>}
+                        {r.langue&&<span>· {r.langue}</span>}
+                      </div>
                     </div>
-                    <div style={{textAlign:"right"}}>
-                      <div style={{fontSize:11,fontWeight:600,color:"#B91C1C",display:"flex",gap:4,alignItems:"center"}}><svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>{r.date}</div>
-                      <div style={{fontSize:11,color:C.muted}}>{r.heure}</div>
+                    <div style={{padding:"4px 11px",borderRadius:20,fontSize:10,fontWeight:700,background:"#FEF3C7",color:"#92400E",flexShrink:0}}>En attente</div>
+                  </div>
+
+                  {r.createdAt && (()=>{
+                    const diff = Date.now() - new Date(r.createdAt).getTime();
+                    const min = Math.max(0, Math.round(diff/60000));
+                    const txt = min < 1 ? "à l'instant" : min < 60 ? `il y a ${min} min` : min < 1440 ? `il y a ${Math.round(min/60)} h` : `il y a ${Math.round(min/1440)} j`;
+                    return <div style={{fontSize:10,color:C.faint,marginBottom:11}}>Réservation reçue {txt}</div>;
+                  })()}
+
+                  {/* Sujet (une seule fois) */}
+                  <div style={{marginBottom:11}}>
+                    <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:4,display:"flex",alignItems:"center",gap:5}}><svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={10}/><circle cx={12} cy={12} r={6}/><circle cx={12} cy={12} r={2}/></svg>Demande</div>
+                    <div style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF,lineHeight:1.35}}>{r.domaine}</div>
+                  </div>
+
+                  {/* Message du client — protagoniste */}
+                  {r.why && (
+                    <div style={{background:C.cream2,borderRadius:11,padding:"12px 14px",marginBottom:12,borderLeft:`3px solid ${C.goldB}`}}>
+                      <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:5,display:"flex",alignItems:"center",gap:5}}><svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message du client</div>
+                      <div style={{fontSize:13,color:C.ink,lineHeight:1.55}}>{r.why}</div>
+                    </div>
+                  )}
+
+                  {/* Résumé */}
+                  <div style={{display:"flex",flexWrap:"wrap",gap:"7px 14px",padding:"11px 0",borderTop:`1px solid ${C.borderF}`,borderBottom:`1px solid ${C.borderF}`,marginBottom:12}}>
+                    <span style={{fontSize:11,color:C.soft,display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>{r.date}</span>
+                    <span style={{fontSize:11,color:C.soft,display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>{r.heure}</span>
+                    <span style={{fontSize:11,color:C.soft,display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 14 14"/></svg>{r.duree}</span>
+                    <span style={{fontSize:11,color:C.soft,display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>{r.format}</span>
+                  </div>
+
+                  {/* Ce que tu reçois — mis en avant */}
+                  <div style={{background:C.sageL||"#F0F5EF",borderRadius:11,padding:"11px 14px",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                    <div>
+                      <div style={{fontSize:11,color:C.sage,fontWeight:600}}>Tu reçois</div>
+                      <div style={{fontSize:20,fontWeight:800,color:C.sage,fontFamily:SERIF,lineHeight:1.1}}>{gain}€</div>
+                    </div>
+                    <div style={{textAlign:"right",fontSize:10,color:C.muted,lineHeight:1.5}}>
+                      <div>Prix client : {r.prix||0}€</div>
+                      <div>Commission Savvy : {commission}€</div>
                     </div>
                   </div>
-                  {/* Profil client */}
-                  <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:9}}>
-                    {r.pays&&<span style={{fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:20,background:C.cream2,color:C.muted}}>📍 {r.pays}</span>}
-                    {r.langue&&<span style={{fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:20,background:C.cream2,color:C.muted}}>🗣 {r.langue}</span>}
-                    {r.domaine&&<span style={{fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:20,background:C.goldL,color:C.gold}}>{r.domaine}</span>}
-                  </div>
-                  {/* Message */}
-                  <div style={{background:"#FFF5F5",borderRadius:9,padding:"9px 12px",marginBottom:r.why?8:11,fontSize:12,color:C.muted,fontStyle:"italic",lineHeight:1.5}}>"{r.msg}"</div>
-                  {/* Pourquoi */}
-                  {r.why&&<div style={{background:C.cream2,borderRadius:9,padding:"8px 12px",marginBottom:11,fontSize:11,color:C.soft,lineHeight:1.5}}>
-                    <span style={{fontWeight:700,color:C.ink,fontStyle:"normal"}}>Contexte · </span>{r.why}
-                  </div>}
+
                   <div style={{display:"flex",gap:8,marginBottom:8}}>
                     <button onClick={()=>setClientProfileModal(r)}
-                      style={{flex:1,padding:"8px",borderRadius:10,border:`1px solid ${C.border}`,background:C.cream2,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
-                      👤 Voir le profil
+                      style={{flex:1,padding:"9px",borderRadius:10,border:`1px solid ${C.border}`,background:C.cream2,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+                      <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx={12} cy={7} r={4}/></svg>
+                      Voir le profil
                     </button>
-                    <button onClick={()=>setSection("messages")} style={{flex:1,padding:"8px",borderRadius:10,border:`1px solid ${C.border}`,background:C.cream2,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+                    <button onClick={()=>setSection("messages")} style={{flex:1,padding:"9px",borderRadius:10,border:`1px solid ${C.border}`,background:C.cream2,color:C.ink,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
                       <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                       Message
                     </button>
@@ -665,7 +706,8 @@ export function ExpertView({
                     }} style={{flex:1,padding:"10px",borderRadius:10,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>✕ Refuser</button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

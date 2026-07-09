@@ -208,21 +208,25 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
         .order("date_requested", { ascending: false });
       if (error) console.warn("[Sessions] bookings error:", error.message);
       if (!data) return;
-      // Fetch client names from profiles
+      // Fetch client names + photos from profiles
       const clientIds = [...new Set(data.map(b=>b.client_id).filter(Boolean))];
-      const profileMap = {};
+      const profileMap = {}, photoMap = {};
       if (clientIds.length > 0) {
-        const { data: profiles } = await supabase.from("profiles").select("id, name").in("id", clientIds);
-        (profiles||[]).forEach(p => { profileMap[p.id] = p.name; });
+        const { data: profiles } = await supabase.from("profiles").select("id, name, photo_url").in("id", clientIds);
+        (profiles||[]).forEach(p => { profileMap[p.id] = p.name; photoMap[p.id] = p.photo_url || null; });
       }
       const toRequest = b => {
         const clientName = profileMap[b.client_id] || "Client Savvy";
         const initials = clientName.split(" ").map(w=>w[0]||"").join("").toUpperCase().slice(0,2) || "CS";
+        // Le message du client = notes (s'il diffère du nom de l'offre)
+        const clientMsg = (b.notes && b.notes.trim() && b.notes.trim() !== (b.phase_name||"").trim()) ? b.notes.trim() : "";
         return { id:b.id, _fromSB:true, client:clientName, ini:initials, bg:"#EDE9FE", col:"#7C3AED",
+          photoUrl: photoMap[b.client_id] || null,
           date: b.date_session ? new Date(b.date_session).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}) : "À définir",
           heure: b.date_session ? new Date(b.date_session).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "",
-          duree:"1h", format:"Vidéo", domaine:b.phase_name||"Conseil",
-          msg:`Demande : ${b.phase_name||"Session"}`, why:b.notes||"", pays:"France", langue:"FR",
+          duree:"1h", format:"Vidéo", domaine:b.phase_name||"Conseil", prix: b.phase_price || 0,
+          msg:`Demande : ${b.phase_name||"Session"}`, why:clientMsg, pays:"France", langue:"FR",
+          createdAt: b.date_requested || b.created_at || null,
           status: b.status,
           statut: b.status==="confirmed" ? "confirmé" : b.status==="cancelled" ? "annulé" : "en attente",
           hoursUntil: b.date_session ? Math.round((new Date(b.date_session) - Date.now()) / 3600000) : 999,
