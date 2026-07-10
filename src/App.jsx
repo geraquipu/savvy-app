@@ -378,7 +378,29 @@ export default function App() {
     return () => supabase.removeChannel(channel);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser?.id, authUser?.isExpert]);
-  const [clientPendingCount, setClientPendingCount] = useState(0); // synced from ReservationsScreen
+  const [clientPendingCount, setClientPendingCount] = useState(0);
+  // ── Réservations du client qui demandent une action (à payer / à accepter) ──
+  // Calculé ici (pas dans ReservationsScreen) pour que la cloche et le badge
+  // se mettent à jour même si l'utilisateur n'ouvre jamais l'écran Réservations.
+  useEffect(() => {
+    if (!authUser?.real || !authUser?.id) { setClientPendingCount(0); return; }
+    const cid = authUser.id;
+    const load = () =>
+      supabase.from("bookings").select("status, paid, reschedule_by")
+        .eq("client_id", cid).in("status", ["pending", "confirmed"])
+        .then(({ data }) => {
+          if (!data) return;
+          const n = data.filter(b =>
+            b.status === "pending" || (b.status === "confirmed" && !b.paid)
+          ).length;
+          setClientPendingCount(n);
+        });
+    load();
+    const channel = supabase.channel("client-bookings-" + cid)
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `client_id=eq.${cid}` }, load)
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [authUser?.real, authUser?.id]);
   const [realUnreadCount, setRealUnreadCount] = useState(0);
   const [appMode, setAppMode] = useState("client"); // "client" | "expert"
   const [expInitSection, setExpInitSection] = useState(null); // section to open in ProfileScreen
@@ -642,7 +664,7 @@ export default function App() {
       {screen==="match"        && <Suspense fallback={ScreenFallback}><div key="match" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><MatchScreen onExpert={goExpert} onBrowseAll={()=>goSearch("")} experts={dbExperts}/></div></Suspense>}
       {screen==="search"       && <Suspense fallback={ScreenFallback}><div key="search" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><SearchScreen initQ={searchQ} initCat={searchCat} onExpert={goExpert} onBack={()=>{setScreen("home");setNav("home");}} experts={dbExperts} expertsLoaded={expertsLoaded}/></div></Suspense>}
       {screen==="messages"     && <Suspense fallback={ScreenFallback}><div key="messages" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><MessagesListScreen onConv={e=>goMsg(e)} isLoggedIn={isLoggedIn} onLogin={()=>setShowAuth(true)} readMsgIds={readMsgIds} onMarkMsgRead={id=>setReadMsgIds(p=>p.includes(id)?p:[...p,id])} appMode={appMode} isNewExpert={!!newExpertProfile} isRealUser={!!authUser?.real} authUser={authUser} dbExperts={dbExperts}/></div></Suspense>}
-      {screen==="reservations" && <Suspense fallback={ScreenFallback}><div key="reservations" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><ReservationsScreen onExpert={goExpert} onMsg={goMsg} isLoggedIn={isLoggedIn} onLogin={()=>setShowAuth(true)} onNavigate={handleNav} onPendingChange={n=>setClientPendingCount(n)} isRealUser={!!authUser?.real} authUser={authUser}/></div></Suspense>}
+      {screen==="reservations" && <Suspense fallback={ScreenFallback}><div key="reservations" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><ReservationsScreen onExpert={goExpert} onMsg={goMsg} isLoggedIn={isLoggedIn} onLogin={()=>setShowAuth(true)} onNavigate={handleNav} isRealUser={!!authUser?.real} authUser={authUser}/></div></Suspense>}
       {screen==="public"       && <Suspense fallback={ScreenFallback}><PublicProfileScreen onBack={()=>{ if(sharedExpertId){ setSharedExpertId(null); window.history.replaceState({},"","/"); setScreen("home"); setNav("home"); } else { setScreen("profile"); setNav("profile"); } }} onBook={goBook} onMsg={goMsg} expertId={sharedExpertId?undefined:(authUser?.isExpert?(EXPERTS.find(ex=>ex.initials===DEMO_USERS.expert.initials)||EXPERTS[7])?.id:undefined)} realExpertId={sharedExpertId || (authUser?.real && authUser?.isExpert ? authUser?.expertId : null)}/></Suspense>}
       {screen==="profile"      && <Suspense fallback={ScreenFallback}><ProfileScreen key={expInitSection||"profile"} authUser={authUser} isLoggedIn={isLoggedIn} onLogin={()=>setShowAuth(true)} onNavigate={(s)=>handleNav(s)} newExpertProfile={newExpertProfile}
           isExpert={isExpert}

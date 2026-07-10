@@ -317,11 +317,16 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
     : BOOKING_FORMATS;
   const formatsToShow = availableFormats.length > 0 ? availableFormats : BOOKING_FORMATS;
 
-  // Format + durée réellement choisis, à transmettre à la réservation
+  // Format + durée réellement choisis, à transmettre à la réservation.
+  // La durée affichée au client vit dans `format` ("Appel audio 15min") :
+  // elle prime sur `duree`, qui peut être un ancien défaut désynchronisé.
   const chosenFormat = { video:"Vidéo", audio:"Audio", doc:"Document", chat:"Chat" }[selectedFormat] || "Vidéo";
-  const chosenDuree = selectedPhase?.duree
-    || (selectedPhase?.format && String(selectedPhase.format).match(/\d+\s*h(?:\s*\d+)?|\d+\s*min/i)?.[0])
-    || "1h";
+  const dureeFromFormat = selectedPhase?.format
+    ? String(selectedPhase.format).match(/\d+\s*h(?:\s*\d+)?|\d+\s*min/i)?.[0]
+    : null;
+  const chosenDuree = dureeFromFormat || selectedPhase?.duree || "1h";
+  // Pas des créneaux : borné pour qu'un "Document 24h" ne vide pas le calendrier
+  const slotStep = Math.min(240, Math.max(15, parseDuree(chosenDuree)));
 
   const Header = () => (
     <div style={{ background:C.white, padding:"13px 16px 12px", borderBottom:`1px solid ${C.border}`, boxShadow:`0 1px 6px ${C.sh}` }}>
@@ -461,7 +466,7 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
         </div>
 
         <div style={{ fontSize:13, fontWeight:700, color:C.ink, marginBottom:12, fontFamily:SERIF }}>Choisir une date & un créneau</div>
-        <CalendarPicker expert={e} slotMinutes={parseDuree(selectedPhase?.duree || selectedPhase?.format)} onSelect={({date,slot})=>setBooking({date,slot})}/>
+        <CalendarPicker expert={e} slotMinutes={slotStep} onSelect={({date,slot})=>setBooking({date,slot})}/>
 
         <div style={{ fontSize:13, fontWeight:700, color:C.ink, marginBottom:8 }}>Décrivez votre besoin</div>
         <textarea value={note} onChange={ev=>setNote(ev.target.value)} placeholder="Quelques lignes pour que votre conseiller se prépare..." style={{ width:"100%", padding:"12px 14px", borderRadius:13, border:`1.5px solid ${C.border}`, fontSize:12, fontFamily:"inherit", color:C.ink, resize:"none", height:76, boxSizing:"border-box", outline:"none", marginBottom:14, background:C.cream2, lineHeight:1.6 }}/>
