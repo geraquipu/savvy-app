@@ -6,6 +6,7 @@ import { EXPERT_EXTRAS, EXPERT_STYLE_TAGS, EXPERT_FIRST_SESSION } from '../const
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../constants/sessionData';
 import { Stars, Av } from '../components/ui';
 import { MENU_ICONS } from '../constants/menuIcons.jsx';
+import { CalendarPicker, parseDuree } from './BookingScreen';
 import { ClientView } from './profile/ClientView';
 import { ExpertView } from './profile/ExpertView';
 
@@ -113,6 +114,8 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
   const [clientProfileModal, setClientProfileModal] = useState(null); // request object
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleHeure, setRescheduleHeure] = useState("");
+  const [reschedulePick, setReschedulePick] = useState(null); // {date, slot} choisi dans l'agenda
+  const [rescheduleSaving, setRescheduleSaving] = useState(false);
   const [clientNotifToggles, setClientNotifToggles] = useState({ messages:true, reservations:true, offres:false, rappels:true });
   const [helpMsgSent, setHelpMsgSent] = useState(false);
   const [helpMsgText, setHelpMsgText] = useState("");
@@ -228,6 +231,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           msg:`Demande : ${b.phase_name||"Session"}`, why:clientMsg, pays:"France", langue:"FR",
           createdAt: b.date_requested || b.created_at || null,
           rescheduleFrom: b.reschedule_from || null,
+          rescheduleBy: b.reschedule_by || null,
           status: b.status,
           statut: b.status==="confirmed" ? "confirmé" : b.status==="cancelled" ? "annulé" : "en attente",
           hoursUntil: b.date_session ? Math.round((new Date(b.date_session) - Date.now()) / 3600000) : 999,
@@ -238,7 +242,10 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
       setRealPaidBookings(data.filter(b => b.paid && b.status === "confirmed").map(b=>({
         ...b, client_name: profileMap[b.client_id] || "Client Savvy"
       })));
-      const sbPending   = data.filter(b=>b.status==="pending").map(toRequest);
+      // Les reprogrammations demandées PAR l'expert attendent l'accord du client :
+      // elles ne doivent pas apparaître dans sa propre boîte "Reçues".
+      const sbPending   = data.filter(b=>b.status==="pending" && b.reschedule_by!=="expert").map(toRequest);
+      const sbAwaitingClient = data.filter(b=>b.status==="pending" && b.reschedule_by==="expert").map(toRequest);
       const sbConfirmed = data.filter(b=>b.status==="confirmed").map(toRequest);
       const sbCancelled = data.filter(b=>b.status==="cancelled").map(toRequest);
       setExpRequests(prev => {
@@ -246,8 +253,10 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
         return [...sbPending, ...prev.filter(r=>!r._fromSB&&!sbIds.has(r.id))];
       });
       setExpConfirmed(prev => {
-        const sbIds = new Set(sbConfirmed.map(r=>r.id));
-        return [...sbConfirmed, ...prev.filter(r=>!r._fromSB&&!sbIds.has(r.id))];
+        // sbAwaitingClient : reprogrammations proposées par l'expert, en attente du client
+        const merged = [...sbConfirmed, ...sbAwaitingClient];
+        const sbIds = new Set(merged.map(r=>r.id));
+        return [...merged, ...prev.filter(r=>!r._fromSB&&!sbIds.has(r.id))];
       });
       setExpCancelled(prev => {
         const sbIds = new Set(sbCancelled.map(r=>r.id));
@@ -748,24 +757,51 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
         <div style={{background:C.white,borderRadius:"20px 20px 0 0",padding:"28px 20px 32px",width:"100%",maxWidth:480}}>
           <div style={{width:36,height:4,borderRadius:2,background:C.border,margin:"0 auto 20px"}}/>
           <div style={{fontSize:17,fontWeight:800,color:C.ink,fontFamily:SERIF,marginBottom:4}}>Reprogrammer</div>
-          <div style={{fontSize:12,color:C.muted,marginBottom:20}}>Propose une nouvelle date</div>
-          <div style={{marginBottom:12}}>
-            <label style={{fontSize:12,fontWeight:600,color:C.ink,display:"block",marginBottom:5}}>Nouvelle date</label>
-            <input type="date" value={rescheduleDate} onChange={e=>setRescheduleDate(e.target.value)} style={{width:"100%",padding:"10px 12px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:13,fontFamily:"inherit",boxSizing:"border-box",color:C.ink,background:C.white}}/>
+          <div style={{fontSize:12,color:C.muted,marginBottom:16}}>Choisis un créneau dans <b style={{color:C.ink}}>tes disponibilités</b>. {cancelModal.session?.client||"Le client"} devra l'accepter.</div>
+
+          <div style={{maxHeight:"52vh",overflowY:"auto",marginBottom:16}}>
+            <CalendarPicker
+              expert={{ id: resolvedExpertId, name: expertUser?.name || "Moi", initials: expertUser?.initials || "MO", bg: C.cream2, color: C.ink }}
+              slotMinutes={parseDuree(cancelModal.session?.duree)}
+              onSelect={({date,slot}) => setReschedulePick({date,slot})}
+            />
           </div>
-          <div style={{marginBottom:20}}>
-            <label style={{fontSize:12,fontWeight:600,color:C.ink,display:"block",marginBottom:5}}>Heure souhaitée</label>
-            <input type="time" value={rescheduleHeure} onChange={e=>setRescheduleHeure(e.target.value)} style={{width:"100%",padding:"10px 12px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:13,fontFamily:"inherit",boxSizing:"border-box",color:C.ink,background:C.white}}/>
-          </div>
+
+          {reschedulePick && (
+            <div style={{background:C.cream2,borderRadius:11,padding:"10px 13px",marginBottom:14,fontSize:12,color:C.soft}}>
+              Nouveau créneau : <b style={{color:C.ink}}>{reschedulePick.date.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})} à {reschedulePick.slot}</b>
+            </div>
+          )}
+
           <div style={{display:"flex",gap:10}}>
-            <button onClick={()=>setCancelModal({...cancelModal,step:"choose"})} style={{flex:1,padding:"12px",borderRadius:12,border:`1px solid ${C.border}`,background:C.white,color:C.muted,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Retour</button>
-            <button onClick={()=>{
-              if(!rescheduleDate||!rescheduleHeure){return;}
-              // Update session with new date
-              const newDate = new Date(rescheduleDate).toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"long"});
-              setExpConfirmed(prev=>prev.map(s=>s.id===cancelModal.session.id?{...s,date:newDate,heure:rescheduleHeure.replace(":","")}:s));
-              setCancelModal(null); setRescheduleDate(""); setRescheduleHeure("");
-            }} style={{flex:2,padding:"12px",borderRadius:12,border:"none",background:"#1D4ED8",color:C.white,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>📅 Envoyer la demande</button>
+            <button onClick={()=>{ setCancelModal({...cancelModal,step:"choose"}); setReschedulePick(null); }} style={{flex:1,padding:"12px",borderRadius:12,border:`1px solid ${C.border}`,background:C.white,color:C.muted,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Retour</button>
+            <button disabled={!reschedulePick||rescheduleSaving} onClick={async ()=>{
+              if(!reschedulePick) return;
+              setRescheduleSaving(true);
+              const s = cancelModal.session;
+              const [h,m] = reschedulePick.slot.split(":").map(Number);
+              const dt = new Date(reschedulePick.date); dt.setHours(h||0, m||0, 0, 0);
+              const prevIso = s.startTs ? new Date(s.startTs).toISOString() : null;
+              // Persiste : nouvelle date, repasse en attente, garde l'ancien créneau + qui l'a demandé
+              let { data: upd, error } = await supabase.from("bookings")
+                .update({ date_session: dt.toISOString(), status:"pending", reschedule_from: prevIso, reschedule_by:"expert" })
+                .eq("id", s.id).select().single();
+              if (error) {
+                ({ data: upd, error } = await supabase.from("bookings")
+                  .update({ date_session: dt.toISOString(), status:"pending" }).eq("id", s.id).select().single());
+              }
+              setRescheduleSaving(false);
+              if (error) { alert("Erreur : " + error.message); return; }
+              // Notifie le client
+              if (upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{});
+              // Sort la session des confirmées : elle attend l'accord du client
+              setExpConfirmed(prev => prev.filter(x => x.id !== s.id));
+              setCancelModal(null); setReschedulePick(null);
+              setSessionConfirmToast({ name: s.client, type:"reschedule" });
+              setTimeout(()=>setSessionConfirmToast(null), 3500);
+            }} style={{flex:2,padding:"12px",borderRadius:12,border:"none",background:reschedulePick&&!rescheduleSaving?C.ink:C.cream3,color:reschedulePick&&!rescheduleSaving?C.white:C.muted,fontSize:13,fontWeight:700,cursor:reschedulePick&&!rescheduleSaving?"pointer":"default",fontFamily:SERIF}}>
+              {rescheduleSaving ? "Envoi…" : "Envoyer la demande"}
+            </button>
           </div>
         </div>
       </div>

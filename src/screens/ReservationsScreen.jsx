@@ -600,7 +600,7 @@ export function joinState(startTs) {
   return { canJoin:false, label };
 }
 
-function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
+function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondReschedule }) {
   const expert = s.expertData || EXPERTS[s.eid] || EXPERTS.find(x=>x.initials===s.expertInitials);
   if (!expert) return null;
   const countdown = getCountdown(s.hoursUntil);
@@ -707,17 +707,31 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay }) {
           </div>
         )}
         {/* Reprogrammation en attente */}
-        {s.status==="pending" && s.rescheduleFrom && (
+        {s.status==="pending" && s.rescheduleFrom && (()=>{
+          const byExpert = s.rescheduleBy === "expert";
+          return (
           <div style={{background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:10,padding:"10px 13px",marginBottom:10}}>
-            <div style={{fontSize:12,fontWeight:700,color:"#1D4ED8",marginBottom:6,display:"flex",alignItems:"center",gap:6}}><svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Reprogrammation demandée</div>
+            <div style={{fontSize:12,fontWeight:700,color:"#1D4ED8",marginBottom:6,display:"flex",alignItems:"center",gap:6}}><svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              {byExpert ? `${expert.name.split(" ")[0]} propose un nouveau créneau` : "Reprogrammation demandée"}
+            </div>
             <div style={{fontSize:11,color:"#1E40AF",lineHeight:1.5,display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
               <span style={{textDecoration:"line-through",opacity:.7}}>{new Date(s.rescheduleFrom).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})} · {new Date(s.rescheduleFrom).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</span>
               <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><line x1={5} y1={12} x2={19} y2={12}/><polyline points="12 5 19 12 12 19"/></svg>
               <b>{s.date} · {s.time}</b>
             </div>
-            <div style={{fontSize:11,color:"#3B82F6",marginTop:5}}>En attente de l'accord de {expert.name.split(" ")[0]}.</div>
+            {byExpert ? (
+              <div style={{display:"flex",gap:8,marginTop:10}}>
+                <button onClick={()=>onRespondReschedule&&onRespondReschedule(s,"accept")} style={{flex:2,padding:"9px",borderRadius:10,border:"none",background:C.sage,color:C.white,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:SERIF,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                  <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>Accepter
+                </button>
+                <button onClick={()=>onRespondReschedule&&onRespondReschedule(s,"refuse")} style={{flex:1,padding:"9px",borderRadius:10,border:"1px solid #FEE2E2",background:"#FFF5F5",color:"#B91C1C",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>Refuser</button>
+              </div>
+            ) : (
+              <div style={{fontSize:11,color:"#3B82F6",marginTop:5}}>En attente de l'accord de {expert.name.split(" ")[0]}.</div>
+            )}
           </div>
-        )}
+          );
+        })()}
         {/* Payment CTA for confirmed unpaid sessions */}
         {s.status==="confirmed" && !s.paid && (
           <div style={{background:"linear-gradient(135deg,#FEF3C7,#FFFBEB)",border:"1.5px solid #FDE68A",borderRadius:12,padding:"11px 13px",marginBottom:10,display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}
@@ -808,6 +822,24 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
     return () => clearInterval(id);
   }, []);
 
+  // Le client accepte / refuse le nouveau créneau proposé par l'expert
+  const respondReschedule = async (s, action) => {
+    if (!s?._fromSB || !s.id) return;
+    const patch = action === "accept"
+      ? { status: "confirmed" }
+      : { status: "cancelled", cancelled_by: "client", cancel_reason: "Nouveau créneau refusé" };
+    let { data: upd, error } = await supabase.from("bookings").update(patch).eq("id", s.id).select().single();
+    if (error) {
+      ({ data: upd, error } = await supabase.from("bookings")
+        .update({ status: patch.status }).eq("id", s.id).select().single());
+    }
+    if (error) { alert("Erreur : " + error.message); return; }
+    if (upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{});
+    setSbBookings(prev => prev.map(b => b.id === s.id
+      ? { ...b, status: patch.status, statusLabel: action==="accept"?"Confirmée":"Annulée", rescheduleFrom: null, rescheduleBy: null }
+      : b));
+  };
+
   // Merge localStorage bookings with demo sessions
   const lsToSession = (b) => ({
     id: b.id,
@@ -874,6 +906,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           statusLabel: b.status === "confirmed" ? "Confirmée" : b.status === "cancelled" ? "Annulée" : "En attente",
           paid: !!b.paid || !!localStorage.getItem(`savvy_paid_${b.id}`),
           rescheduleFrom: b.reschedule_from || null,
+          rescheduleBy: b.reschedule_by || null,
           startTs: b.date_session ? new Date(b.date_session).getTime() : null,
           isPast: b.date_session ? (Date.now() > new Date(b.date_session).getTime() + 90*60000) : false,
           motif: b.cancel_reason || null,
@@ -1064,7 +1097,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
                         {g.label}
                         <div style={{height:1,flex:1,background:g.color+"30"}}/>
                       </div>
-                      {g.sessions.map(s=><SessionCard key={s.id} s={s} onMsg={onMsg} onCancel={setCancelSession} onExpert={onExpert} onPay={setPaySession}/>)}
+                      {g.sessions.map(s=><SessionCard key={s.id} s={s} onMsg={onMsg} onCancel={setCancelSession} onExpert={onExpert} onPay={setPaySession} onRespondReschedule={respondReschedule}/>)}
                     </div>
                   ));
                 })()

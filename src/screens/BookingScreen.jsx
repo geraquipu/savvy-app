@@ -10,7 +10,7 @@ const BOOKING_FORMATS = [
 ];
 
 // Convertit une durée ("15 min", "1h", "1h30", "2h"…) en minutes
-function parseDuree(str) {
+export function parseDuree(str) {
   if (!str) return 30;
   const s = String(str).toLowerCase().trim();
   const hm = s.match(/(\d+)\s*h\s*(\d+)/); if (hm) return Number(hm[1])*60 + Number(hm[2]);
@@ -20,7 +20,7 @@ function parseDuree(str) {
   return 30;
 }
 
-function CalendarPicker({ expert, onDone, onSelect, slotMinutes = 30 }) {
+export function CalendarPicker({ expert, onDone, onSelect, slotMinutes = 30 }) {
   const today = new Date();
   const [selDate, setSelDate] = useState(null);
   const [selSlot, setSelSlot] = useState(null);

@@ -548,13 +548,27 @@ export function ExpertView({
 
           {/* Toast confirm/refuse */}
           {sessionConfirmToast && (
-            <div style={{background:sessionConfirmToast.type==="confirmed"?C.sage:"#B91C1C",color:C.white,borderRadius:14,padding:"11px 16px",marginBottom:14,display:"flex",alignItems:"center",gap:10,boxShadow:`0 4px 16px rgba(0,0,0,.12)`}}>
-              <span style={{fontSize:18}}>{sessionConfirmToast.type==="confirmed"?"✅":"✕"}</span>
+            {(()=>{
+              const t = sessionConfirmToast.type;
+              const bg = t==="confirmed" ? C.sage : t==="reschedule" ? "#1D4ED8" : "#B91C1C";
+              const title = t==="confirmed" ? "Session confirmée !" : t==="reschedule" ? "Nouveau créneau proposé" : "Demande refusée";
+              const sub = t==="confirmed" ? `${sessionConfirmToast.name} a été notifié(e)`
+                : t==="reschedule" ? `${sessionConfirmToast.name} doit accepter le nouveau créneau`
+                : `${sessionConfirmToast.name} ne recevra pas de confirmation`;
+              return (
+            <div style={{background:bg,color:C.white,borderRadius:14,padding:"11px 16px",marginBottom:14,display:"flex",alignItems:"center",gap:10,boxShadow:`0 4px 16px rgba(0,0,0,.12)`}}>
+              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{flexShrink:0}}>
+                {t==="confirmed" ? <polyline points="20 6 9 17 4 12"/>
+                  : t==="reschedule" ? <><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></>
+                  : <><line x1={18} y1={6} x2={6} y2={18}/><line x1={6} y1={6} x2={18} y2={18}/></>}
+              </svg>
               <div>
-                <div style={{fontSize:13,fontWeight:700}}>{sessionConfirmToast.type==="confirmed"?"Session confirmée !":"Demande refusée"}</div>
-                <div style={{fontSize:11,opacity:.85}}>{sessionConfirmToast.name} {sessionConfirmToast.type==="confirmed"?"a été notifié(e)":"ne recevra pas de confirmation"}</div>
+                <div style={{fontSize:13,fontWeight:700}}>{title}</div>
+                <div style={{fontSize:11,opacity:.85}}>{sub}</div>
               </div>
             </div>
+              );
+            })()}
           )}
 
           {/* ── Onglets Reçues / Confirmées / Annulées ── */}

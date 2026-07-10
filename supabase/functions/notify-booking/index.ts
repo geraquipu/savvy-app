@@ -95,6 +95,44 @@ serve(async (req) => {
     );
   }
 
+  // ── Reprogrammation proposée → notifier la partie qui doit accepter ──
+  if (type === "UPDATE" && status === "pending" && booking.reschedule_from) {
+    const byExpert = booking.reschedule_by === "expert";
+    const targetId = byExpert ? clientId : expertUserId;
+    const targetEmail = byExpert ? clientEmail : expertEmail;
+    const targetName = byExpert ? clientName : expertName;
+    const askerName = byExpert ? expertName : clientName;
+    const oldD = new Date(booking.reschedule_from);
+    const oldStr = oldD.toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long", timeZone:"Europe/Paris" })
+      + " à " + oldD.toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit", timeZone:"Europe/Paris" });
+
+    if (targetId) {
+      await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}` },
+        body: JSON.stringify({ userId: targetId, title: "Nouveau créneau proposé", body: `${askerName} propose le ${date}${time ? " à " + time : ""}`, url: "/" }),
+      }).catch(() => {});
+    }
+    if (targetEmail) await sendEmail(
+      targetEmail,
+      `Nouveau créneau proposé — ${phase}`,
+      `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+        <h2 style="color:#1C1917">Demande de reprogrammation</h2>
+        <p style="color:#57534E">Bonjour ${targetName},</p>
+        <p style="color:#57534E"><strong>${askerName}</strong> souhaite déplacer votre session <strong>${phase}</strong>.</p>
+        <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:16px;margin:20px 0">
+          <p style="margin:0 0 6px;color:#64748B;font-size:13px"><s>Ancien créneau : ${oldStr}</s></p>
+          <p style="margin:0;color:#1D4ED8;font-weight:700">Nouveau créneau : ${date} ${time ? "à " + time : ""}</p>
+        </div>
+        <p style="color:#57534E">Connectez-vous à Savvy pour <strong>accepter ou refuser</strong> ce nouveau créneau.</p>
+        <a href="https://getsavvy.fr" style="display:inline-block;background:#1C1917;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;margin-top:8px">Voir la demande →</a>
+        <p style="color:#A8A29E;font-size:12px;margin-top:24px">Savvy · L'expertise humaine, accessible à tous</p>
+      </div>
+      `
+    );
+  }
+
   // ── Confirmée → push au client en plus de l'email ──
   if (type === "UPDATE" && status === "confirmed") {
     await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
