@@ -8,24 +8,44 @@ import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from "./constant
 import { Stars, Av, LoginGate, ExpertCard } from "./components/ui";
 import { HomeScreen, ExpertScreen } from "./screens";
 
+// Après un déploiement, les anciens chunks (assets/Xxx-<hash>.js) n'existent plus.
+// Un onglet resté ouvert sur l'ancienne version échoue en les chargeant → écran blanc.
+// On recharge la page une seule fois pour récupérer la nouvelle version.
+const CHUNK_RELOAD_KEY = "savvy_chunk_reloaded";
+const lazyWithReload = (factory) =>
+  lazy(() =>
+    factory()
+      .then((mod) => { try { sessionStorage.removeItem(CHUNK_RELOAD_KEY); } catch {} return mod; })
+      .catch((err) => {
+        let already = false;
+        try { already = sessionStorage.getItem(CHUNK_RELOAD_KEY) === "1"; } catch {}
+        if (!already) {
+          try { sessionStorage.setItem(CHUNK_RELOAD_KEY, "1"); } catch {}
+          window.location.reload();
+          return new Promise(() => {}); // la page se recharge, on ne résout jamais
+        }
+        throw err; // déjà tenté : laisser remonter l'erreur (Sentry la verra)
+      })
+  );
+
 // Lazy-loaded screens — only downloaded when first visited
-const MessagingScreen     = lazy(() => import("./screens/MessagingScreen"));
-const BookingScreen       = lazy(() => import("./screens/BookingScreen"));
-const MessagesListScreen  = lazy(() => import("./screens/MessagesListScreen"));
-const OnboardingScreen    = lazy(() => import("./screens/OnboardingScreen"));
-const SplashScreen        = lazy(() => import("./screens/SplashScreen"));
-const LandingScreen       = lazy(() => import("./screens/LandingScreen"));
-const HowItWorksScreen    = lazy(() => import("./screens/HowItWorksScreen"));
-const MatchScreen         = lazy(() => import("./screens/MatchScreen"));
-const SearchScreen        = lazy(() => import("./screens/SearchScreen"));
-const SuccessScreen       = lazy(() => import("./screens/SuccessScreen"));
-const ReservationsScreen  = lazy(() => import("./screens/ReservationsScreen"));
-const SignupScreen         = lazy(() => import("./screens/SignupScreen"));
-const ProfileScreen        = lazy(() => import("./screens/ProfileScreen"));
-const NotificationPanel    = lazy(() => import("./screens/NotificationPanel"));
-const AuthModal            = lazy(() => import("./screens/AuthModal"));
-const PublicProfileScreen  = lazy(() => import("./screens/PublicProfileScreen"));
-const AdminScreen          = lazy(() => import("./screens/AdminScreen"));
+const MessagingScreen     = lazyWithReload(() => import("./screens/MessagingScreen"));
+const BookingScreen       = lazyWithReload(() => import("./screens/BookingScreen"));
+const MessagesListScreen  = lazyWithReload(() => import("./screens/MessagesListScreen"));
+const OnboardingScreen    = lazyWithReload(() => import("./screens/OnboardingScreen"));
+const SplashScreen        = lazyWithReload(() => import("./screens/SplashScreen"));
+const LandingScreen       = lazyWithReload(() => import("./screens/LandingScreen"));
+const HowItWorksScreen    = lazyWithReload(() => import("./screens/HowItWorksScreen"));
+const MatchScreen         = lazyWithReload(() => import("./screens/MatchScreen"));
+const SearchScreen        = lazyWithReload(() => import("./screens/SearchScreen"));
+const SuccessScreen       = lazyWithReload(() => import("./screens/SuccessScreen"));
+const ReservationsScreen  = lazyWithReload(() => import("./screens/ReservationsScreen"));
+const SignupScreen         = lazyWithReload(() => import("./screens/SignupScreen"));
+const ProfileScreen        = lazyWithReload(() => import("./screens/ProfileScreen"));
+const NotificationPanel    = lazyWithReload(() => import("./screens/NotificationPanel"));
+const AuthModal            = lazyWithReload(() => import("./screens/AuthModal"));
+const PublicProfileScreen  = lazyWithReload(() => import("./screens/PublicProfileScreen"));
+const AdminScreen          = lazyWithReload(() => import("./screens/AdminScreen"));
 
 // ── Upload photo vers Supabase Storage ──────────────────────────────────────
 async function uploadPhoto(file, userId) {
