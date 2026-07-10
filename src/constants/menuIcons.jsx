@@ -46,3 +46,16 @@ export const MENU_ICONS = {
   "⏱": <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><circle cx={12} cy={13} r={8}/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg>,
   "🛡️": <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
 };
+
+// Icône correspondant au format réel d'une session (vidéo / audio / doc / chat)
+export function FormatIcon({ f, size = 12, stroke = "currentColor", sw = 2 }) {
+  const k = String(f || "").toLowerCase();
+  const p = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke, strokeWidth: sw };
+  if (k.includes("audio") || k.includes("appel") || k.includes("téléphone"))
+    return <svg {...p}><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>;
+  if (k.includes("doc") || k.includes("pdf") || k.includes("écrit"))
+    return <svg {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>;
+  if (k.includes("chat") || k.includes("mess") || k.includes("accompagn"))
+    return <svg {...p}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>;
+  return <svg {...p}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>;
+}

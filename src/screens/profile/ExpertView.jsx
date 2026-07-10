@@ -3,7 +3,7 @@ import { supabase } from '../../supabase';
 import { C, SERIF, SANS } from '../../constants/colors';
 import { EXPERTS, getCountdown, updateBooking } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../constants/sessionData';
-import { MENU_ICONS } from '../../constants/menuIcons.jsx';
+import { MENU_ICONS, FormatIcon } from '../../constants/menuIcons.jsx';
 
 const OFFER_EXAMPLES = [
   "Trouver des fournisseurs dans mon secteur",
@@ -409,6 +409,12 @@ export function ExpertView({
     const section = expSection; const setSection = setExpSection;
     const subSection = expSubSection; const setSubSection = setExpSubSection;
     const [joinNotice, setJoinNotice] = React.useState(null);
+    // Rafraîchit les compte à rebours ("Dans 3 h") sans recharger la page
+    const [, setTick] = React.useState(0);
+    React.useEffect(() => {
+      const id = setInterval(() => setTick(t => t + 1), 30000);
+      return () => clearInterval(id);
+    }, []);
     // Rejoindre : ouvre la salle si on est dans la fenêtre (15 min avant → 75 min après),
     // sinon affiche un message amical avec l'heure exacte.
     const handleJoin = (s) => {
@@ -676,7 +682,7 @@ export function ExpertView({
                     <span style={{fontSize:11,color:C.soft,display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>{r.date}</span>
                     <span style={{fontSize:11,color:C.soft,display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>{r.heure}</span>
                     <span style={{fontSize:11,color:C.soft,display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 14 14"/></svg>{r.duree}</span>
-                    <span style={{fontSize:11,color:C.soft,display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth={2}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>{r.format}</span>
+                    <span style={{fontSize:11,color:C.soft,display:"flex",alignItems:"center",gap:5}}><FormatIcon f={r.format} size={12} stroke={C.gold}/>{r.format}</span>
                   </div>
 
                   {/* Ce que tu reçois — mis en avant */}
@@ -804,7 +810,6 @@ export function ExpertView({
                             { label:"Reçue", done:true },
                             { label:"Confirmée", done:s.statut==="confirmé" },
                             { label:"Terminée", done:done },
-                            { label:"Versé", done:false },
                           ];
                           const curIdx = steps.findIndex(st=>!st.done);
                           return (
