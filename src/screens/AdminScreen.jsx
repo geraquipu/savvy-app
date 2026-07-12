@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { C, SERIF, SANS } from '../constants/colors';
+import { expertPayout, savvyCut, EXPERT_SHARE } from '../constants/config';
 
 const ADMIN_EMAILS = ["geraquipu@hotmail.com", "german@savvy.fr"];
 
@@ -265,7 +266,7 @@ function AdminScreen({ authUser, onBack }) {
           payouts.forEach(p => { paidOut[p.expert_id] = (paidOut[p.expert_id] || 0) + (p.amount || 0); });
           const rows = Object.entries(byExpert).map(([eid, d]) => {
             const exp = expertsList.find(e => e.id === eid);
-            const due = Math.round(d.gross * 0.8 * 100) / 100 - (paidOut[eid] || 0);
+            const due = Math.round(d.gross * EXPERT_SHARE * 100) / 100 - (paidOut[eid] || 0);
             return { eid, name: exp?.name || eid.slice(0, 8), sessions: d.sessions, gross: d.gross, due };
           }).sort((a, b) => b.due - a.due);
           const markPaid = async (r) => {

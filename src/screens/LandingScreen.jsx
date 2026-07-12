@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { C, SERIF, SANS } from '../constants/colors';
+import { expertPayout, savvyCut } from '../constants/config';
 
 const EXPERT_STEPS = [
   { n: "01", t: "Crée ton profil", s: "Décris ton expérience réelle en 5 minutes. Pas de CV, pas de diplômes — juste ce que tu as vécu." },
@@ -47,7 +48,7 @@ function LandingScreen({ onStart, onExplore, onExpert }) {
   const [calcIdx, setCalcIdx] = useState(1);
   const [sessionsPerWeek, setSessionsPerWeek] = useState(3);
   const selected = EARNINGS[calcIdx];
-  const monthly = Math.round(selected.price * 0.8 * sessionsPerWeek * 4);
+  const monthly = Math.round(expertPayout(selected.price) * sessionsPerWeek * 4);
 
   return (
     <div style={{ fontFamily: SANS, background: C.cream, minHeight: "100vh", overflowX: "hidden" }}>
@@ -162,7 +163,7 @@ function LandingScreen({ onStart, onExplore, onExpert }) {
             </div>
             <div style={{ textAlign: "right" }}>
               <div style={{ fontSize: 10, color: "rgba(253,252,248,.38)", marginBottom: 4 }}>Par session</div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: C.goldB, fontFamily: SERIF }}>{Math.round(selected.price * 0.8)}€</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: C.goldB, fontFamily: SERIF }}>{expertPayout(selected.price)}€</div>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../../supabase';
 import { C, SERIF, SANS } from '../../constants/colors';
+import { expertPayout, savvyCut } from '../../constants/config';
 import { EXPERTS, getCountdown, updateBooking } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../constants/sessionData';
 import { MENU_ICONS, FormatIcon } from '../../constants/menuIcons.jsx';
@@ -113,7 +114,7 @@ function OfferEditForm({ initial, onSave, onCancel }) {
       {price && (
         <div style={{background:C.cream3,borderRadius:9,padding:"8px 12px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <span style={{fontSize:11,color:C.muted}}>Tu gardes</span>
-          <span style={{fontSize:14,fontWeight:700,color:C.sage||C.ink}}>{Math.round(Number(price)*0.8)}€ <span style={{fontSize:10,fontWeight:400,color:C.muted}}>/ session (80%)</span></span>
+          <span style={{fontSize:14,fontWeight:700,color:C.sage||C.ink}}>{expertPayout(price)}€ <span style={{fontSize:10,fontWeight:400,color:C.muted}}>/ session (80%)</span></span>
         </div>
       )}
 
@@ -451,12 +452,12 @@ export function ExpertView({
       if (filter === "semana") return new Date(now.getTime() - 7*24*3600000);
       return new Date(now.getFullYear(), now.getMonth(), 1);
     };
-    const realRevenuTotal = authUser?.real ? realPaidBookings.reduce((s,b)=>s+(b.phase_price||0)*0.8,0) : EXPERT_DATA.impact.revenu;
+    const realRevenuTotal = authUser?.real ? realPaidBookings.reduce((s,b)=>s+expertPayout(b.phase_price),0) : EXPERT_DATA.impact.revenu;
     const realRevenu = authUser?.real
-      ? realPaidBookings.filter(b=>new Date(b.date_session)>=getStart(revFilter)).reduce((s,b)=>s+(b.phase_price||0)*0.8,0)
+      ? realPaidBookings.filter(b=>new Date(b.date_session)>=getStart(revFilter)).reduce((s,b)=>s+expertPayout(b.phase_price),0)
       : EXPERT_DATA.impact.revenu;
     const calcRevenu = (filter) => authUser?.real
-      ? realPaidBookings.filter(b=>new Date(b.date_session)>=getStart(filter)).reduce((s,b)=>s+(b.phase_price||0)*0.8,0)
+      ? realPaidBookings.filter(b=>new Date(b.date_session)>=getStart(filter)).reduce((s,b)=>s+expertPayout(b.phase_price),0)
       : EXPERT_DATA.impact.revenu;
     const realClientsCount = authUser?.real ? new Set(realPaidBookings.map(b=>b.client_id)).size : EXPERT_DATA.impact.clients;
     const realSessionsCount = authUser?.real ? realPaidBookings.length : EXPERT_DATA.impact.sessions;
@@ -626,7 +627,7 @@ export function ExpertView({
                 </div>
               </div>
               {EXP_REQUESTS.map(r=>{
-                const gain = Math.round((r.prix||0)*0.8);
+                const gain = expertPayout(r.prix);
                 const commission = (r.prix||0) - gain;
                 return (
                 <div key={r.id} style={{background:C.white,borderRadius:16,border:"1.5px solid #FDE68A",padding:"15px 16px",marginBottom:12,boxShadow:"0 2px 10px rgba(245,158,11,.10)"}}>
@@ -846,7 +847,7 @@ export function ExpertView({
                           <div style={{background:C.sageL||"#F0F5EF",borderRadius:8,padding:"8px 11px",marginBottom:11}}>
                             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                               <span style={{fontSize:11,color:C.sage,fontWeight:600}}>Tu reçois</span>
-                              <span style={{fontSize:14,fontWeight:800,color:C.sage,fontFamily:SERIF}}>{Math.round((s.prix||0)*0.8)}€</span>
+                              <span style={{fontSize:14,fontWeight:800,color:C.sage,fontFamily:SERIF}}>{expertPayout(s.prix)}€</span>
                             </div>
                             {s.statut==="confirmé" && <div style={{fontSize:9,color:C.muted,marginTop:2}}>Versé sous 24h après la session</div>}
                           </div>
@@ -1191,7 +1192,7 @@ export function ExpertView({
                     <div style={{fontSize:13,fontWeight:600,color:C.ink}}>{b.phase_name||"Session"}</div>
                     <div style={{fontSize:11,color:C.muted}}>{b.date_session?new Date(b.date_session).toLocaleDateString("fr-FR",{day:"numeric",month:"short"}):"—"}</div>
                   </div>
-                  <div style={{fontSize:14,fontWeight:700,color:C.gold}}>+{((b.phase_price||0)*0.8).toFixed(0)}€</div>
+                  <div style={{fontSize:14,fontWeight:700,color:C.gold}}>+{(expertPayout(b.phase_price)).toFixed(0)}€</div>
                 </div>
               ));
             })()}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { C, SERIF, SANS } from '../constants/colors';
+import { expertPayout, savvyCut } from '../constants/config';
 import { DEMO_USERS, CATS, SUBCATS, TRUST_LEVELS, getTrustLevel, getBookings, EXPERTS, getCountdown } from '../constants/data';
 import { EXPERT_EXTRAS, EXPERT_STYLE_TAGS, EXPERT_FIRST_SESSION } from '../constants/expertExtras';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../constants/sessionData';
@@ -369,7 +370,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
             const reviews = revRes.data || [];
             const sessions = bookings.length;
             const clients = new Set(bookings.map(b => b.client_id)).size;
-            const revenu = bookings.reduce((s, b) => s + Math.round((b.phase_price || 0) * 0.8), 0);
+            const revenu = bookings.reduce((s, b) => s + expertPayout(b.phase_price), 0);
             const rating = reviews.length > 0 ? +(reviews.reduce((s, r) => s + r.stars, 0) / reviews.length).toFixed(1) : null;
             setRealStats({ sessions, clients, revenu, rating, reviewCount: reviews.length });
           });
@@ -685,11 +686,11 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
             <div style={{background:C.sageL||"#F0F5EF",borderRadius:13,padding:"14px 16px",marginBottom:20,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
               <div>
                 <div style={{fontSize:11,color:C.sage,fontWeight:600}}>Tu reçois</div>
-                <div style={{fontSize:22,fontWeight:800,color:C.sage,fontFamily:SERIF,lineHeight:1.1}}>{Math.round((r.prix||0)*0.8)}€</div>
+                <div style={{fontSize:22,fontWeight:800,color:C.sage,fontFamily:SERIF,lineHeight:1.1}}>{expertPayout(r.prix)}€</div>
               </div>
               <div style={{textAlign:"right",fontSize:11,color:C.muted,lineHeight:1.5}}>
                 <div>Prix client : {r.prix||0}€</div>
-                <div>Commission Savvy : {(r.prix||0)-Math.round((r.prix||0)*0.8)}€</div>
+                <div>Commission Savvy : {(r.prix||0)-expertPayout(r.prix)}€</div>
               </div>
             </div>
 
