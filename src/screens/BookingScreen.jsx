@@ -2,23 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { C, SERIF } from '../constants/colors'
 import { supabase } from '../supabase'
 import { FormatIcon } from '../constants/menuIcons.jsx'
+import { FORMAT_META, FORMAT_IDS, normalizeOffer, normalizeOffers, formatDuration, slotStepFor, parseDurationMin } from '../constants/offers'
 
-const BOOKING_FORMATS = [
-  { id:"video", label:"Vidéocall", sub:"En direct · face à face" },
-  { id:"audio", label:"Appel audio", sub:"Téléphone · voix uniquement" },
-  { id:"doc",   label:"Document écrit", sub:"Livrable PDF · 24-48h" },
-  { id:"chat",  label:"Accompagnement", sub:"Échanges par messagerie" },
-];
+const BOOKING_FORMATS = FORMAT_IDS.map(id => ({ id, label: FORMAT_META[id].label, sub: FORMAT_META[id].sub }));
 
-// Convertit une durée ("15 min", "1h", "1h30", "2h"…) en minutes
+// Rétro-compat : parseDuree renvoie des minutes (utilisé par d'autres écrans)
 export function parseDuree(str) {
-  if (!str) return 30;
-  const s = String(str).toLowerCase().trim();
-  const hm = s.match(/(\d+)\s*h\s*(\d+)/); if (hm) return Number(hm[1])*60 + Number(hm[2]);
-  const h = s.match(/(\d+)\s*h/);          if (h)  return Number(h[1])*60;
-  const m = s.match(/(\d+)\s*min/);        if (m)  return Number(m[1]);
-  const n = s.match(/(\d+)/);              if (n)  return Number(n[1]);
-  return 30;
+  return parseDurationMin(str) ?? 30;
 }
 
 export function CalendarPicker({ expert, onDone, onSelect, slotMinutes = 30 }) {
@@ -249,6 +239,11 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
   const [step, setStep] = useState("offre"); // offre → format → date → confirm
   const [selectedPhase, setSelectedPhase] = useState(ph);
   const [selectedFormat, setSelectedFormat] = useState(null);
+  // Si l'offre n'a qu'un format, on le pré-sélectionne (moins de friction)
+  useEffect(() => {
+    const o = selectedPhase ? normalizeOffer(selectedPhase) : null;
+    setSelectedFormat(o && o.formats.length === 1 ? o.formats[0] : null);
+  }, [selectedPhase]);
   const [booking, setBooking] = useState({ date:null, slot:null });
   const [note, setNote] = useState("");
   // Payment states at component level (React hooks rules)
@@ -303,36 +298,16 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
     onConfirm({date:booking.date, slot:booking.slot, note, format:chosenFormat, duree:chosenDuree});
   };
 
-  // Determine available formats from the phase.
-  // Priorité au tableau `formats` (l'expert peut en activer plusieurs),
-  // sinon on retombe sur le champ `format` unique.
-  const normFmt = (raw) => {
-    const pf = (raw||"").toLowerCase();
-    if (pf.includes("vid")) return "video";
-    if (pf.includes("audio") || pf.includes("appel")) return "audio";
-    if (pf.includes("doc") || pf.includes("pdf")) return "doc";
-    if (pf.includes("chat") || pf.includes("mess")) return "chat";
-    return null;
-  };
-  const phaseFormatIds = Array.isArray(selectedPhase?.formats) && selectedPhase.formats.length
-    ? selectedPhase.formats.map(normFmt).filter(Boolean)
-    : (selectedPhase?.format ? [normFmt(selectedPhase.format)].filter(Boolean) : []);
-  const availableFormats = phaseFormatIds.length
-    ? BOOKING_FORMATS.filter(f => phaseFormatIds.includes(f.id))
+  // Offre normalisée = source de vérité unique (durée, formats, prix).
+  const offer = selectedPhase ? normalizeOffer(selectedPhase) : null;
+  const formatsToShow = offer
+    ? BOOKING_FORMATS.filter(f => offer.formats.includes(f.id))
     : BOOKING_FORMATS;
-  const formatsToShow = availableFormats.length > 0 ? availableFormats : BOOKING_FORMATS;
 
-  // Format + durée réellement choisis, à transmettre à la réservation.
-  // La durée que voit le client est dans `what` ("Appel audio 15min") ;
-  // `format` ne contient que l'id ("audio") et `duree` peut être un ancien défaut.
-  const chosenFormat = { video:"Vidéo", audio:"Audio", doc:"Document", chat:"Chat" }[selectedFormat] || "Vidéo";
-  const grabDuree = (str) => str ? String(str).match(/\d+\s*h(?:\s*\d+)?|\d+\s*min/i)?.[0] : null;
-  const chosenDuree = grabDuree(selectedPhase?.what)
-    || selectedPhase?.duree
-    || grabDuree(selectedPhase?.format)
-    || "1h";
-  // Pas des créneaux : borné pour qu'un "Document 24h" ne vide pas le calendrier
-  const slotStep = Math.min(240, Math.max(15, parseDuree(chosenDuree)));
+  // Valeurs transmises à la réservation
+  const chosenFormat = FORMAT_META[selectedFormat]?.short || "Vidéo";
+  const chosenDuree = offer ? formatDuration(offer.durationMin) : "1h";
+  const slotStep = offer ? slotStepFor(offer.durationMin) : 60;
 
   const Header = () => (
     <div style={{ background:C.white, padding:"13px 16px 12px", borderBottom:`1px solid ${C.border}`, boxShadow:`0 1px 6px ${C.sh}` }}>
