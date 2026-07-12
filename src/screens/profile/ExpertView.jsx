@@ -548,8 +548,7 @@ export function ExpertView({
           <BackHeaderExp title="Mes sessions" sub="Tes rendez-vous à venir" onBack={()=>setSection(null)}/>
 
           {/* Toast confirm/refuse */}
-          {sessionConfirmToast && (
-            {(()=>{
+          {sessionConfirmToast && (()=>{
               const t = sessionConfirmToast.type;
               const bg = t==="confirmed" ? C.sage : t==="reschedule" ? "#1D4ED8" : "#B91C1C";
               const title = t==="confirmed" ? "Session confirmée !" : t==="reschedule" ? "Nouveau créneau proposé" : "Demande refusée";
@@ -570,7 +569,6 @@ export function ExpertView({
             </div>
               );
             })()}
-          )}
 
           {/* ── Onglets Reçues / Confirmées / Annulées ── */}
           <div style={{display:"flex",gap:6,marginBottom:16}}>
