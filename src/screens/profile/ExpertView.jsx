@@ -416,6 +416,13 @@ export function ExpertView({
       const id = setInterval(() => setTick(t => t + 1), 30000);
       return () => clearInterval(id);
     }, []);
+    // ── États remontés ici pour respecter les règles des hooks ──
+    // (ils étaient déclarés dans des blocs conditionnels de sections → crash #310)
+    const [edited, setEdited] = React.useState(null);       // éditeur de disponibilités
+    const [avisNote, setAvisNote] = React.useState(0);      // formulaire d'avis
+    const [avisTxt, setAvisTxt] = React.useState("");
+    const [avisSent, setAvisSent] = React.useState(false);
+    const [copied, setCopied] = React.useState(false);      // modal partage
     // Rejoindre : ouvre la salle si on est dans la fenêtre (15 min avant → 75 min après),
     // sinon affiche un message amical avec l'heure exacte.
     const handleJoin = (s) => {
@@ -905,7 +912,6 @@ export function ExpertView({
       // modifié, on affiche cette valeur dérivée ; dès qu'il touche un jour,
       // on bascule sur son édition locale.
       const derivedWeek = deriveWeek();
-      const [edited, setEdited] = React.useState(null);
       const weekSchedule = edited || derivedWeek;
       const setWeekSchedule = (updater) => setEdited(prev => typeof updater === "function" ? updater(prev || derivedWeek) : updater);
 
@@ -1359,9 +1365,6 @@ export function ExpertView({
       );
 
       if (subSection === "avis") return (()=>{
-        const [avisNote, setAvisNote] = useState(0);
-        const [avisTxt, setAvisTxt] = useState("");
-        const [avisSent, setAvisSent] = useState(false);
         return (
           <div>
             <BackHeaderExp title="Laisser un commentaire" onBack={goBackToAide}/>
@@ -1943,7 +1946,6 @@ export function ExpertView({
 
         {/* Modal partager profil */}
         {showShareModal && (()=>{
-          const [copied, setCopied] = useState(false);
           const doShare = async () => {
             if (navigator.share) {
               try { await navigator.share({title:"Mon profil Savvy", text:"Consulte mon profil conseiller ✦", url:expertProfileUrl}); setShowShareModal(false); return; } catch {}

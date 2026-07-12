@@ -97,6 +97,12 @@ export function ClientView({
 }) {
     const section = clientSection; const setSection = setClientSection;
     const subSection = clientSubSection; const setSubSection = setClientSubSection;
+    // États remontés au niveau composant (règles des hooks) — étaient déclarés
+    // dans des blocs conditionnels (avis, modal parrainage) → crash #310.
+    const [avisNote, setAvisNote] = useState(0);
+    const [avisTxt, setAvisTxt] = useState("");
+    const [avisSent, setAvisSent] = useState(false);
+    const [linkCopied, setLinkCopied] = useState(false);
     const sessionFilter = clientSessionFilter; const setSessionFilter = setClientSessionFilter;
     const payFilter = clientPayFilter; const setPayFilter = setClientPayFilter;
     const cercleTab = clientCercleTab; const setCercleTab = setClientCercleTab;
@@ -614,9 +620,6 @@ export function ClientView({
       );
 
       if (subSection === "avis") return (()=>{
-        const [avisNote, setAvisNote] = useState(0);
-        const [avisTxt, setAvisTxt] = useState("");
-        const [avisSent, setAvisSent] = useState(false);
         return (
           <div>
             <BackHeader title="Laisser un commentaire" sub="Ton avis nous aide a progresser" onBack={goBackToAide}/>
@@ -757,7 +760,6 @@ export function ClientView({
 
       {/* ── Partager Savvy modal (client) ── */}
       {showReferModal && (()=>{
-        const [linkCopied, setLinkCopied] = useState(false);
         const INVITE_URL = "https://savvy.fr/invite";
         const shareVia = (ch) => {
           if (navigator.share) { navigator.share({title:"Savvy — Conseils d'experts",url:INVITE_URL}).catch(()=>{}); return; }
