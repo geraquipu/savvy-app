@@ -396,7 +396,9 @@ export default function App() {
           setClientPendingCount(n);
         });
     load();
-    const channel = supabase.channel("client-bookings-" + cid)
+    // Nom unique : ReservationsScreen utilise déjà "client-bookings-<cid>".
+    // Deux canaux avec le même nom -> "cannot add postgres_changes after subscribe()".
+    const channel = supabase.channel("client-bookings-badge-" + cid)
       .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `client_id=eq.${cid}` }, load)
       .subscribe();
     return () => supabase.removeChannel(channel);
