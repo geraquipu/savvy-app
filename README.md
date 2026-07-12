@@ -1,16 +1,36 @@
-# React + Vite
+# Savvy
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Parlez avec quelqu'un qui l'a déjà fait.
 
-Currently, two official plugins are available:
+PWA (React + Vite) que conecta clientes con expertos que ya vivieron su
+situación. En producción: **[getsavvy.fr](https://getsavvy.fr)**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Arranque rápido
 
-## React Compiler
+```bash
+npm install
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Documentación
 
-## Expanding the ESLint configuration
+- **[docs/ARQUITECTURA.md](docs/ARQUITECTURA.md)** — cómo está montado todo
+  (IDs, ofertas, notificaciones, mapa de pantallas). **Empieza por aquí.**
+- **[docs/BACKUP.md](docs/BACKUP.md)** — copias de seguridad y recuperación.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Stack
+
+| Capa | Tecnología |
+|---|---|
+| Frontend | React 18, Vite |
+| Backend | Supabase (auth, DB, Storage, Realtime, Edge Functions) |
+| Pagos | Stripe |
+| Deploy | Vercel (auto en `git push` a `main`) |
+| Monitoreo | Sentry, Vercel Analytics |
+
+## Deploy
+
+```bash
+git add -A && git commit -m "mensaje" && git push origin main
+```
+Vercel construye y publica solo. Ref Supabase: `idjvhnhhjjpogdkzrucx`.
