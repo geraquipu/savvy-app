@@ -462,12 +462,15 @@ export default function App() {
     const googlePhoto = u.user_metadata?.avatar_url || u.user_metadata?.picture || null;
     const base = { email:u.email, name:u.user_metadata?.full_name || u.user_metadata?.name || u.email.split("@")[0], isExpert:false, real:true, id:u.id };
     try {
-      let { data } = await supabase.from("profiles").select("*").eq("id", u.id).single();
+      // Colonnes explicites (pas de email : donnée personnelle protégée au niveau colonne).
+      // L'email de l'utilisateur vient de la session auth (u.email), pas de cette table.
+      const PROFILE_COLS = "id, name, city, expert_domain";
+      let { data } = await supabase.from("profiles").select(PROFILE_COLS).eq("id", u.id).single();
       if (!data) {
         // Le trigger handle_new_user a peut-être échoué — on crée le profil manuellement
         const { data: created } = await supabase.from("profiles")
           .upsert({ id: u.id, name: u.user_metadata?.name || base.name, email: u.email }, { onConflict: "id" })
-          .select().single();
+          .select(PROFILE_COLS).single();
         data = created;
       }
       if (data) {

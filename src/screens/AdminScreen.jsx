@@ -60,7 +60,7 @@ function AdminScreen({ authUser, onBack }) {
     if (!isAdmin) return;
     loadPending();
     Promise.all([
-      supabase.from("profiles").select("id, name, email, is_expert, created_at").order("created_at", { ascending: false }).limit(50),
+      supabase.from("profiles").select("id, name, is_expert, created_at").order("created_at", { ascending: false }).limit(50),
       supabase.from("bookings").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("reviews").select("*, experts(name)").order("created_at", { ascending: false }).limit(50),
       supabase.from("experts").select("id, name, active").eq("active", true),
@@ -214,11 +214,11 @@ function AdminScreen({ authUser, onBack }) {
             {users.map(u => (
               <div key={u.id} style={{ background: C.white, borderRadius: 12, border: `1px solid ${C.border}`, padding: "13px 15px", display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{ width: 38, height: 38, borderRadius: "50%", background: u.is_expert ? C.goldL : C.cream2, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 14, color: u.is_expert ? C.goldB : C.muted, flexShrink: 0 }}>
-                  {(u.name || u.email || "?")[0].toUpperCase()}
+                  {(u.name || "?")[0].toUpperCase()}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name || u.email}</div>
-                  <div style={{ fontSize: 11, color: C.muted }}>{u.email}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name || "Utilisateur"}</div>
+                  <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace" }}>{String(u.id).slice(0, 8)}</div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, flexShrink: 0 }}>
                   {u.is_expert && <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 10, background: C.goldL, color: C.goldB, fontWeight: 700 }}>EXPERT</span>}
