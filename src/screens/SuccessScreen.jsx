@@ -85,7 +85,7 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, bookingN
           if (bookingNote && bookingNote.trim()) {
             let receiverId = e.user_id || null;
             if (!receiverId) {
-              const { data: exp } = await supabase.from("experts").select("user_id").eq("id", expertId).single();
+              const { data: exp } = await supabase.from("experts").select("user_id").eq("id", expertId).maybeSingle();
               receiverId = exp?.user_id || null;
             }
             if (receiverId) {

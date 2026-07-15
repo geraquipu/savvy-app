@@ -196,7 +196,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
     if (!authUser?.real || !authUser?.id) return;
     if (authUser?.expertId) { setResolvedExpertId(authUser.expertId); return; }
     // Fallback: chercher l'expertId même si isExpert n'est pas encore confirmé
-    supabase.from("experts").select("id").eq("user_id", authUser.id).single()
+    supabase.from("experts").select("id").eq("user_id", authUser.id).maybeSingle()
       .then(({data}) => {
         if (data?.id) setResolvedExpertId(data.id);
       });
@@ -355,7 +355,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
   const [realStats, setRealStats] = useState({ sessions: 0, clients: 0, revenu: 0, rating: null, reviewCount: 0 });
   useEffect(() => {
     if (!authUser?.real || !authUser?.isExpert) return;
-    supabase.from("experts").select("*").eq("user_id", authUser.id).single()
+    supabase.from("experts").select("*").eq("user_id", authUser.id).maybeSingle()
       .then(({ data }) => {
         if (data) {
           setSbExpertData(data);
@@ -786,7 +786,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
               // Persiste : nouvelle date, repasse en attente, garde l'ancien créneau + qui l'a demandé
               let { data: upd, error } = await supabase.from("bookings")
                 .update({ date_session: dt.toISOString(), status:"pending", reschedule_from: prevIso, reschedule_by:"expert" })
-                .eq("id", s.id).select().single();
+                .eq("id", s.id).select().maybeSingle();
               if (error) {
                 ({ data: upd, error } = await supabase.from("bookings")
                   .update({ date_session: dt.toISOString(), status:"pending" }).eq("id", s.id).select().single());
@@ -1254,7 +1254,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                 setSaving(false);
                 return;
               }
-              const { data } = await supabase.from("experts").select("*").eq("user_id", authUser.id).single();
+              const { data } = await supabase.from("experts").select("*").eq("user_id", authUser.id).maybeSingle();
               if (data) setSbExpertData(data);
             }
             setSaving(false);

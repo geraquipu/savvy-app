@@ -465,7 +465,7 @@ export default function App() {
       // Colonnes explicites (pas de email : donnée personnelle protégée au niveau colonne).
       // L'email de l'utilisateur vient de la session auth (u.email), pas de cette table.
       const PROFILE_COLS = "id, name, city, expert_domain";
-      let { data } = await supabase.from("profiles").select(PROFILE_COLS).eq("id", u.id).single();
+      let { data } = await supabase.from("profiles").select(PROFILE_COLS).eq("id", u.id).maybeSingle();
       if (!data) {
         // Le trigger handle_new_user a peut-être échoué — on crée le profil manuellement
         const { data: created } = await supabase.from("profiles")
@@ -477,7 +477,7 @@ export default function App() {
         let photoUrl = null;
         let expertId = null;
         let isApprovedExpert = false;
-        const { data: exp } = await supabase.from("experts").select("id, photo_url, active").eq("user_id", u.id).single();
+        const { data: exp } = await supabase.from("experts").select("id, photo_url, active").eq("user_id", u.id).maybeSingle();
         if (exp) {
           photoUrl = exp.photo_url || googlePhoto;
           expertId = exp.id || null;

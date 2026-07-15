@@ -10,7 +10,7 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
   const [sbStats, setSbStats] = useState(null);
   useEffect(() => {
     if (!realExpertId) return;
-    supabase.from("experts").select("*").eq("id", realExpertId).single().then(({ data }) => { if (data) setSbExpert(data); });
+    supabase.from("experts").select("*").eq("id", realExpertId).maybeSingle().then(({ data }) => { if (data) setSbExpert(data); });
     supabase.from("reviews").select("*").eq("expert_id", realExpertId).order("created_at", { ascending: false }).limit(10).then(({ data }) => { if (data) setSbReviews(data); });
     supabase.from("bookings").select("id, client_id").eq("expert_id", realExpertId).eq("status", "confirmed").then(({ data }) => {
       if (data) setSbStats({ sessions: data.length, clients: new Set(data.map(b=>b.client_id)).size });

@@ -824,7 +824,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
         localStorage.setItem(`savvy_dispo_hours_${_dk}`, JSON.stringify(hMap));
         // Also save to Supabase availability table
         if (authUser?.real && authUser?.id) {
-          const { data: expRow } = await supabase.from("experts").select("id").eq("user_id", authUser.id).single();
+          const { data: expRow } = await supabase.from("experts").select("id").eq("user_id", authUser.id).maybeSingle();
           const expertId = expRow?.id;
           if (expertId) {
             const rows = Object.entries(form.dispoJours)
@@ -1062,7 +1062,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
                 { onConflict: "id" }
               );
               // Try update first (if row exists), then insert
-              const{data:existing}=await supabase.from("experts").select("id").eq("user_id",authUser.id).single();
+              const{data:existing}=await supabase.from("experts").select("id").eq("user_id",authUser.id).maybeSingle();
               let saveError=null;
               if(existing?.id){
                 const{error}=await supabase.from("experts").update(expertData).eq("user_id",authUser.id);
