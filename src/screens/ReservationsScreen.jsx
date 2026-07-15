@@ -346,7 +346,7 @@ function CancelModal({ session, onClose, onMsg }) {
   );
 }
 
-function ReviewModal({ session, onClose, authUser }) {
+function ReviewModal({ session, onClose, authUser, onExpert }) {
   const [q1, setQ1] = useState(null); // "oui" | "partiel" | "non"
   const [q2, setQ2] = useState(null); // "oui" | "non"
   const [q3, setQ3] = useState(0);   // 1–5
@@ -388,10 +388,27 @@ function ReviewModal({ session, onClose, authUser }) {
         <div style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:14 }}>
           {session.expert?.name?.split(" ")[0]} appréciera ton avis — et tu aides les prochains à choisir le bon expert.
         </div>
-        <div style={{ background:C.goldL, borderRadius:13, padding:"11px 14px", marginBottom:22, border:`1px solid ${C.goldB}`, fontSize:12, color:C.gold, lineHeight:1.6 }}>
+        <div style={{ background:C.goldL, borderRadius:13, padding:"11px 14px", marginBottom:20, border:`1px solid ${C.goldB}`, fontSize:12, color:C.gold, lineHeight:1.6 }}>
           Ton évaluation alimente le Savvy Trust Score de la communauté.
         </div>
-        <button onClick={onClose} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", background:C.ink, color:C.white, fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:SERIF }}>Parfait !</button>
+        {/* Prolonger l'élan : re-réserver ou recommander */}
+        <button onClick={()=>{ onClose(); onExpert && onExpert(session.expert); }} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", background:C.ink, color:C.white, fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:SERIF, marginBottom:10 }}>
+          Réserver de nouveau avec {session.expert?.name?.split(" ")[0]}
+        </button>
+        <div style={{ display:"flex", gap:10 }}>
+          <button onClick={async ()=>{
+            const url = `https://getsavvy.fr/p/${session.expert?.id}`;
+            const first = (session.expert?.name||"").split(" ")[0];
+            try { if (navigator.share) { await navigator.share({ title:`${session.expert?.name} sur Savvy`, text:`Je te recommande ${first} sur Savvy`, url }); return; } } catch {}
+            try { await navigator.clipboard.writeText(url); alert("Lien du profil copié !"); } catch {}
+          }} style={{ flex:1, padding:"13px", borderRadius:13, border:`1.5px solid ${C.border}`, background:C.white, color:C.ink, fontWeight:600, fontSize:13, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:7 }}>
+            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={18} cy={5} r={3}/><circle cx={6} cy={12} r={3}/><circle cx={18} cy={19} r={3}/><line x1={8.6} y1={13.5} x2={15.4} y2={17.5}/><line x1={15.4} y1={6.5} x2={8.6} y2={10.5}/></svg>
+            Recommander
+          </button>
+          <button onClick={onClose} style={{ flex:1, padding:"13px", borderRadius:13, border:`1.5px solid ${C.border}`, background:C.white, color:C.muted, fontWeight:600, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>
+            Fermer
+          </button>
+        </div>
       </div>
     </>
   );
@@ -413,12 +430,33 @@ function ReviewModal({ session, onClose, authUser }) {
 
         <div style={{ padding:"0 20px 28px" }}>
 
+          {/* Note en étoiles — action principale */}
+          <div style={{ textAlign:"center", marginBottom:22, paddingTop:2 }}>
+            <div style={{ fontSize:16, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:14 }}>
+              Comment s'est passée la session ?
+            </div>
+            <div style={{ display:"flex", gap:6, justifyContent:"center" }}>
+              {[1,2,3,4,5].map(s => (
+                <button key={s} onClick={()=>setQ3(s)} onMouseEnter={()=>setHovered(s)} onMouseLeave={()=>setHovered(0)}
+                  style={{ background:"none", border:"none", cursor:"pointer", padding:3, transition:"transform .15s", transform:s<=(hovered||q3)?"scale(1.18)":"scale(1)" }}>
+                  <svg width={44} height={44} viewBox="0 0 24 24" fill={s<=(hovered||q3)?"#B8864A":"#E7E2D9"}><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </button>
+              ))}
+            </div>
+            {q3 > 0 && <div style={{ fontSize:13, color:C.gold, fontWeight:700, marginTop:10 }}>
+              {["","Décevant","Peut mieux faire","Correct","Très bien","Excellent !"][q3]}
+            </div>}
+            <div style={{ fontSize:11, color:C.faint, marginTop:6 }}>Ta note publique sur le profil de {session.expert?.name?.split(" ")[0]}</div>
+          </div>
+
+          <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:.6, marginBottom:12, borderTop:`1px solid ${C.borderF}`, paddingTop:16 }}>Pour affiner ton avis</div>
+
           {/* Q1 — Résolution du problème */}
           <div style={{ marginBottom:20 }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:4 }}>
-              1. Est-ce que {session.expert?.name?.split(" ")[0]} a résolu ton problème ?
+              {session.expert?.name?.split(" ")[0]} a-t-il résolu ton problème ?
             </div>
-            <div style={{ fontSize:11, color:C.muted, marginBottom:12 }}>C\'est la question la plus importante.</div>
+            <div style={{ fontSize:11, color:C.muted, marginBottom:12 }}>La question la plus importante.</div>
             <div style={{ display:"flex", gap:8 }}>
               {[
                 {v:"oui",    l:"Oui, complètement",   bg:"#D1FAE5", border:"rgba(5,150,105,.4)",  color:"#065F46"},
@@ -436,7 +474,7 @@ function ReviewModal({ session, onClose, authUser }) {
           {/* Q2 — Expérience réelle */}
           <div style={{ marginBottom:20 }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:4 }}>
-              2. Avait-il une expérience réelle sur le sujet ?
+              Avait-il une expérience réelle sur le sujet ?
             </div>
             <div style={{ fontSize:11, color:C.muted, marginBottom:12 }}>Pas une formation — une vraie expérience vécue.</div>
             <div style={{ display:"flex", gap:8 }}>
@@ -450,25 +488,6 @@ function ReviewModal({ session, onClose, authUser }) {
                 </button>
               ))}
             </div>
-          </div>
-
-          {/* Q3 — Recommandation 1-5 */}
-          <div style={{ marginBottom:18 }}>
-            <div style={{ fontSize:14, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:4 }}>
-              3. Le recommanderais-tu ?
-            </div>
-            <div style={{ fontSize:11, color:C.muted, marginBottom:12 }}>Ta note publique sur son profil.</div>
-            <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
-              {[1,2,3,4,5].map(s => (
-                <button key={s} onClick={()=>setQ3(s)} onMouseEnter={()=>setHovered(s)} onMouseLeave={()=>setHovered(0)}
-                  style={{ background:"none", border:"none", cursor:"pointer", padding:4, transition:"transform .15s", transform:s<=(hovered||q3)?"scale(1.2)":"scale(1)" }}>
-                  <svg width={38} height={38} viewBox="0 0 24 24" fill={s<=(hovered||q3)?"#B8864A":"#E7E2D9"}><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                </button>
-              ))}
-            </div>
-            {q3 > 0 && <div style={{ textAlign:"center", fontSize:13, color:C.gold, fontWeight:700, marginTop:8 }}>
-              {["","Décevant — ne pas recommander","Peut mieux faire","Correct — quelques réserves","Très bien — je recommande","Excellent ! Je le recommande vivement"][q3]}
-            </div>}
           </div>
 
           {/* Commentaire optionnel */}
@@ -1194,7 +1213,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
       </div>
 
       {/* Modals */}
-      {reviewSession && <ReviewModal session={reviewSession} onClose={()=>setReviewSession(null)} authUser={authUser}/>}
+      {reviewSession && <ReviewModal session={reviewSession} onClose={()=>setReviewSession(null)} authUser={authUser} onExpert={onExpert}/>}
       {paySession && (
         <PaymentModal
           session={paySession}
