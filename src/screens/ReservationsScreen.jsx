@@ -379,13 +379,17 @@ function ReviewModal({ session, onClose, authUser }) {
       <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.45)", zIndex:50 }}/>
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:430, background:C.white, zIndex:60, borderRadius:"24px 24px 0 0", padding:"32px 22px 40px", textAlign:"center" }}>
         <div style={{ width:36, height:4, borderRadius:2, background:C.cream3, margin:"0 auto 22px" }}/>
-        <div style={{ fontSize:52, marginBottom:16 }}>✦</div>
+        <div style={{ display:"flex", justifyContent:"center", marginBottom:16 }}>
+          <div style={{ width:56, height:56, borderRadius:"50%", background:C.goldL, display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <svg width={26} height={26} viewBox="0 0 24 24" fill={C.goldB} stroke="none"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7-6.2-3.7L5.8 21l1.6-7L2 9.5l7.1-.6z"/></svg>
+          </div>
+        </div>
         <div style={{ fontSize:20, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:10 }}>Merci pour ton retour !</div>
         <div style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:14 }}>
-          Ton évaluation alimente le <b style={{ color:C.ink }}>Savvy Trust Score</b> de {session.expert?.name?.split(" ")[0]} et aide la communauté à prendre de meilleures décisions.
+          {session.expert?.name?.split(" ")[0]} appréciera ton avis — et tu aides les prochains à choisir le bon expert.
         </div>
         <div style={{ background:C.goldL, borderRadius:13, padding:"11px 14px", marginBottom:22, border:`1px solid ${C.goldB}`, fontSize:12, color:C.gold, lineHeight:1.6 }}>
-          Ton avis contribue à l\'Exartitude de la plateforme.
+          Ton évaluation alimente le Savvy Trust Score de la communauté.
         </div>
         <button onClick={onClose} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", background:C.ink, color:C.white, fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:SERIF }}>Parfait !</button>
       </div>
@@ -804,6 +808,14 @@ function PastCard({ s, onExpert, onResume, onReview }) {
         </button>
         <button onClick={() => onReview && onReview({...s, expert})} style={{ flex:1, padding:"9px", borderRadius:10, border:`1px solid ${C.goldB}`, cursor:"pointer", fontWeight:700, fontSize:12, background:C.goldL, color:C.gold, fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
           <svg width={12} height={12} viewBox="0 0 12 12" fill={C.gold} stroke="none"><path d="M6 1l1.5 3H11l-2.5 2 1 3L6 7.5 2.5 9l1-3L1 4h3.5z"/></svg>Avis
+        </button>
+        <button onClick={async () => {
+          const url = `https://getsavvy.fr/p/${expert.id}`;
+          const first = (expert.name||"").split(" ")[0];
+          try { if (navigator.share) { await navigator.share({ title:`${expert.name} sur Savvy`, text:`Je te recommande ${first} sur Savvy`, url }); return; } } catch {}
+          try { await navigator.clipboard.writeText(url); alert("Lien du profil copié !"); } catch {}
+        }} style={{ flex:1, padding:"9px", borderRadius:10, border:`1px solid ${C.border}`, cursor:"pointer", fontWeight:600, fontSize:12, background:C.white, color:C.ink, fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
+          <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={18} cy={5} r={3}/><circle cx={6} cy={12} r={3}/><circle cx={18} cy={19} r={3}/><line x1={8.6} y1={13.5} x2={15.4} y2={17.5}/><line x1={15.4} y1={6.5} x2={8.6} y2={10.5}/></svg>Partager
         </button>
         <button onClick={() => onExpert && onExpert(expert)} style={{ flex:1, padding:"9px", borderRadius:10, border:`1px solid ${C.goldB}`, cursor:"pointer", fontWeight:700, fontSize:12, background:C.goldL, color:C.gold, fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
           <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Répéter
