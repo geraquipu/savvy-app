@@ -568,8 +568,8 @@ function ReportModal({ session, onClose, authUser }) {
 
   const REASONS = [
     { v:"absent",    l:`${first} ne s'est pas présenté(e)` },
-    { v:"technique", l:"Problème technique (son, vidéo, lien)" },
-    { v:"contenu",   l:"La session n'a pas répondu à mon besoin" },
+    { v:"technique", l:"Problème technique (audio, vidéo, lien)" },
+    { v:"contenu",   l:"La session ne correspondait pas à la réservation" },
     { v:"autre",     l:"Autre" },
   ];
 
@@ -610,13 +610,15 @@ function ReportModal({ session, onClose, authUser }) {
           </div>
         </div>
         <div style={{ fontSize:19, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:8 }}>
-          {delivered ? "Signalement envoyé" : "On a bien noté"}
+          {delivered ? "Signalement reçu" : "On a bien noté"}
         </div>
         <div style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:22 }}>
           {delivered
-            ? "L'équipe Savvy regarde ça et te répond par email sous 24h."
+            ? <>Notre équipe examine maintenant ta demande.<br/>Tu recevras une réponse sous 24 heures.</>
             : <>Écris-nous à <b style={{color:C.ink}}>contact@getsavvy.fr</b> pour qu'on traite ça au plus vite.</>}
-          {reason === "absent" && session.paid && <><br/><b style={{color:C.ink}}>Ton remboursement est en cours de traitement.</b></>}
+          {reason === "absent" && session.paid && delivered && (
+            <><br/><b style={{ color:C.ink }}>Ta demande de remboursement est bien enregistrée.</b></>
+          )}
         </div>
         <button onClick={onClose} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", background:C.ink, color:C.white, fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:SERIF }}>Compris</button>
       </div>
@@ -630,7 +632,8 @@ function ReportModal({ session, onClose, authUser }) {
         <div style={{ width:36, height:4, borderRadius:2, background:C.cream3, margin:"0 auto 18px" }}/>
         <div style={{ fontSize:18, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:5 }}>Signaler un problème</div>
         <div style={{ fontSize:12, color:C.muted, marginBottom:18, lineHeight:1.5 }}>
-          Dis-nous ce qui s'est passé. On règle ça — tu n'as pas à payer pour une session qui n'a pas eu lieu.
+          Dis-nous simplement ce qui s'est passé. L'équipe Savvy examine chaque situation avec attention,
+          pour trouver une solution juste pour tout le monde.
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:16 }}>
           {REASONS.map(r => (
@@ -642,7 +645,7 @@ function ReportModal({ session, onClose, authUser }) {
             </button>
           ))}
         </div>
-        <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Ajoute un détail (optionnel)…"
+        <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Décris ce qui s'est passé (optionnel)…"
           style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:`1.5px solid ${C.border}`, fontSize:13, fontFamily:"inherit", color:C.ink, resize:"none", height:70, boxSizing:"border-box", outline:"none", background:C.cream2, lineHeight:1.6, marginBottom:16 }}/>
         <div style={{ display:"flex", gap:10 }}>
           <button onClick={onClose} style={{ flex:1, padding:"13px", borderRadius:13, border:`1.5px solid ${C.border}`, background:C.white, color:C.muted, fontWeight:600, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Annuler</button>
