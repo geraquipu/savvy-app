@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { supabase } from '../supabase';
 import { C, SERIF } from '../constants/colors';
 import { DEMO_USERS } from '../constants/data';
+import { DOMAIN } from '../constants/company';
 
 function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
   const [mode, setMode] = useState("choice"); // choice | phone | otp | email_otp
@@ -63,7 +64,7 @@ function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
         setLoading(true);
         await new Promise(r=>setTimeout(r,1000));
         setLoading(false);
-        onSuccess({name:contact,email:contact.includes("@")?contact:`${contact}@savvy.fr`,isExpert:false});
+        onSuccess({name:contact,email:contact.includes("@")?contact:`${contact}@${DOMAIN}`,isExpert:false});
       }} disabled={loading} style={{width:"100%",padding:"15px",borderRadius:13,border:"none",cursor:loading?"wait":"pointer",fontWeight:700,fontSize:16,background:otp.join("").length===6?`linear-gradient(135deg,${C.gold},${C.goldB})`:C.cream3,color:otp.join("").length===6?C.white:C.muted,fontFamily:SERIF,boxShadow:otp.join("").length===6?`0 4px 20px rgba(185,134,74,.4)`:"none"}}>
         {loading?"Vérification…":"Confirmer →"}
       </button>

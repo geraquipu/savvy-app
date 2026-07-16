@@ -5,6 +5,8 @@ import { expertPayout, savvyCut } from '../../constants/config';
 import { EXPERTS, getCountdown, updateBooking } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../constants/sessionData';
 import { MENU_ICONS, FormatIcon } from '../../constants/menuIcons.jsx';
+import { isAdmin } from '../../constants/admin';
+import { legalLine, EMAIL_CONTACT, DOMAIN } from '../../constants/company';
 
 const OFFER_EXAMPLES = [
   "Trouver des fournisseurs dans mon secteur",
@@ -144,7 +146,7 @@ const generateFacturesPDF = (userName, isExpert) => {
       + '@media print{.noprint{display:none}}</style></head><body>'
       + '<div class="logo">sav<em style="color:#B8864A;font-style:italic">vy</em></div>'
       + bodyHTML
-      + '<div class="footer">Savvy SAS &middot; Paris, France &middot; contact@savvy.fr &middot; &copy; 2025</div>'
+      + `<div class="footer">${legalLine()} &middot; ${EMAIL_CONTACT} &middot; &copy; 2025</div>`
       + '<div class="noprint" style="margin-top:24px;text-align:center">'
       + '<button onclick="window.print()" style="background:#1C1917;color:#fff;border:none;padding:11px 24px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">'
       + 'Enregistrer en PDF</button></div>'
@@ -186,7 +188,7 @@ function downloadICS({ expertName, topic, date, slot, durationH=1 }) {
   }
   const end = new Date(start.getTime() + durationH * 60 * 60 * 1000);
   const fmt = d => d.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}Z/,"Z");
-  const uid = `savvy-${Date.now()}@savvy.fr`;
+  const uid = `savvy-${Date.now()}@${DOMAIN}`;
   const ics = [
     "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Savvy//FR","CALSCALE:GREGORIAN",
     "BEGIN:VEVENT",
@@ -1358,7 +1360,7 @@ export function ExpertView({
           </div>
           <div style={{background:C.cream2,borderRadius:12,padding:"16px",border:`1px solid ${C.border}`,textAlign:"center"}}>
             <div style={{fontSize:13,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:4}}>savvy ✦</div>
-            <div style={{fontSize:11,color:C.muted,lineHeight:1.7}}>Savvy SAS · 12 rue de Rivoli, 75001 Paris<br/>SIRET 123 456 789 00012 · savvy.fr</div>
+            <div style={{fontSize:11,color:C.muted,lineHeight:1.7}}>{legalLine()}<br/>{EMAIL_CONTACT} · {DOMAIN}</div>
             <div style={{fontSize:10,color:C.faint,marginTop:10}}>© 2026 Savvy™ — All rights reserved.<br/>Données protégées conformément au RGPD.</div>
           </div>
         </div>
@@ -1857,7 +1859,7 @@ export function ExpertView({
           <MenuRowExp icon="🗓️" title="Disponibilités" sub={(()=>{const n=Object.keys(dispoSelected).filter(k=>dispoSelected[k]).length; return n>0?`${n} jour${n>1?"s":""} ouvert${n>1?"s":""} à la réservation`:"Aucun jour configuré";})()}  onClick={()=>setSection("disponibilidades")}/>
           <MenuRowExp icon="💬" title="Messages clients" sub="Répondre aux clients" onClick={()=>setSection("messages")}/>
           <MenuRowExp icon="💼" title="Mes offres" sub={(expOffres||EXPERT_DATA.offres).length===0?"Aucune offre · Créer la première":`${(expOffres||EXPERT_DATA.offres).length} offre(s) active(s)`} onClick={()=>setOffresOpen(v=>!v)}/>
-          {["geraquipu@hotmail.com","german@savvy.fr"].includes(authUser?.email) && <MenuRowExp icon="⚙️" title="Admin Savvy" sub="Utilisateurs · Réservations · Revenue" onClick={()=>onNavigate&&onNavigate("admin")}/>}
+          {isAdmin(authUser?.email) && <MenuRowExp icon="⚙️" title="Admin Savvy" sub="Utilisateurs · Réservations · Revenue" onClick={()=>onNavigate&&onNavigate("admin")}/>}
         </div>
 
         {/* Mes offres accordéon (inline, sans carte) */}

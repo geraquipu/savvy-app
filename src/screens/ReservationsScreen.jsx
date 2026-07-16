@@ -4,6 +4,7 @@ import { C, SERIF } from '../constants/colors';
 import { EXPERTS, getBookings, updateBooking, addBooking, getCountdown } from '../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../constants/sessionData';
 import { LoginGate } from '../components/ui';
+import { DOMAIN } from '../constants/company';
 import { MENU_ICONS, FormatIcon } from '../constants/menuIcons.jsx';
 
 function CalendarPicker({ expert, onDone, onSelect }) {
@@ -533,7 +534,7 @@ function downloadICS({ expertName, topic, date, slot, durationH=1 }) {
   }
   const end = new Date(start.getTime() + durationH * 60 * 60 * 1000);
   const fmt = d => d.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}Z/,"Z");
-  const uid = `savvy-${Date.now()}@savvy.fr`;
+  const uid = `savvy-${Date.now()}@${DOMAIN}`;
   const ics = [
     "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Savvy//FR","CALSCALE:GREGORIAN",
     "BEGIN:VEVENT",

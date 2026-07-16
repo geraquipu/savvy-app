@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { C, SERIF, SANS } from '../constants/colors';
 import { expertPayout, savvyCut, EXPERT_SHARE } from '../constants/config';
-
-const ADMIN_EMAILS = ["geraquipu@hotmail.com", "german@savvy.fr"];
+import { ADMIN_EMAILS } from '../constants/admin';
 
 function StatCard({ icon, label, value, sub, color }) {
   return (

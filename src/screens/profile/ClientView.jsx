@@ -3,6 +3,7 @@ import { C, SERIF, SANS } from '../../constants/colors';
 import { EXPERTS, getBookings, getTrustLevel } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES } from '../../constants/sessionData';
 import { MENU_ICONS } from '../../constants/menuIcons.jsx';
+import { legalLine, legalShort, EMAIL_CONTACT, DOMAIN, SITE_URL } from '../../constants/company';
 
 const AVIS_DONNES = [
   { id:1, eid:1, date:"15 mai 2025", stars:5, text:"Marie est extraordinaire — pédagogue, patiente et très pro. Mes macarons sont enfin réussis !" },
@@ -45,7 +46,7 @@ const generateFacturesPDF = (userName, isExpert) => {
       + '@media print{.noprint{display:none}}</style></head><body>'
       + '<div class="logo">sav<em style="color:#B8864A;font-style:italic">vy</em></div>'
       + bodyHTML
-      + '<div class="footer">Savvy SAS &middot; Paris, France &middot; contact@savvy.fr &middot; &copy; 2025</div>'
+      + `<div class="footer">${legalLine()} &middot; ${EMAIL_CONTACT} &middot; &copy; 2025</div>`
       + '<div class="noprint" style="margin-top:24px;text-align:center">'
       + '<button onclick="window.print()" style="background:#1C1917;color:#fff;border:none;padding:11px 24px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">'
       + 'Enregistrer en PDF</button></div>'
@@ -220,12 +221,12 @@ export function ClientView({
               <div style={{background:`linear-gradient(135deg,${C.ink},#2C2825)`,padding:"20px 20px 18px",display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
                 <div>
                   <div style={{fontSize:24,fontWeight:800,color:C.white,fontFamily:SERIF,letterSpacing:"-.5px"}}>savvy</div>
-                  <div style={{fontSize:10,color:"rgba(253,252,248,.5)",marginTop:3}}>savvy.fr</div>
-                  <div style={{fontSize:10,color:"rgba(253,252,248,.4)",marginTop:1}}>Savvy SAS SIRET 123 456 789 00012</div>
+                  <div style={{fontSize:10,color:"rgba(253,252,248,.5)",marginTop:3}}>{DOMAIN}</div>
+                  <div style={{fontSize:10,color:"rgba(253,252,248,.4)",marginTop:1}}>{legalShort()}</div>
                 </div>
                 <div style={{textAlign:"right"}}>
-                  <div style={{fontSize:10,color:"rgba(253,252,248,.5)"}}>12 rue de Rivoli</div>
-                  <div style={{fontSize:10,color:"rgba(253,252,248,.5)"}}>75001 Paris, France</div>
+                  <div style={{fontSize:10,color:"rgba(253,252,248,.5)"}}>Paris, France</div>
+                  <div style={{fontSize:10,color:"rgba(253,252,248,.5)"}}>{EMAIL_CONTACT}</div>
                 </div>
               </div>
               <div style={{padding:"14px 20px",borderBottom:`1px solid ${C.borderF}`}}>
@@ -613,7 +614,7 @@ export function ClientView({
           </div>
           <div style={{background:C.cream2,borderRadius:12,padding:"16px",border:`1px solid ${C.border}`,textAlign:"center"}}>
             <div style={{fontSize:13,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:4}}>savvy</div>
-            <div style={{fontSize:11,color:C.muted,lineHeight:1.7}}>Savvy SAS 12 rue de Rivoli 75001 Paris<br/>SIRET 123 456 789 00012 savvy.fr</div>
+            <div style={{fontSize:11,color:C.muted,lineHeight:1.7}}>{legalLine()}<br/>{EMAIL_CONTACT} · {DOMAIN}</div>
             <div style={{fontSize:10,color:C.faint,marginTop:10}}>2026 Savvy TM All rights reserved<br/>Donnees protegees conformement au RGPD</div>
           </div>
         </div>
@@ -760,7 +761,7 @@ export function ClientView({
 
       {/* ── Partager Savvy modal (client) ── */}
       {showReferModal && (()=>{
-        const INVITE_URL = "https://savvy.fr/invite";
+        const INVITE_URL = `${SITE_URL}/invite`;
         const shareVia = (ch) => {
           if (navigator.share) { navigator.share({title:"Savvy — Conseils d'experts",url:INVITE_URL}).catch(()=>{}); return; }
           const urls = {

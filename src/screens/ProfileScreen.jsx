@@ -7,6 +7,7 @@ import { EXPERT_EXTRAS, EXPERT_STYLE_TAGS, EXPERT_FIRST_SESSION } from '../const
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../constants/sessionData';
 import { Stars, Av } from '../components/ui';
 import { MENU_ICONS } from '../constants/menuIcons.jsx';
+import { legalLine, EMAIL_CONTACT, DOMAIN } from '../constants/company';
 import { CalendarPicker, parseDuree } from './BookingScreen';
 import { ClientView } from './profile/ClientView';
 import { ExpertView } from './profile/ExpertView';
@@ -24,7 +25,7 @@ const openPDF = (title, bodyHTML) => {
     + '@media print{.noprint{display:none}}</style></head><body>'
     + '<div class="logo">sav<em style="color:#B8864A;font-style:italic">vy</em></div>'
     + bodyHTML
-    + '<div class="footer">Savvy SAS &middot; Paris, France &middot; contact@savvy.fr &middot; &copy; 2025</div>'
+    + `<div class="footer">${legalLine()} &middot; ${EMAIL_CONTACT} &middot; &copy; 2025</div>`
     + '<div class="noprint" style="margin-top:24px;text-align:center">'
     + '<button onclick="window.print()" style="background:#1C1917;color:#fff;border:none;padding:11px 24px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">'
     + 'Enregistrer en PDF</button></div>'
@@ -66,7 +67,7 @@ const generateCGUPDF = () => {
     + '<h2>4. Responsabilit&eacute;s</h2>'
     + '<p>Savvy agit en tant qu&#39;interm&eacute;diaire technique. Les conseils prodigu&eacute;s sont sous la responsabilit&eacute; exclusive du Conseiller.</p>'
     + '<h2>5. Protection des donn&eacute;es</h2>'
-    + '<p>Le traitement des donn&eacute;es personnelles est conforme au RGPD. Pour toute demande&nbsp;: privacy@savvy.fr</p>';
+    + '<p>Le traitement des donn&eacute;es personnelles est conforme au RGPD. Pour toute demande&nbsp;: privacy@getsavvy.fr</p>';
   openPDF('CGU Savvy', body);
 };
 
@@ -346,7 +347,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
       : (activeUser?.initials || "GQ")),
     prenom:   profileEdits.prenom  || newExpertProfile?.prenom || (realName || activeUser?.name || "German Quintana").split(/[\s._-]+/)[0].replace(/^./,c=>c.toUpperCase()),
     nom:      profileEdits.nom     || newExpertProfile?.nom || (authUser?.real ? "" : (activeUser?.name || "German Quintana").split(" ").slice(1).join(" ")),
-    email:    activeUser?.email || "german@savvy.fr",
+    email:    activeUser?.email || EMAIL_CONTACT,
     location: profileEdits.location|| newExpertProfile?.location || "Paris, France",
     since:    authUser?.real ? "Juin 2026" : "Mai 2025",
   };
@@ -527,7 +528,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           <div style={{ display:"flex", alignItems:"center", gap:13, padding:"13px 16px", cursor:"pointer" }}>
             <div style={{ width:38, height:38, borderRadius:11, background:C.goldL, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>🌐</div>
             <div style={{ flex:1 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:C.ink }}>savvy.fr</div>
+              <div style={{ fontSize:13, fontWeight:700, color:C.ink }}>{DOMAIN}</div>
               <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>Découvrir la plateforme en version web</div>
             </div>
             <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={C.faint} strokeWidth={2}><polyline points="9 18 15 12 9 6"/></svg>
@@ -1163,7 +1164,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
             {legalModal==="cgu" && <>
               <div style={{ fontSize:11, color:C.muted, marginBottom:16 }}>Dernière mise à jour : 1er janvier 2025</div>
               {[
-                {title:"1. Objet",text:"Les présentes Conditions Générales d\'Utilisation régissent l\'accès et l\'utilisation de la plateforme Savvy, accessible via l\'application mobile Savvy, éditée par Savvy SAS, société par actions simplifiée au capital de 10 000€."},
+                {title:"1. Objet",text:"Les présentes Conditions Générales d\'Utilisation régissent l\'accès et l\'utilisation de la plateforme Savvy, accessible via l\'application mobile Savvy, éditée par Savvy SAS, société par actions simplifiée en cours d\'immatriculation, dont le siège est à Paris (France)."},
                 {title:"2. Services proposés",text:"Savvy est une marketplace mettant en relation des experts (« Conseillers ») avec des particuliers ou professionnels (« Clients ») souhaitant bénéficier de conseils basés sur une expérience réelle et vécue."},
                 {title:"3. Commission Savvy",text:"Savvy prélève une commission de 20% sur chaque transaction réalisée sur la plateforme. Le Conseiller reçoit 80% du montant payé par le Client. Cette commission couvre les frais de plateforme, de paiement sécurisé et de support client."},
                 {title:"4. Responsabilités",text:"Savvy agit en tant qu\'intermédiaire technique. Les conseils prodigués sont sous la responsabilité exclusive du Conseiller. Savvy ne peut être tenu responsable de la qualité ou des résultats des sessions."},

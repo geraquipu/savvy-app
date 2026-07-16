@@ -1,11 +1,17 @@
+/**
+ * Personas de démonstration (mode "Explorer sans compte").
+ * ATTENTION : ces comptes s'obtiennent sans authentification réelle — n'importe
+ * quel code à 6 chiffres suffit. Ne jamais leur accorder de privilège : leur
+ * email ne doit apparaître dans aucune liste d'autorisation (voir constants/admin.js).
+ */
 export const DEMO_USERS = {
   expert: {
-    name:"German Quintana", initials:"GQ", email:"german@savvy.fr",
+    name:"German Quintana", initials:"GQ", email:"german@getsavvy.fr",
     role:"Expert · Inventaires & KPIs Excel", isExpert:true,
     avatar_bg:"#E0F2FE", avatar_color:"#0369A1",
   },
   client: {
-    name:"Sophie Martin", initials:"SM", email:"sophie@savvy.fr",
+    name:"Sophie Martin", initials:"SM", email:"sophie@getsavvy.fr",
     role:"Cliente · Membre depuis Jan 2025", isExpert:false,
     avatar_bg:"#DBEAFE", avatar_color:"#0F2744",
   },
