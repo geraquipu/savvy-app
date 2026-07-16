@@ -387,12 +387,15 @@ export default function App() {
     if (!authUser?.real || !authUser?.id) { setClientPendingCount(0); return; }
     const cid = authUser.id;
     const load = () =>
-      supabase.from("bookings").select("status, paid, reschedule_by")
+      supabase.from("bookings").select("status, paid, reschedule_by, date_session")
         .eq("client_id", cid).in("status", ["pending", "confirmed"])
         .then(({ data }) => {
           if (!data) return;
+          // Ne compter que les sessions encore actionnables (pas déjà passées),
+          // sinon une session expirée non payée gonfle le badge à vide.
+          const notPast = (b) => !b.date_session || (new Date(b.date_session).getTime() + 90*60000) > Date.now();
           const n = data.filter(b =>
-            b.status === "pending" || (b.status === "confirmed" && !b.paid)
+            notPast(b) && (b.status === "pending" || (b.status === "confirmed" && !b.paid))
           ).length;
           setClientPendingCount(n);
         });

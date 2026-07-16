@@ -29,10 +29,19 @@ function ExpertScreen({ e: eProp, onBack, onBook, onMsg }) {
   const [bioExpanded, setBioExpanded] = useState(false);
   const [sessionExpanded, setSessionExpanded] = useState(false);
   const [dbReviews, setDbReviews] = useState([]);
+  const [dbPhases, setDbPhases] = useState(null);
   useEffect(() => {
     if (!e?.id) return;
     supabase.from("reviews").select("*").eq("expert_id", e.id).order("created_at", { ascending: false }).limit(20)
       .then(({ data }) => { if (data?.length) setDbReviews(data); });
+    // Si l'expert a été ouvert sans ses offres (ex. bouton "Répéter" depuis une
+    // réservation), on charge les vraies offres depuis Supabase pour ne pas
+    // retomber sur l'offre par défaut à 50€.
+    const idIsUuid = typeof e.id === "string" && e.id.includes("-");
+    if (idIsUuid && !(eProp?.phases?.length) && !(eProp?.offres?.length)) {
+      supabase.from("experts").select("phases, offres, price").eq("id", e.id).maybeSingle()
+        .then(({ data }) => { if (data) setDbPhases(data.phases?.length ? data.phases : (data.offres || null)); });
+    }
   }, [e?.id]);
   const extras = EXPERT_EXTRAS[e.id] || { resout:[], reviews:[], preuves:[] };
   const allReviews = dbReviews.length > 0
@@ -43,7 +52,9 @@ function ExpertScreen({ e: eProp, onBack, onBook, onMsg }) {
   const bio = e.bio || e.tagline || "";
   const bioShort = bio.length > 130 ? bio.slice(0,130)+"…" : bio;
   const sessionShort = firstSession.length > 140 ? firstSession.slice(0,140)+"…" : firstSession;
-  const phases = e.phases?.length ? e.phases : [{id:1,name:"Session conseil",what:"Conseil personnalisé basé sur mon expérience",format:"Vidéo 1h",price:e.price||50,tag:"",inc:[]}];
+  const phases = e.phases?.length ? e.phases
+    : dbPhases?.length ? dbPhases
+    : [{id:1,name:"Session conseil",what:"Conseil personnalisé basé sur mon expérience",format:"Vidéo 1h",price:e.price||50,tag:"",inc:[]}];
   const metrics = e.metrics?.length ? e.metrics : [
     {label:"Expérience", value: e.yearsExp || (e.reviews>20?"10+ ans":e.reviews>5?"5+ ans":"Récent")},
     {label:"Note", value: e.reviews > 0 && e.rating ? `⭐ ${e.rating}` : "Nouveau"},
