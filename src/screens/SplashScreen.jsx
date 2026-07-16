@@ -57,7 +57,7 @@ function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
             style={{width:46,height:58,borderRadius:13,border:`2px solid ${v?"rgba(185,134,74,.8)":C.border}`,textAlign:"center",fontSize:24,fontWeight:700,fontFamily:SERIF,color:C.ink,outline:"none",background:v?C.goldL:C.white,transition:"all .15s"}}/>
         ))}
       </div>
-      <p style={{fontSize:12,color:"rgba(253,252,248,.4)",marginBottom:20}}>Pour la démo : n\'importe quel code à 6 chiffres</p>
+      <p style={{fontSize:12,color:"rgba(253,252,248,.4)",marginBottom:20}}>Pour la démo : n'importe quel code à 6 chiffres</p>
       <button onClick={async()=>{
         if(otp.join("").length<6){alert("Entre les 6 chiffres.");return;}
         setLoading(true);
@@ -155,7 +155,7 @@ function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
         {/* Mode démo — solo visible para admin */}
         {isAdmin && <div style={{width:"100%",maxWidth:320,borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:16,marginBottom:8}}>
           <div style={{fontSize:11,fontWeight:700,color:"rgba(253,252,248,.4)",textTransform:"uppercase",letterSpacing:.8,textAlign:"center",marginBottom:12}}>
-            ✦ Mode démo — tester l\'app
+            ✦ Mode démo — tester l'app
           </div>
           <div style={{display:"flex",gap:9}}>
             {Object.values(DEMO_USERS).map(u=>(
@@ -176,7 +176,7 @@ function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
 
         <p style={{fontSize:11,color:"rgba(253,252,248,.25)",textAlign:"center",lineHeight:1.6,maxWidth:280,marginTop:8}}>
           En continuant, tu acceptes les{" "}
-          <span style={{color:"rgba(253,252,248,.4)"}}>Conditions d\'utilisation</span>{" "}et la{" "}
+          <span style={{color:"rgba(253,252,248,.4)"}}>Conditions d'utilisation</span>{" "}et la{" "}
           <span style={{color:"rgba(253,252,248,.4)"}}>Politique de confidentialité</span> de Savvy.
         </p>
       </div>

@@ -109,7 +109,7 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
         {/* ── Ce que je résous ── */}
         {extras.resout.length > 0 && (
           <div style={{ marginBottom:20 }}>
-            <div style={{ fontSize:16,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:12 }}>Je t\'aide à…</div>
+            <div style={{ fontSize:16,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:12 }}>Je t'aide à…</div>
             {extras.resout.map((r,i)=>(
               <div key={i} style={{ display:"flex",gap:11,alignItems:"flex-start",background:C.white,borderRadius:12,padding:"11px 14px",border:`1px solid ${C.border}`,marginBottom:8 }}>
                 <div style={{ width:8,height:8,borderRadius:"50%",background:e.color,flexShrink:0,marginTop:5 }}/>
@@ -134,7 +134,7 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
           </button>
           <button onClick={() => onMsg && onMsg(e)} style={{ width:"100%",padding:"12px",borderRadius:13,border:`1.5px solid ${C.border}`,cursor:"pointer",fontWeight:600,fontSize:13,background:C.white,color:C.ink,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8 }}>
             <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            Poser une question d\'abord
+            Poser une question d'abord
           </button>
         </div>
       </div>

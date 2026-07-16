@@ -305,7 +305,7 @@ function CancelModal({ session, onClose, onMsg }) {
             </div>
             <div style={{ display:"flex", gap:9 }}>
               <button onClick={() => setStep("menu")} style={{ flex:1, padding:"13px", borderRadius:13, border:`1.5px solid ${C.border}`, cursor:"pointer", fontWeight:700, fontSize:13, background:C.white, color:C.ink, fontFamily:"inherit" }}>← Retour</button>
-              <button onClick={() => setStep("done_cancel")} style={{ flex:2, padding:"13px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:13, background:"#B91C1C", color:C.white, fontFamily:SERIF }}>Confirmer l\'annulation</button>
+              <button onClick={() => setStep("done_cancel")} style={{ flex:2, padding:"13px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:13, background:"#B91C1C", color:C.white, fontFamily:SERIF }}>Confirmer l'annulation</button>
             </div>
           </div>
         </>}
@@ -552,6 +552,110 @@ function downloadICS({ expertName, topic, date, slot, durationH=1 }) {
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
 
+/**
+ * Signalement d'un problème sur une session (expert absent, souci technique…).
+ * Envoie le contexte au support. Si la session était payée et que l'expert ne
+ * s'est pas présenté, la réservation entre dans la file de remboursement admin.
+ */
+function ReportModal({ session, onClose, authUser }) {
+  const [reason, setReason] = useState(null);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState(false);
+  const [delivered, setDelivered] = useState(true);
+  const expertName = session.expert?.name || session.expertData?.name || "l'expert";
+  const first = expertName.split(" ")[0];
+
+  const REASONS = [
+    { v:"absent",    l:`${first} ne s'est pas présenté(e)` },
+    { v:"technique", l:"Problème technique (son, vidéo, lien)" },
+    { v:"contenu",   l:"La session n'a pas répondu à mon besoin" },
+    { v:"autre",     l:"Autre" },
+  ];
+
+  const submit = async () => {
+    if (!reason) return;
+    setSending(true);
+    const label = REASONS.find(r => r.v === reason)?.l || reason;
+    const body =
+      `SIGNALEMENT SESSION\n\n` +
+      `Motif : ${label}\n` +
+      `Expert : ${expertName}\n` +
+      `Session : ${session.date || "?"} ${session.time || ""}\n` +
+      `Réservation : ${session.id}\n` +
+      `Montant : ${session.price || 0}€ — ${session.paid ? "PAYÉE" : "non payée"}\n\n` +
+      `Message du client :\n${text.trim() || "(aucun)"}`;
+    try {
+      const { data } = await supabase.functions.invoke("send-support-message", {
+        body: { message: body, fromName: authUser?.name || "Utilisateur", fromEmail: authUser?.email || null, userId: authUser?.id },
+      });
+      setDelivered(!!data?.ok);
+      // Expert absent + session payée -> candidat au remboursement (file admin)
+      if (reason === "absent" && session.paid && session.id) {
+        await supabase.from("bookings").update({ refund_status: "requested" }).eq("id", session.id);
+      }
+    } catch { setDelivered(false); }
+    setSending(false);
+    setDone(true);
+  };
+
+  if (done) return (
+    <>
+      <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.45)", zIndex:50 }}/>
+      <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:430, background:C.white, zIndex:60, borderRadius:"24px 24px 0 0", padding:"32px 22px 40px", textAlign:"center" }}>
+        <div style={{ width:36, height:4, borderRadius:2, background:C.cream3, margin:"0 auto 22px" }}/>
+        <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}>
+          <div style={{ width:52, height:52, borderRadius:"50%", background:C.sageL, display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke={C.sage} strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        </div>
+        <div style={{ fontSize:19, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:8 }}>
+          {delivered ? "Signalement envoyé" : "On a bien noté"}
+        </div>
+        <div style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:22 }}>
+          {delivered
+            ? "L'équipe Savvy regarde ça et te répond par email sous 24h."
+            : <>Écris-nous à <b style={{color:C.ink}}>contact@getsavvy.fr</b> pour qu'on traite ça au plus vite.</>}
+          {reason === "absent" && session.paid && <><br/><b style={{color:C.ink}}>Ton remboursement est en cours de traitement.</b></>}
+        </div>
+        <button onClick={onClose} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", background:C.ink, color:C.white, fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:SERIF }}>Compris</button>
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.45)", zIndex:50 }}/>
+      <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:430, background:C.white, zIndex:60, borderRadius:"24px 24px 0 0", padding:"26px 20px 34px", maxHeight:"88vh", overflowY:"auto" }}>
+        <div style={{ width:36, height:4, borderRadius:2, background:C.cream3, margin:"0 auto 18px" }}/>
+        <div style={{ fontSize:18, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:5 }}>Signaler un problème</div>
+        <div style={{ fontSize:12, color:C.muted, marginBottom:18, lineHeight:1.5 }}>
+          Dis-nous ce qui s'est passé. On règle ça — tu n'as pas à payer pour une session qui n'a pas eu lieu.
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:16 }}>
+          {REASONS.map(r => (
+            <button key={r.v} onClick={()=>setReason(r.v)}
+              style={{ padding:"13px 14px", borderRadius:12, cursor:"pointer", fontFamily:"inherit", textAlign:"left", fontSize:13,
+                border:`2px solid ${reason===r.v?C.ink:C.border}`, background:reason===r.v?C.cream2:C.white,
+                color:reason===r.v?C.ink:C.soft, fontWeight:reason===r.v?700:500, transition:"all .15s" }}>
+              {r.l}
+            </button>
+          ))}
+        </div>
+        <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Ajoute un détail (optionnel)…"
+          style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:`1.5px solid ${C.border}`, fontSize:13, fontFamily:"inherit", color:C.ink, resize:"none", height:70, boxSizing:"border-box", outline:"none", background:C.cream2, lineHeight:1.6, marginBottom:16 }}/>
+        <div style={{ display:"flex", gap:10 }}>
+          <button onClick={onClose} style={{ flex:1, padding:"13px", borderRadius:13, border:`1.5px solid ${C.border}`, background:C.white, color:C.muted, fontWeight:600, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Annuler</button>
+          <button onClick={submit} disabled={!reason||sending}
+            style={{ flex:2, padding:"13px", borderRadius:13, border:"none", background:reason&&!sending?C.ink:C.cream3, color:reason&&!sending?C.white:C.muted, fontWeight:700, fontSize:14, cursor:reason&&!sending?"pointer":"default", fontFamily:SERIF }}>
+            {sending ? "Envoi…" : "Envoyer le signalement"}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function PaymentModal({ session, expert, onClose }) {
   const [paying, setPaying] = useState(false);
   const [err, setErr] = useState(null);
@@ -623,7 +727,7 @@ export function joinState(startTs) {
   return { canJoin:false, label };
 }
 
-function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondReschedule }) {
+function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondReschedule, onReport }) {
   const expert = s.expertData || EXPERTS[s.eid] || EXPERTS.find(x=>x.initials===s.expertInitials);
   if (!expert) return null;
   const countdown = getCountdown(s.hoursUntil);
@@ -797,12 +901,19 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondReschedule 
             <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={3}/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Gérer
           </button>
         </div>
+        {/* Filet de sécurité : visible seulement quand la session a (dû) commencer */}
+        {onReport && s.status==="confirmed" && s.paid && joinState(s.startTs).canJoin && (
+          <button onClick={() => onReport({...s, expert})} style={{ width:"100%", marginTop:9, padding:"7px", background:"none", border:"none", cursor:"pointer", fontFamily:"inherit", fontSize:11.5, color:C.muted, fontWeight:600, display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
+            <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={10}/><line x1={12} y1={8} x2={12} y2={12}/><line x1={12} y1={16} x2={12.01} y2={16}/></svg>
+            {expert.name.split(" ")[0]} n'est pas là ?
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-function PastCard({ s, onExpert, onResume, onReview }) {
+function PastCard({ s, onExpert, onResume, onReview, onReport }) {
   const expert = EXPERTS[s.eid] || s.expertData || { name: s.expertName || "Expert", initials: s.expertInitials || "?", bg: "#EDE8DF", color: "#8B7355", id: s.eid };
   if (!expert) return null;
   return (
@@ -840,6 +951,12 @@ function PastCard({ s, onExpert, onResume, onReview }) {
           <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Répéter
         </button>
       </div>
+      {onReport && (
+        <button onClick={() => onReport({...s, expert})} style={{ width:"100%", marginTop:9, padding:"7px", background:"none", border:"none", cursor:"pointer", fontFamily:"inherit", fontSize:11.5, color:C.muted, fontWeight:600, display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
+          <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={10}/><line x1={12} y1={8} x2={12} y2={12}/><line x1={12} y1={16} x2={12.01} y2={16}/></svg>
+          Signaler un problème
+        </button>
+      )}
     </div>
   );
 }
@@ -849,6 +966,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
   const [cancelSession, setCancelSession] = useState(null);
   const [resumeSession, setResumeSession] = useState(null);
   const [reviewSession, setReviewSession] = useState(null);
+  const [reportSession, setReportSession] = useState(null);
   const [calView, setCalView] = useState(false);
   const [paySession, setPaySession] = useState(null);
   // Rafraîchit les compte à rebours ("Début dans 3 h") sans recharger la page
@@ -1137,7 +1255,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
                         {g.label}
                         <div style={{height:1,flex:1,background:g.color+"30"}}/>
                       </div>
-                      {g.sessions.map(s=><SessionCard key={s.id} s={s} onMsg={onMsg} onCancel={setCancelSession} onExpert={onExpert} onPay={setPaySession} onRespondReschedule={respondReschedule}/>)}
+                      {g.sessions.map(s=><SessionCard key={s.id} s={s} onMsg={onMsg} onCancel={setCancelSession} onExpert={onExpert} onPay={setPaySession} onRespondReschedule={respondReschedule} onReport={setReportSession}/>)}
                     </div>
                   ));
                 })()
@@ -1156,7 +1274,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
             authUser?.real
               ? sbPast.length > 0
                 ? sbPast.map(s => (
-                    <PastCard key={s.id} s={{...s, expert: s.expertData}} onExpert={onExpert} onResume={setResumeSession} onReview={setReviewSession}/>
+                    <PastCard key={s.id} s={{...s, expert: s.expertData}} onExpert={onExpert} onResume={setResumeSession} onReview={setReviewSession} onReport={setReportSession}/>
                   ))
                 : <div style={{ textAlign:"center", padding:"48px 0", color:C.muted }}>Aucune session passée.</div>
               : (!isRealUser && SESSIONS_PASSEES.length > 0)
@@ -1225,6 +1343,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
 
       {/* Modals */}
       {reviewSession && <ReviewModal session={reviewSession} onClose={()=>setReviewSession(null)} authUser={authUser} onExpert={onExpert}/>}
+      {reportSession && <ReportModal session={reportSession} onClose={()=>setReportSession(null)} authUser={authUser}/>}
       {paySession && (
         <PaymentModal
           session={paySession}

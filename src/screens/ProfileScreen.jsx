@@ -471,7 +471,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
               <div style={{ display:"flex", alignItems:"center", gap:13 }}>
                 <div style={{ width:38, height:38, borderRadius:11, background:"#FEF3C7", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>❓</div>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:C.ink }}>Centre d\'aide</div>
+                  <div style={{ fontSize:13, fontWeight:700, color:C.ink }}>Centre d'aide</div>
                   <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>Questions fréquentes · Comment ça marche</div>
                 </div>
                 <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={C.faint} strokeWidth={2}><polyline points="9 18 15 12 9 6"/></svg>
@@ -517,7 +517,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           <div style={{ display:"flex", alignItems:"center", gap:13, padding:"13px 16px", cursor:"pointer", borderBottom:`1px solid ${C.borderF}` }}>
             <div style={{ width:38, height:38, borderRadius:11, background:"#EDE8DF", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:C.soft }}>{MENU_ICONS["📋"]}</div>
             <div style={{ flex:1 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:C.ink }}>Conditions d\'utilisation</div>
+              <div style={{ fontSize:13, fontWeight:700, color:C.ink }}>Conditions d'utilisation</div>
               <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>CGU · Politique de commission · Légal</div>
             </div>
             <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={C.faint} strokeWidth={2}><polyline points="9 18 15 12 9 6"/></svg>
@@ -1196,11 +1196,11 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
               ))}
             </>}
             {legalModal==="nda" && <>
-              <div style={{ fontSize:13, color:C.muted, marginBottom:16, lineHeight:1.6 }}>Les accords de confidentialité sont signés automatiquement lors de tes sessions avec des experts qui l\'exigent.</div>
+              <div style={{ fontSize:13, color:C.muted, marginBottom:16, lineHeight:1.6 }}>Les accords de confidentialité sont signés automatiquement lors de tes sessions avec des experts qui l'exigent.</div>
               <div style={{ background:C.cream2, borderRadius:13, padding:"16px", textAlign:"center", border:`1px solid ${C.border}` }}>
                 <div style={{ fontSize:20, marginBottom:8 }}>📋</div>
                 <div style={{ fontSize:13, fontWeight:600, color:C.ink, marginBottom:6 }}>Aucun NDA signé pour le moment</div>
-                <div style={{ fontSize:11, color:C.muted, lineHeight:1.6 }}>Tes NDAs apparaîtront ici après tes premières sessions avec des experts qui l\'exigent (Ahmed Rashidi, par exemple).</div>
+                <div style={{ fontSize:11, color:C.muted, lineHeight:1.6 }}>Tes NDAs apparaîtront ici après tes premières sessions avec des experts qui l'exigent (Ahmed Rashidi, par exemple).</div>
               </div>
             </>}
           </div>

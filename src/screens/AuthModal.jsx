@@ -114,13 +114,13 @@ function AuthModal({ onClose, onSuccess, initialRegister, isAdmin }) {
           </button>
           <div style={{textAlign:"center",marginBottom:20,fontSize:12,color:C.muted}}>
             Pas encore de compte ?{" "}
-            <button onClick={()=>{ setEmail(""); setPassword(""); setConfirmPassword(""); setFirstName(""); setLastName(""); setStep("register_method"); }} style={{background:"none",border:"none",cursor:"pointer",color:C.gold,fontWeight:700,fontFamily:"inherit",fontSize:12}}>S\'inscrire gratuitement</button>
+            <button onClick={()=>{ setEmail(""); setPassword(""); setConfirmPassword(""); setFirstName(""); setLastName(""); setStep("register_method"); }} style={{background:"none",border:"none",cursor:"pointer",color:C.gold,fontWeight:700,fontFamily:"inherit",fontSize:12}}>S'inscrire gratuitement</button>
           </div>
 
           {/* ── Mode démo — solo admin ────────────────────────────────── */}
           {isAdmin && <div style={{borderTop:`1px solid ${C.border}`,paddingTop:16}}>
             <div style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.6,textAlign:"center",marginBottom:12}}>
-              ✦ Mode démo — tester l\'app
+              ✦ Mode démo — tester l'app
             </div>
             <div style={{display:"flex",gap:9}}>
               {Object.values(DEMO_USERS).map(u => (
@@ -311,14 +311,14 @@ function AuthModal({ onClose, onSuccess, initialRegister, isAdmin }) {
             style={{width:"100%",padding:"14px",borderRadius:13,border:"none",cursor:loading?"wait":"pointer",fontWeight:700,fontSize:14,background:otp.join("").length===6?C.ink:C.cream3,color:otp.join("").length===6?C.white:C.muted,fontFamily:SERIF}}>
             {loading?"Connexion en cours…":(isRegister?"Créer mon compte":"Valider")}
           </button>
-          <p style={{textAlign:"center",fontSize:11,color:C.faint,marginTop:12}}>Pour la démo : n\'importe quel code à 6 chiffres.</p>
+          <p style={{textAlign:"center",fontSize:11,color:C.faint,marginTop:12}}>Pour la démo : n'importe quel code à 6 chiffres.</p>
         </>}
 
         {/* ── RESET ──────────────────────────────────────────────────── */}
         {step==="reset" && <>
           <div style={{textAlign:"center",marginBottom:20}}>
             <h2 style={{fontSize:20,fontWeight:700,color:C.ink,margin:"0 0 8px",fontFamily:SERIF}}>Mot de passe oublié</h2>
-            <p style={{fontSize:13,color:C.muted,lineHeight:1.6}}>On t\'envoie un lien pour réinitialiser.</p>
+            <p style={{fontSize:13,color:C.muted,lineHeight:1.6}}>On t'envoie un lien pour réinitialiser.</p>
           </div>
           <div style={{marginBottom:16}}>
             <label style={{fontSize:11,fontWeight:600,color:C.muted,marginBottom:6,display:"block",textTransform:"uppercase",letterSpacing:.5}}>Ton email</label>

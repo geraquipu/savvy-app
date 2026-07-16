@@ -70,7 +70,7 @@ function HowItWorksScreen({ onClose, onExplore }) {
             Comment fonctionne Savvy ?
           </h1>
           <p style={{ fontSize:13, color:"rgba(253,252,248,.65)", lineHeight:1.7, margin:0 }}>
-            De la recherche d\'un expert jusqu\'au conseil reçu — en 4 étapes simples.
+            De la recherche d'un expert jusqu\'au conseil reçu — en 4 étapes simples.
           </p>
         </div>
       </div>
