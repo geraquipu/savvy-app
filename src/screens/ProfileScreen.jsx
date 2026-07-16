@@ -231,6 +231,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           duree:b.session_duration||"1h", format:b.session_format||"Vidéo", domaine:b.phase_name||"Conseil", prix: b.phase_price || 0,
           msg:`Demande : ${b.phase_name||"Session"}`, why:clientMsg, pays:"France", langue:"FR",
           createdAt: b.date_requested || b.created_at || null,
+          paid: !!b.paid,
           rescheduleFrom: b.reschedule_from || null,
           rescheduleBy: b.reschedule_by || null,
           status: b.status,
@@ -896,7 +897,8 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
               if(s._fromLS) updateBooking(s.id, {status:"cancelled"});
               if(!s._fromLS && s.id){
                 // Tente d'enregistrer le motif ; retombe sur status seul si les colonnes n'existent pas encore
-                let { data: upd, error } = await supabase.from("bookings").update({status:"cancelled", cancel_reason:motif||null, cancelled_by:cancelledBy}).eq("id", s.id).select().single();
+                const cancelPatch = {status:"cancelled", cancel_reason:motif||null, cancelled_by:cancelledBy, ...(s.paid ? { refund_status:"requested" } : {})};
+                let { data: upd, error } = await supabase.from("bookings").update(cancelPatch).eq("id", s.id).select().single();
                 if(error) ({ data: upd } = await supabase.from("bookings").update({status:"cancelled"}).eq("id", s.id).select().single());
                 if(upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{});
               }

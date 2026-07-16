@@ -29,8 +29,29 @@ function AdminScreen({ authUser, onBack }) {
   const [payouts, setPayouts] = useState([]);
   const [payoutsTableMissing, setPayoutsTableMissing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refunding, setRefunding] = useState(null); // id en cours
 
   const isAdmin = ADMIN_EMAILS.includes(authUser?.email);
+
+  // Déclenche le vrai remboursement Stripe via l'edge function (vérifie l'admin côté serveur)
+  const doRefund = async (b) => {
+    if (refunding) return;
+    if (!confirm(`Rembourser ${b.phase_price || 0}€ au client ? Cette action est définitive.`)) return;
+    setRefunding(b.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("refund-booking", {
+        body: { bookingId: b.id },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (error || data?.error) { alert("Erreur : " + (data?.error || error.message)); return; }
+      setBookings(prev => prev.map(x => x.id === b.id ? { ...x, refund_status: "done" } : x));
+    } catch (e) {
+      alert("Erreur : " + e.message);
+    } finally {
+      setRefunding(null);
+    }
+  };
 
   const loadPending = () => {
     supabase.from("experts").select("id, name, role, bio, tagline, cat, location, user_id, created_at").eq("active", false).order("created_at", { ascending: false })
@@ -104,12 +125,16 @@ function AdminScreen({ authUser, onBack }) {
     );
   }
 
+  // Sessions payées puis annulées, en attente de remboursement
+  const refundsToDo = bookings.filter(b => b.paid && b.refund_status === "requested");
+
   const TABS = [
     { id: "overview", l: "Vue d'ensemble" },
     { id: "experts", l: `Experts (${pendingExperts.length > 0 ? `⚠️ ${pendingExperts.length} en attente` : stats.experts})` },
     { id: "users", l: `Utilisateurs (${stats.users})` },
     { id: "bookings", l: `Réservations (${stats.bookings})` },
     { id: "reviews", l: `Avis (${stats.reviews})` },
+    { id: "refunds", l: `Remboursements${refundsToDo.length ? ` (${refundsToDo.length})` : ""}` },
     { id: "payouts", l: "Virements experts" },
   ];
 
@@ -249,6 +274,39 @@ function AdminScreen({ authUser, onBack }) {
               </div>
             ))}
             {bookings.length === 0 && <div style={{ textAlign: "center", padding: "40px", color: C.muted }}>Aucune réservation</div>}
+          </div>
+        )}
+
+        {/* ── Remboursements ── */}
+        {!loading && tab === "refunds" && (
+          <div style={{ padding: "16px" }}>
+            <div style={{ fontSize: 12, color: C.muted, marginBottom: 14, lineHeight: 1.5 }}>
+              Sessions payées puis annulées. Un clic rembourse le client directement via Stripe.
+            </div>
+            {refundsToDo.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "40px 16px", color: C.muted, fontSize: 13 }}>
+                Aucun remboursement en attente.
+              </div>
+            ) : refundsToDo.map(b => {
+              const client = users.find(u => u.id === b.client_id);
+              const expert = expertsList.find(e => e.id === b.expert_id);
+              return (
+                <div key={b.id} style={{ background: C.white, borderRadius: 12, border: `1px solid ${C.border}`, padding: "13px 15px", marginBottom: 10, display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: C.ink }}>{b.phase_name || "Session"} · {b.phase_price || 0}€</div>
+                    <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
+                      {client?.name || "Client"} → {expert?.name || "Expert"}
+                      {b.date_session ? ` · ${new Date(b.date_session).toLocaleDateString("fr-FR")}` : ""}
+                    </div>
+                    {!b.stripe_session_id && <div style={{ fontSize: 10, color: "#B91C1C", marginTop: 3 }}>Pas de session Stripe liée — remboursement manuel requis</div>}
+                  </div>
+                  <button onClick={() => doRefund(b)} disabled={refunding === b.id || !b.stripe_session_id}
+                    style={{ flexShrink: 0, padding: "9px 16px", borderRadius: 10, border: "none", background: refunding === b.id || !b.stripe_session_id ? C.cream3 : C.ink, color: refunding === b.id || !b.stripe_session_id ? C.muted : C.white, fontSize: 12, fontWeight: 700, cursor: refunding === b.id || !b.stripe_session_id ? "default" : "pointer", fontFamily: "inherit" }}>
+                    {refunding === b.id ? "..." : "Rembourser"}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
 

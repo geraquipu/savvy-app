@@ -1242,7 +1242,8 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
               const s = cancelSession;
               // Réservation réelle (Supabase) → persister l'annulation
               if (s._fromSB && s.id) {
-                let { data: upd, error } = await supabase.from("bookings").update({ status: "cancelled", cancelled_by: "client" }).eq("id", s.id).select().single();
+                const cancelPatch = { status: "cancelled", cancelled_by: "client", ...(s.paid ? { refund_status: "requested" } : {}) };
+                let { data: upd, error } = await supabase.from("bookings").update(cancelPatch).eq("id", s.id).select().single();
                 if (error) { ({ data: upd, error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", s.id).select().single()); }
                 if (error) { console.warn("[cancel booking]", error.message); alert("Erreur lors de l'annulation : " + error.message); }
                 else { if(upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{}); setSbBookings(prev => prev.map(b => b.id === s.id ? { ...b, status: "cancelled", statusLabel: "Annulée", annuledBy: "client" } : b)); }
