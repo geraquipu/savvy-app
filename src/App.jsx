@@ -469,7 +469,7 @@ export default function App() {
       if (!data) {
         // Le trigger handle_new_user a peut-être échoué — on crée le profil manuellement
         const { data: created } = await supabase.from("profiles")
-          .upsert({ id: u.id, name: u.user_metadata?.name || base.name, email: u.email }, { onConflict: "id" })
+          .upsert({ id: u.id, name: u.user_metadata?.name || base.name }, { onConflict: "id" })
           .select(PROFILE_COLS).single();
         data = created;
       }

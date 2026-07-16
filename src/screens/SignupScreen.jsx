@@ -1058,7 +1058,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
               };
               // Garantir que le profil existe avant d'insérer l'expert (FK experts_user_id_fkey)
               await supabase.from("profiles").upsert(
-                { id: authUser.id, name: authUser.name || null, email: authUser.email || null },
+                { id: authUser.id, name: authUser.name || null },
                 { onConflict: "id" }
               );
               // Try update first (if row exists), then insert
