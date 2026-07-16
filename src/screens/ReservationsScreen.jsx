@@ -988,7 +988,11 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
   // Pour les vrais utilisateurs, utiliser Supabase en priorité
   const sbPending   = sbBookings.filter(b=>b.status==="pending" && !b.isPast);
   const sbConfirmed = sbBookings.filter(b=>b.status==="confirmed" && !b.isPast);
-  const sbPast      = sbBookings.filter(b=>b.status==="confirmed" && b.isPast);
+  // "Passées" = uniquement les sessions réellement payées (donc réalisées).
+  const sbPast      = sbBookings.filter(b=>b.status==="confirmed" && b.isPast && b.paid);
+  // Confirmée mais jamais payée et déjà passée = expirée (le client n'a pas finalisé).
+  const sbExpired   = sbBookings.filter(b=>b.status==="confirmed" && b.isPast && !b.paid)
+                        .map(b=>({ ...b, statusLabel:"Expirée", annuledBy:null, expired:true }));
   const sbCancelled = sbBookings.filter(b=>b.status==="cancelled");
 
   // Filter demo sessions to exclude experts already in LS bookings
@@ -1000,7 +1004,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
     ? [...sbPending, ...sbConfirmed]
     : [...lsPending, ...lsConfirmed, ...filteredSessionsAvenir];
   const allAnnulees = authUser?.real
-    ? [...sbCancelled]
+    ? [...sbCancelled, ...sbExpired]
     : [...lsCancelled, ...sessionsCancelees];
   const pendingCount = allAvenir.filter(s=>s.status==="pending" || (s.status==="confirmed" && !s.paid)).length;
   useEffect(() => { onPendingChange && onPendingChange(pendingCount); }, [pendingCount]);
@@ -1177,8 +1181,15 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
                           <div style={{ fontSize:13, fontWeight:700, color:C.ink, fontFamily:SERIF }}>{expert.name}</div>
                           <div style={{ fontSize:11, color:C.muted }}>{(expert.role||"").split("·")[0].trim()}</div>
                         </div>
-                        <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:"#FFF5F5", color:"#B91C1C", fontWeight:700, border:"1px solid #FEE2E2", display:"flex", alignItems:"center", gap:4 }}><svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><line x1={18} y1={6} x2={6} y2={18}/><line x1={6} y1={6} x2={18} y2={18}/></svg>Annulée</span>
+                        {s.expired
+                          ? <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:C.cream2, color:C.muted, fontWeight:700, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:4 }}><svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>Expirée</span>
+                          : <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:"#FFF5F5", color:"#B91C1C", fontWeight:700, border:"1px solid #FEE2E2", display:"flex", alignItems:"center", gap:4 }}><svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><line x1={18} y1={6} x2={6} y2={18}/><line x1={6} y1={6} x2={18} y2={18}/></svg>Annulée</span>}
                       </div>
+                      {s.expired && (
+                        <div style={{ background:C.cream2, borderRadius:9, padding:"8px 12px", fontSize:11, color:C.muted, lineHeight:1.5, marginBottom:10 }}>
+                          Le paiement n'a pas été finalisé avant la date — la session n'a pas eu lieu. Tu peux réserver un nouveau créneau quand tu veux.
+                        </div>
+                      )}
                       <div style={{ background:"#FFF5F5", borderRadius:10, padding:"9px 13px", marginBottom:10 }}>
                         <div style={{ fontSize:12, color:C.soft, display:"flex", gap:6, alignItems:"flex-start" }}>
                           <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth={2} style={{flexShrink:0,marginTop:1}}><circle cx={12} cy={12} r={10}/><line x1={12} y1={8} x2={12} y2={12}/><line x1={12} y1={16} x2={12.01} y2={16}/></svg>

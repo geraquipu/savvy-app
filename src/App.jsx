@@ -331,6 +331,7 @@ export default function App() {
   const [searchCat, setSearchCat] = useState(null);
   const [showNotif, setShowNotif] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [showPaymentCancel, setShowPaymentCancel] = useState(false);
   const [sharedExpertId, setSharedExpertId] = useState(null); // profil partagé via /p/<id>
   const [readNotifIds, setReadNotifIds] = useState([]);
   const [readMsgIds, setReadMsgIds] = useState(() => {
@@ -518,6 +519,13 @@ export default function App() {
       setScreen("reservations"); setNav("reservations");
       setShowPaymentSuccess(true);
       setTimeout(() => setShowPaymentSuccess(false), 5000);
+    } else if (paymentStatus === "cancel") {
+      // L'utilisateur a quitté Stripe sans payer : la session reste "à payer",
+      // rien n'est perdu. On nettoie l'URL et on le rassure.
+      window.history.replaceState({}, "", window.location.pathname);
+      setScreen("reservations"); setNav("reservations");
+      setShowPaymentCancel(true);
+      setTimeout(() => setShowPaymentCancel(false), 6000);
     }
 
     supabase.auth.getSession().then(async ({ data:{ session } }) => {
@@ -609,10 +617,19 @@ export default function App() {
   <div style={{fontFamily:SANS}}>
     {showPaymentSuccess && (
       <div style={{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",zIndex:99999,background:"#1C1917",color:"#fff",borderRadius:14,padding:"14px 22px",display:"flex",alignItems:"center",gap:10,boxShadow:"0 4px 24px rgba(0,0,0,0.25)",fontFamily:SANS,fontSize:14,fontWeight:600,maxWidth:360,animation:"fadeSlideUp .3s ease-out"}}>
-        <span style={{fontSize:20}}>✅</span>
+        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" strokeWidth={2.5} style={{flexShrink:0}}><polyline points="20 6 9 17 4 12"/></svg>
         <div>
           <div>Paiement confirmé !</div>
           <div style={{fontSize:11,fontWeight:400,opacity:0.7,marginTop:2}}>Votre session est réservée avec succès.</div>
+        </div>
+      </div>
+    )}
+    {showPaymentCancel && (
+      <div style={{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",zIndex:99999,background:"#1C1917",color:"#fff",borderRadius:14,padding:"14px 22px",display:"flex",alignItems:"center",gap:10,boxShadow:"0 4px 24px rgba(0,0,0,0.25)",fontFamily:SANS,fontSize:14,fontWeight:600,maxWidth:360,animation:"fadeSlideUp .3s ease-out"}}>
+        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#FCD34D" strokeWidth={2.5} style={{flexShrink:0}}><circle cx={12} cy={12} r={10}/><line x1={12} y1={8} x2={12} y2={12}/><line x1={12} y1={16} x2={12.01} y2={16}/></svg>
+        <div>
+          <div>Paiement non finalisé</div>
+          <div style={{fontSize:11,fontWeight:400,opacity:0.7,marginTop:2}}>Aucun débit. Ta session reste à payer — tu peux réessayer quand tu veux.</div>
         </div>
       </div>
     )}
