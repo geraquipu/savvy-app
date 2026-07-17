@@ -47,6 +47,27 @@ export const MENU_ICONS = {
   "🛡️": <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
 };
 
+/**
+ * Rend une icône de MENU_ICONS à la taille voulue.
+ *
+ * Les clés sont des emojis, mais ce ne sont QUE des clés : rien n'affiche
+ * jamais l'emoji lui-même. Savvy n'utilise pas d'emoji dans son interface —
+ * uniquement ces SVG, qui prennent la couleur du texte parent.
+ *
+ *   <Ico k="📱" size={44}/>   →  le pictogramme téléphone, pas 📱
+ *
+ * Si la clé n'existe pas, on ne rend rien plutôt que de laisser fuiter un
+ * emoji dans l'UI.
+ */
+export function Ico({ k, size = 18, stroke, sw }) {
+  const el = MENU_ICONS[k];
+  if (!el) return null;
+  const extra = { width: size, height: size };
+  if (stroke) extra.stroke = stroke;
+  if (sw) extra.strokeWidth = sw;
+  return React.cloneElement(el, extra);
+}
+
 // Icône correspondant au format réel d'une session (vidéo / audio / doc / chat)
 export function FormatIcon({ f, size = 12, stroke = "currentColor", sw = 2 }) {
   const k = String(f || "").toLowerCase();

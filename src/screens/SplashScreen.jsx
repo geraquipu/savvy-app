@@ -3,6 +3,7 @@ import { supabase } from '../supabase';
 import { C, SERIF } from '../constants/colors';
 import { DEMO_USERS } from '../constants/data';
 import { DOMAIN } from '../constants/company';
+import { Ico } from '../constants/menuIcons.jsx';
 
 function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
   const [mode, setMode] = useState("choice"); // choice | phone | otp | email_otp
@@ -12,6 +13,7 @@ function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
   const [showPwd, setShowPwd] = useState(false);
   const [otp, setOtp] = useState(["","","","","",""]);
   const [loading, setLoading] = useState(false);
+  const [resent, setResent] = useState(false);
   const r0=useRef(),r1=useRef(),r2=useRef(),r3=useRef(),r4=useRef(),r5=useRef();
   const refs=[r0,r1,r2,r3,r4,r5];
 
@@ -45,7 +47,7 @@ function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
         <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={C.white} strokeWidth={2}><path d="m15 18-6-6 6-6"/></svg>
       </button>
       <div style={{textAlign:"center",marginBottom:32}}>
-        <div style={{fontSize:48,marginBottom:16}}>📱</div>
+        <div style={{marginBottom:16,display:"flex",justifyContent:"center",color:C.goldB}}><Ico k="📱" size={44} sw={1.4}/></div>
         <h2 style={{fontSize:22,fontWeight:700,color:C.white,fontFamily:SERIF,margin:"0 0 10px"}}>Code de vérification</h2>
         <p style={{fontSize:14,color:"rgba(253,252,248,.65)",lineHeight:1.6,margin:0}}>
           Code envoyé au<br/><b style={{color:C.goldB}}>{contact}</b>
@@ -68,8 +70,11 @@ function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
       }} disabled={loading} style={{width:"100%",padding:"15px",borderRadius:13,border:"none",cursor:loading?"wait":"pointer",fontWeight:700,fontSize:16,background:otp.join("").length===6?`linear-gradient(135deg,${C.gold},${C.goldB})`:C.cream3,color:otp.join("").length===6?C.white:C.muted,fontFamily:SERIF,boxShadow:otp.join("").length===6?`0 4px 20px rgba(185,134,74,.4)`:"none"}}>
         {loading?"Vérification…":"Confirmer →"}
       </button>
-      <button onClick={()=>{ setOtp(["","","","","",""]); setFeedback("✓ Code renvoyé à "+contact); }} style={{marginTop:16,background:"none",border:"none",cursor:"pointer",color:"rgba(253,252,248,.5)",fontSize:13,fontFamily:"inherit"}}>
-        Code non reçu ? Renvoyer
+      <button onClick={()=>{ setOtp(["","","","","",""]); setResent(true); refs[0].current?.focus(); }}
+        style={{marginTop:16,background:"none",border:"none",cursor:"pointer",color:resent?C.goldB:"rgba(253,252,248,.5)",fontSize:13,fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>
+        {resent
+          ? <><svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>Code renvoyé à {contact}</>
+          : "Code non reçu ? Renvoyer"}
       </button>
     </div>
   );
@@ -115,13 +120,14 @@ function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
 
         {/* Toggle email / téléphone */}
         <div style={{display:"flex",background:"rgba(255,255,255,.08)",borderRadius:11,padding:3,marginBottom:14,gap:3,width:"100%",maxWidth:320}}>
-          {[{v:true,l:"📱 Téléphone"},{v:false,l:"✉️ Email"}].map(t=>(
+          {[{v:true,l:"Téléphone",i:"📱"},{v:false,l:"Email",i:"📧"}].map(t=>(
             <button key={String(t.v)} onClick={()=>{setIsPhone(t.v);setContact("");}}
               style={{flex:1,padding:"9px 0",borderRadius:9,border:"none",cursor:"pointer",fontWeight:700,fontSize:13,fontFamily:"inherit",transition:"all .2s",
                 background:isPhone===t.v?C.white:"transparent",
                 color:isPhone===t.v?C.ink:"rgba(253,252,248,.55)",
-                boxShadow:isPhone===t.v?`0 1px 6px rgba(0,0,0,.15)`:"none"}}>
-              {t.l}
+                boxShadow:isPhone===t.v?`0 1px 6px rgba(0,0,0,.15)`:"none",
+                display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+              <Ico k={t.i} size={14}/>{t.l}
             </button>
           ))}
         </div>

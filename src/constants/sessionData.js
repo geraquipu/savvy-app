@@ -12,3 +12,9 @@ export const SESSIONS_PASSEES = [
 export const SESSIONS_ANNULEES = [
   { id:5, eid:3, topic:"Supply chain · diagnostic rapide", date:"2 mai 2025", time:"11:00", duration:"30 min", format:"🎥 Vidéo", price:80, annuledBy:"client", motif:"Changement de planning" },
 ];
+
+/** Avis laissés par le client de démonstration. */
+export const AVIS_DONNES = [
+  { id:1, eid:1, date:"15 mai 2025", stars:5, text:"Marie est extraordinaire — pédagogue, patiente et très pro. Mes macarons sont enfin réussis !" },
+  { id:2, eid:4, date:"8 mai 2025",  stars:5, text:"Lucas connaît chaque détail de la douane colombienne. Rapport livré en 24h, impeccable." },
+];

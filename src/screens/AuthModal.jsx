@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { supabase } from '../supabase';
 import { C, SERIF } from '../constants/colors';
 import { DEMO_USERS } from '../constants/data';
+import { Ico } from '../constants/menuIcons.jsx';
 
 function AuthModal({ onClose, onSuccess, initialRegister, isAdmin }) {
   const [step, setStep] = useState(initialRegister?"register_method":"choice");
@@ -16,6 +17,7 @@ function AuthModal({ onClose, onSuccess, initialRegister, isAdmin }) {
   const [socialLoading, setSocialLoading] = useState(null);
   const [showPwd, setShowPwd] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+  const [resent, setResent] = useState(false);
   const r0=useRef(),r1=useRef(),r2=useRef(),r3=useRef(),r4=useRef(),r5=useRef();
   const otpRefs=[r0,r1,r2,r3,r4,r5];
 
@@ -304,8 +306,11 @@ function AuthModal({ onClose, onSuccess, initialRegister, isAdmin }) {
             ))}
           </div>
           <div style={{textAlign:"center",marginBottom:16}}>
-            <span style={{fontSize:12,color:C.muted}}>Code non reçu ? </span>
-            <button style={{background:"none",border:"none",cursor:"pointer",color:C.gold,fontWeight:700,fontFamily:"inherit",fontSize:12}}>Renvoyer</button>
+            <span style={{fontSize:12,color:C.muted}}>{resent ? "" : "Code non reçu ? "}</span>
+            <button onClick={()=>{ setOtp(["","","","","",""]); setResent(true); otpRefs[0].current?.focus(); }}
+              style={{background:"none",border:"none",cursor:"pointer",color:resent?C.sage:C.gold,fontWeight:700,fontFamily:"inherit",fontSize:12}}>
+              {resent ? "Code renvoyé" : "Renvoyer"}
+            </button>
           </div>
           <button onClick={()=>{if(otp.join("").length<6){alert("Entre les 6 chiffres.");return;}loginAs();}} disabled={loading}
             style={{width:"100%",padding:"14px",borderRadius:13,border:"none",cursor:loading?"wait":"pointer",fontWeight:700,fontSize:14,background:otp.join("").length===6?C.ink:C.cream3,color:otp.join("").length===6?C.white:C.muted,fontFamily:SERIF}}>
@@ -333,10 +338,10 @@ function AuthModal({ onClose, onSuccess, initialRegister, isAdmin }) {
         {/* ── RESET SENT ─────────────────────────────────────────────── */}
         {step==="reset_sent" && (
           <div style={{textAlign:"center",padding:"10px 0"}}>
-            <div style={{fontSize:48,marginBottom:14}}>📧</div>
+            <div style={{marginBottom:14,display:"flex",justifyContent:"center",color:C.goldB}}><Ico k="📧" size={44} sw={1.4}/></div>
             <h2 style={{fontSize:20,fontWeight:700,color:C.ink,margin:"0 0 10px",fontFamily:SERIF}}>Email envoyé !</h2>
             <p style={{fontSize:13,color:C.muted,lineHeight:1.7,marginBottom:18}}>Lien envoyé à<br/><b style={{color:C.ink}}>{resetEmail}</b></p>
-            <div style={{background:C.goldL,borderRadius:12,padding:"11px 14px",marginBottom:20,fontSize:12,color:C.gold,border:`1px solid ${C.goldB}`}}>💡 Vérifie aussi tes spams.</div>
+            <div style={{background:C.goldL,borderRadius:12,padding:"11px 14px",marginBottom:20,fontSize:12,color:C.gold,border:`1px solid ${C.goldB}`}}><span style={{display:"inline-flex",alignItems:"center",gap:6}}><Ico k="💡" size={13}/>Vérifie aussi tes spams.</span></div>
             <button onClick={onClose} style={{width:"100%",padding:"13px",borderRadius:13,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:C.ink,color:C.white,fontFamily:SERIF}}>Retour</button>
           </div>
         )}

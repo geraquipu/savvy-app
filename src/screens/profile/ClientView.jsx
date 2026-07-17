@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { C, SERIF, SANS } from '../../constants/colors';
 import { EXPERTS, getBookings, getTrustLevel } from '../../constants/data';
-import { SESSIONS_AVENIR, SESSIONS_PASSEES } from '../../constants/sessionData';
+import { SESSIONS_AVENIR, SESSIONS_PASSEES, AVIS_DONNES } from '../../constants/sessionData';
 import { MENU_ICONS } from '../../constants/menuIcons.jsx';
 import { legalLine, legalShort, EMAIL_CONTACT, DOMAIN, SITE_URL } from '../../constants/company';
+import { LEGAL_DOCS } from '../../constants/legal';
 
-const AVIS_DONNES = [
-  { id:1, eid:1, date:"15 mai 2025", stars:5, text:"Marie est extraordinaire — pédagogue, patiente et très pro. Mes macarons sont enfin réussis !" },
-  { id:2, eid:4, date:"8 mai 2025",  stars:5, text:"Lucas connaît chaque détail de la douane colombienne. Rapport livré en 24h, impeccable." },
-];
+/** Icônes des quatre documents légaux — SVG, pas d'emoji. */
+const LEGAL_ICONS = {
+  privacy:  <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  cgu:      <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1={16} y1={13} x2={8} y2={13}/><line x1={16} y1={17} x2={8} y2={17}/></svg>,
+  cookies:  <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><circle cx={12} cy={12} r={10}/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1={9} y1={9} x2={9.01} y2={9}/><line x1={15} y1={9} x2={15.01} y2={9}/></svg>,
+  mentions: <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 3v18"/><path d="M5 7l7-4 7 4"/><path d="M5 7l-3 7a4 4 0 0 0 6 0z"/><path d="M19 7l3 7a4 4 0 0 1-6 0z"/></svg>,
+};
 
 function TrustBadge({ score, size="sm" }) {
   const level = getTrustLevel(score||0);
@@ -84,7 +88,7 @@ export function ClientView({
   convoOpen, setConvoOpen,
   editingInfo, setEditingInfo, editInfoVal, setEditInfoVal, editInfoSaved, setEditInfoSaved,
   userEmail, setUserEmail,
-  setShowPwdModal, setShowDeleteModal,
+  setShowPwdModal, setShowDeleteModal, setLegalModal,
   clientSection, setClientSection, clientSubSection, setClientSubSection,
   clientSessionFilter, setClientSessionFilter,
   clientPayFilter, setClientPayFilter,
@@ -596,20 +600,16 @@ export function ClientView({
         <div>
           <BackHeader title="Legal" onBack={goBackToAide}/>
           <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,overflow:"hidden",marginBottom:14}}>
-            {[
-              {icon:"🔒",title:"Politique de confidentialite",desc:"Comment nous protegeon tes donnees personnelles"},
-              {icon:"📄",title:"Conditions generales d'utilisation",desc:"Regles d'utilisation de la plateforme Savvy"},
-              {icon:"🍪",title:"Gestion des cookies",desc:"Paramètres de cookies et traceurs"},
-              {icon:"⚖️",title:"Mentions legales",desc:"Informations legales de Savvy SAS"},
-            ].map((item,i,arr)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:13,padding:"14px 16px",borderBottom:i<arr.length-1?`1px solid ${C.borderF}`:"none"}}>
-                <div style={{width:38,height:38,borderRadius:11,background:C.cream2,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19,flexShrink:0}}>{item.icon}</div>
+            {LEGAL_DOCS.map((item,i,arr)=>(
+              <button key={item.id} onClick={()=>setLegalModal&&setLegalModal(item.id)}
+                style={{display:"flex",alignItems:"center",gap:13,padding:"14px 16px",width:"100%",textAlign:"left",background:"none",cursor:"pointer",fontFamily:"inherit",border:"none",borderBottom:i<arr.length-1?`1px solid ${C.borderF}`:"none"}}>
+                <div style={{width:38,height:38,borderRadius:11,background:C.cream2,display:"flex",alignItems:"center",justifyContent:"center",color:C.soft,flexShrink:0}}>{LEGAL_ICONS[item.id]}</div>
                 <div style={{flex:1}}>
                   <div style={{fontSize:13,fontWeight:600,color:C.ink}}>{item.title}</div>
                   <div style={{fontSize:11,color:C.muted,marginTop:1}}>{item.desc}</div>
                 </div>
-                <span style={{fontSize:9,fontWeight:700,color:C.muted,background:C.cream2,border:`1px solid ${C.border}`,borderRadius:8,padding:"2px 7px",flexShrink:0}}>bientôt</span>
-              </div>
+                <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke={C.faint} strokeWidth={2} style={{flexShrink:0}}><path d="m9 18 6-6-6-6"/></svg>
+              </button>
             ))}
           </div>
           <div style={{background:C.cream2,borderRadius:12,padding:"16px",border:`1px solid ${C.border}`,textAlign:"center"}}>

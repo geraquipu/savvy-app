@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { C, SERIF, SANS } from '../constants/colors';
 import { expertPayout, savvyCut } from '../constants/config';
-import { DEMO_USERS, CATS, SUBCATS, TRUST_LEVELS, getTrustLevel, getBookings, EXPERTS, getCountdown } from '../constants/data';
+import { DEMO_USERS, CATS, SUBCATS, TRUST_LEVELS, getTrustLevel, getBookings, updateBooking, EXPERTS, getCountdown } from '../constants/data';
 import { EXPERT_EXTRAS, EXPERT_STYLE_TAGS, EXPERT_FIRST_SESSION } from '../constants/expertExtras';
-import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../constants/sessionData';
+import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES, AVIS_DONNES } from '../constants/sessionData';
 import { Stars, Av } from '../components/ui';
 import { MENU_ICONS } from '../constants/menuIcons.jsx';
 import { legalLine, EMAIL_CONTACT, DOMAIN } from '../constants/company';
+import { legalDoc, LEGAL_UPDATED } from '../constants/legal';
+import { resetConsent } from '../consent';
 import { CalendarPicker, parseDuree } from './BookingScreen';
 import { ClientView } from './profile/ClientView';
 import { ExpertView } from './profile/ExpertView';
@@ -951,7 +953,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
             convoOpen={convoOpen} setConvoOpen={setConvoOpen}
             editingInfo={editingInfo} setEditingInfo={setEditingInfo} editInfoVal={editInfoVal} setEditInfoVal={setEditInfoVal} editInfoSaved={editInfoSaved} setEditInfoSaved={setEditInfoSaved}
             userEmail={userEmail} setUserEmail={setUserEmail}
-            setShowPwdModal={setShowPwdModal} setShowDeleteModal={setShowDeleteModal}
+            setShowPwdModal={setShowPwdModal} setShowDeleteModal={setShowDeleteModal} setLegalModal={setLegalModal}
             clientSection={clientSection} setClientSection={setClientSection}
             clientSubSection={clientSubSection} setClientSubSection={setClientSubSection}
             clientSessionFilter={clientSessionFilter} setClientSessionFilter={setClientSessionFilter}
@@ -1157,44 +1159,24 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
               <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={C.soft} strokeWidth={2}><path d="m15 18-6-6 6-6"/></svg>
             </button>
             <div style={{ fontSize:16, fontWeight:700, color:C.ink, fontFamily:SERIF }}>
-              {legalModal==="cgu"?"Conditions d\'utilisation":legalModal==="privacy"?"Politique de confidentialité":"Mes NDAs signés"}
+              {legalModal==="nda" ? "Mes NDAs signés" : (legalDoc(legalModal)?.title || "")}
             </div>
           </div>
-          <div style={{ padding:"20px 22px 40px" }}>
-            {legalModal==="cgu" && <>
-              <div style={{ fontSize:11, color:C.muted, marginBottom:16 }}>Dernière mise à jour : 1er janvier 2025</div>
-              {[
-                {title:"1. Objet",text:"Les présentes Conditions Générales d\'Utilisation régissent l\'accès et l\'utilisation de la plateforme Savvy, accessible via l\'application mobile Savvy, éditée par Savvy SAS, société par actions simplifiée en cours d\'immatriculation, dont le siège est à Paris (France)."},
-                {title:"2. Services proposés",text:"Savvy est une marketplace mettant en relation des experts (« Conseillers ») avec des particuliers ou professionnels (« Clients ») souhaitant bénéficier de conseils basés sur une expérience réelle et vécue."},
-                {title:"3. Commission Savvy",text:"Savvy prélève une commission de 20% sur chaque transaction réalisée sur la plateforme. Le Conseiller reçoit 80% du montant payé par le Client. Cette commission couvre les frais de plateforme, de paiement sécurisé et de support client."},
-                {title:"4. Responsabilités",text:"Savvy agit en tant qu\'intermédiaire technique. Les conseils prodigués sont sous la responsabilité exclusive du Conseiller. Savvy ne peut être tenu responsable de la qualité ou des résultats des sessions."},
-                {title:"5. Remboursements",text:"Tout remboursement pour annulation dans les 24h précédant la session est traité sous 5 jours ouvrés. Au-delà de ce délai, le remboursement est soumis à l\'accord du Conseiller."},
-              ].map(s=>(
-                <div key={s.title} style={{ marginBottom:18 }}>
-                  <div style={{ fontSize:14, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:6 }}>{s.title}</div>
-                  <div style={{ fontSize:13, color:C.soft, lineHeight:1.8 }}>{s.text}</div>
+          {/* Le pied doit dégager la barre de navigation, sinon le dernier bouton est inatteignable */}
+          <div style={{ padding:"20px 22px calc(env(safe-area-inset-bottom) + 110px)" }}>
+            {legalDoc(legalModal) && <>
+              <div style={{ fontSize:11, color:C.muted, marginBottom:16 }}>Dernière mise à jour : {LEGAL_UPDATED}</div>
+              {legalDoc(legalModal).sections.map(sec=>(
+                <div key={sec.title} style={{ marginBottom:18 }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:6 }}>{sec.title}</div>
+                  <div style={{ fontSize:13, color:C.soft, lineHeight:1.8, whiteSpace:"pre-line" }}>{sec.text}</div>
                 </div>
               ))}
-            </>}
-            {legalModal==="privacy" && <>
-              <div style={{ fontSize:11, color:C.muted, marginBottom:16 }}>Conforme au RGPD · Mis à jour le 25 juin 2026</div>
-              {[
-                {title:"1. Responsable du traitement",text:"Savvy (auto-entrepreneur, France). Contact : privacy@getsavvy.fr"},
-                {title:"2. Données collectées",text:"Savvy collecte uniquement les données nécessaires au service : nom et prénom, adresse email, photo de profil (optionnelle), données de paiement (traitées et chiffrées par Stripe — Savvy ne stocke jamais les numéros de carte), historique des réservations et sessions, messages échangés avec les Conseillers."},
-                {title:"3. Finalités du traitement",text:"Tes données sont utilisées pour : (a) créer et gérer ton compte, (b) traiter les paiements et remboursements, (c) te mettre en relation avec des Conseillers, (d) t\'envoyer des confirmations de réservation par email, (e) améliorer la qualité du service, (f) respecter nos obligations légales et fiscales."},
-                {title:"4. Base légale",text:"Le traitement est fondé sur l\'exécution du contrat (art. 6.1.b RGPD) pour les données nécessaires au service, et sur notre intérêt légitime (art. 6.1.f RGPD) pour l\'amélioration du service."},
-                {title:"5. Destinataires des données",text:"Savvy ne vend jamais tes données. Elles sont partagées uniquement avec nos sous-traitants certifiés : Stripe (paiements, certifié PCI-DSS), Supabase (hébergement base de données, serveurs en Europe), Resend (envoi d\'emails transactionnels). Les Conseillers voient uniquement ton prénom et ta photo de profil."},
-                {title:"6. Transferts hors UE",text:"Certains sous-traitants (Stripe, Supabase) peuvent traiter des données hors de l\'UE avec des garanties appropriées (clauses contractuelles types de la Commission européenne)."},
-                {title:"7. Durée de conservation",text:"Données de compte : durée de vie du compte + 3 ans. Données de paiement : 5 ans (obligation légale fiscale). Messages : 2 ans après la dernière activité. Tu peux demander la suppression anticipée à privacy@getsavvy.fr."},
-                {title:"8. Tes droits (RGPD)",text:"Tu disposes des droits suivants : accès, rectification, suppression (\"droit à l\'oubli\"), portabilité, limitation du traitement, opposition. Pour exercer ces droits : privacy@getsavvy.fr. Réponse sous 30 jours. Tu peux également déposer une réclamation auprès de la CNIL (cnil.fr)."},
-                {title:"9. Cookies",text:"Savvy n\'utilise pas de cookies publicitaires ni de trackers tiers. Un cookie de session est utilisé uniquement pour maintenir ta connexion."},
-                {title:"10. Contact",text:"Responsable du traitement : Savvy — privacy@getsavvy.fr"},
-              ].map(s=>(
-                <div key={s.title} style={{ marginBottom:18 }}>
-                  <div style={{ fontSize:14, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:6 }}>{s.title}</div>
-                  <div style={{ fontSize:13, color:C.soft, lineHeight:1.8 }}>{s.text}</div>
-                </div>
-              ))}
+              {legalModal==="cookies" && (
+                <button onClick={()=>{ resetConsent(); window.location.reload(); }} style={{ width:"100%", marginTop:4, padding:"13px", borderRadius:12, border:`1.5px solid ${C.border}`, background:C.cream2, color:C.ink, fontSize:13, fontWeight:700, fontFamily:"inherit", cursor:"pointer" }}>
+                  Revoir mon choix de cookies
+                </button>
+              )}
             </>}
             {legalModal==="nda" && <>
               <div style={{ fontSize:13, color:C.muted, marginBottom:16, lineHeight:1.6 }}>Les accords de confidentialité sont signés automatiquement lors de tes sessions avec des experts qui l'exigent.</div>
