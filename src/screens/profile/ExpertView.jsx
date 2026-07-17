@@ -434,9 +434,11 @@ export function ExpertView({
       let alive = true;
       (async () => {
         // refresh: true -> on veut l'état, pas un lien d'onboarding
-        const { data, error } = await supabase.functions.invoke("connect-onboard", { body: { refresh: true } });
+        const { data } = await supabase.functions.invoke("connect-onboard", { body: { refresh: true } });
         if (!alive) return;
-        setConnect({ loading: false, ready: !!data?.ready, error: error ? "unavailable" : (data?.error || null) });
+        // Une sonde qui échoue ne dit rien à l'expert : il n'a rien demandé.
+        // On le laisse sur "à configurer" — s'il clique et que ça casse, là on parle.
+        setConnect({ loading: false, ready: !!data?.ready, error: null });
       })();
       return () => { alive = false; };
     }, [authUser?.real, authUser?.expertId]);
