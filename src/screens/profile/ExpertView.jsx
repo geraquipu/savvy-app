@@ -444,11 +444,27 @@ export function ExpertView({
     }, [authUser?.real, authUser?.expertId]);
 
     const startConnectOnboarding = async () => {
+      // En démo il n'y a pas de session : inutile d'appeler, la fonction
+      // répondrait 401 et l'expert lirait une erreur technique sans rapport.
+      if (!authUser?.real || !authUser?.expertId) {
+        setConnect(c => ({ ...c, error: "demo" }));
+        return;
+      }
       setConnectBusy(true);
-      const { data, error } = await supabase.functions.invoke("connect-onboard", { body: {} });
-      if (data?.url) { window.location.href = data.url; return; }
-      setConnect(c => ({ ...c, ready: !!data?.ready, error: data?.error || error?.message || "Erreur" }));
-      setConnectBusy(false);
+      try {
+        const { data, error } = await supabase.functions.invoke("connect-onboard", { body: {} });
+        if (data?.url) { window.location.href = data.url; return; }
+        // Sans try/catch, une exception d'invoke laissait le bouton bloqué sur
+        // "Ouverture…" et le clic semblait ne rien faire.
+        const detail = data?.error || (await error?.context?.text?.().catch(() => null)) || error?.message;
+        console.error("[connect-onboard]", detail || "réponse sans url", { data, error });
+        setConnect(c => ({ ...c, ready: !!data?.ready, error: detail || "unavailable" }));
+      } catch (e) {
+        console.error("[connect-onboard] exception", e);
+        setConnect(c => ({ ...c, error: e?.message || "unavailable" }));
+      } finally {
+        setConnectBusy(false);
+      }
     };
 
     // ── États remontés ici pour respecter les règles des hooks ──
@@ -1234,7 +1250,9 @@ export function ExpertView({
             )}
             {connect.error && (
               <div style={{fontSize:11,color:"#B91C1C",marginTop:8,lineHeight:1.5}}>
-                Configuration indisponible pour le moment. Réessaie plus tard ou écris-nous à {EMAIL_CONTACT}.
+                {connect.error === "demo"
+                  ? "Cette démo ne permet pas de configurer les paiements. Crée ton profil conseiller pour y accéder."
+                  : <>Configuration indisponible pour le moment. Réessaie plus tard ou écris-nous à {EMAIL_CONTACT}.</>}
               </div>
             )}
           </div>

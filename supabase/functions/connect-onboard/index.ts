@@ -46,6 +46,11 @@ serve(async (req) => {
     const { data: { user } } = await asUser.auth.getUser();
     if (!user) return json({ error: "Non autorisé" }, 401);
 
+    // Lu en premier : `refresh` décide s'il faut créer quoi que ce soit chez
+    // Stripe. Lire le body après les appels réseau revenait à créer un compte
+    // Express à chaque fois qu'un expert ouvrait simplement "Mes revenus".
+    const { refresh } = await req.json().catch(() => ({ refresh: false }));
+
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: expert } = await admin
       .from("experts")
@@ -56,6 +61,9 @@ serve(async (req) => {
     if (!expert) return json({ error: "Profil conseiller introuvable" }, 404);
 
     let accountId = expert.stripe_account_id;
+
+    // Sonde de statut sans compte existant : rien à interroger, rien à créer.
+    if (refresh && !accountId) return json({ ok: true, ready: false });
 
     // ── 1. Créer le compte Express au premier passage ──
     if (!accountId) {
@@ -85,7 +93,6 @@ serve(async (req) => {
     const ready = !!account.charges_enabled;
 
     // Simple rafraîchissement de statut (retour d'onboarding) : pas de nouveau lien.
-    const { refresh } = await req.json().catch(() => ({ refresh: false }));
     if (refresh || ready) {
       return json({ ok: true, ready, chargesEnabled: !!account.charges_enabled, payoutsEnabled: !!account.payouts_enabled });
     }
