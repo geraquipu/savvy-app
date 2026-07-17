@@ -1239,9 +1239,20 @@ export function ExpertView({
             </div>
             {!connect.loading && !connect.ready && (
               <>
-                <div style={{fontSize:11,color:C.soft,lineHeight:1.6,background:C.cream2,borderRadius:9,padding:"9px 11px",margin:"4px 0 10px"}}>
-                  Savvy ne voit jamais ton IBAN : c'est Stripe qui le collecte et te verse ta part.
-                  Prévois une pièce d'identité, ça prend 5 minutes.
+                <div style={{background:C.cream2,borderRadius:9,padding:"10px 12px",margin:"4px 0 10px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,fontSize:11.5,fontWeight:700,color:C.ink,marginBottom:7}}>
+                    <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x={3} y={11} width={18} height={11} rx={2}/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Paiements sécurisés par Stripe
+                  </div>
+                  {["Savvy n'accède jamais à ton IBAN", "Configuration : environ 5 minutes"].map(t => (
+                    <div key={t} style={{display:"flex",alignItems:"flex-start",gap:6,fontSize:11,color:C.soft,lineHeight:1.5,marginTop:3}}>
+                      <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke={C.sage} strokeWidth={3} style={{flexShrink:0,marginTop:2}}><polyline points="20 6 9 17 4 12"/></svg>
+                      {t}
+                    </div>
+                  ))}
+                  <div style={{fontSize:10.5,color:C.muted,lineHeight:1.5,marginTop:7,paddingTop:7,borderTop:`1px solid ${C.borderF}`}}>
+                    Tu termineras la configuration directement sur Stripe, notre partenaire de paiement.
+                  </div>
                 </div>
                 <button onClick={startConnectOnboarding} disabled={connectBusy} style={{width:"100%",padding:"11px",borderRadius:10,border:"none",cursor:connectBusy?"wait":"pointer",fontWeight:700,fontSize:12.5,fontFamily:SERIF,color:C.white,background:`linear-gradient(135deg,${C.gold},${C.goldB})`,opacity:connectBusy?.6:1}}>
                   {connectBusy ? "Ouverture…" : "Configurer mes paiements"}
@@ -1281,7 +1292,7 @@ export function ExpertView({
               ));
             })()}
             {realRevenu>0 && <div style={{marginTop:10,paddingTop:8,borderTop:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",fontSize:13,fontWeight:700,color:C.ink}}>
-              <span>Total net (80%)</span><span style={{color:C.gold}}>{realRevenu.toFixed(0)}€</span>
+              <span>Tu reçois</span><span style={{color:C.gold}}>{realRevenu.toFixed(0)}€</span>
             </div>}
             <button onClick={()=>generateFacturesPDF(EXPERT_DATA.prenom+" "+EXPERT_DATA.nom, true)} style={{width:"100%",marginTop:10,padding:"9px",borderRadius:10,border:`1px solid ${C.gold}`,background:C.goldL,color:C.gold,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6}}><Ico k="📄" size={12}/>Télécharger mes factures PDF</span></button>
           </div>
