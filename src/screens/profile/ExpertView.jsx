@@ -426,6 +426,29 @@ export function ExpertView({
       const id = setInterval(() => setTick(t => t + 1), 30000);
       return () => clearInterval(id);
     }, []);
+    // ── Stripe Connect : statut d'encaissement du Conseiller ──
+    const [connect, setConnect] = React.useState({ loading: true, ready: false, error: null });
+    const [connectBusy, setConnectBusy] = React.useState(false);
+    React.useEffect(() => {
+      if (!authUser?.real || !authUser?.expertId) { setConnect({ loading: false, ready: false, error: null }); return; }
+      let alive = true;
+      (async () => {
+        // refresh: true -> on veut l'état, pas un lien d'onboarding
+        const { data, error } = await supabase.functions.invoke("connect-onboard", { body: { refresh: true } });
+        if (!alive) return;
+        setConnect({ loading: false, ready: !!data?.ready, error: error ? "unavailable" : (data?.error || null) });
+      })();
+      return () => { alive = false; };
+    }, [authUser?.real, authUser?.expertId]);
+
+    const startConnectOnboarding = async () => {
+      setConnectBusy(true);
+      const { data, error } = await supabase.functions.invoke("connect-onboard", { body: {} });
+      if (data?.url) { window.location.href = data.url; return; }
+      setConnect(c => ({ ...c, ready: !!data?.ready, error: data?.error || error?.message || "Erreur" }));
+      setConnectBusy(false);
+    };
+
     // ── États remontés ici pour respecter les règles des hooks ──
     // (ils étaient déclarés dans des blocs conditionnels de sections → crash #310)
     const [edited, setEdited] = React.useState(null);       // éditeur de disponibilités
@@ -1176,15 +1199,42 @@ export function ExpertView({
           </div>
           <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"13px 15px",marginBottom:14}}>
             <div style={{fontSize:12,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:10}}>Mode de virement</div>
-            <div style={{display:"flex",alignItems:"center",gap:11,padding:"9px 0",borderBottom:`1px solid ${C.borderF}`}}>
+            <div style={{display:"flex",alignItems:"center",gap:11,padding:"9px 0"}}>
               <Ico k="🏦" size={19}/>
               <div style={{flex:1}}>
-                <div style={{fontSize:13,fontWeight:700,color:C.ink}}>SEPA — IBAN configuré</div>
-                <div style={{fontSize:11,color:C.muted}}>Virement sous 3–5 jours ouvrés</div>
+                <div style={{fontSize:13,fontWeight:700,color:C.ink}}>
+                  {connect.loading ? "Vérification…" : connect.ready ? "Compte de paiement actif" : "Paiements à configurer"}
+                </div>
+                <div style={{fontSize:11,color:C.muted}}>
+                  {connect.ready
+                    ? "Stripe te verse ta part directement, sous 3–5 jours ouvrés"
+                    : "Sans ça, les clients ne peuvent pas payer tes sessions"}
+                </div>
               </div>
-              <span style={{fontSize:10,padding:"2px 8px",borderRadius:20,background:C.sageL,color:C.sage,fontWeight:700}}>Actif</span>
+              {!connect.loading && (
+                <span style={{fontSize:10,padding:"2px 8px",borderRadius:20,fontWeight:700,
+                  background:connect.ready?C.sageL:"#FEF3C7", color:connect.ready?C.sage:"#B45309",
+                  border:connect.ready?"none":"1px solid #FCD34D"}}>
+                  {connect.ready ? "Actif" : "À faire"}
+                </span>
+              )}
             </div>
-            <button onClick={()=>setShowCardModal(true)} style={{width:"100%",marginTop:10,padding:"9px",borderRadius:10,border:`1px dashed ${C.gold}`,background:"transparent",color:C.gold,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6}}><Ico k="✏️" size={12}/>Modifier les coordonnées bancaires</span></button>
+            {!connect.loading && !connect.ready && (
+              <>
+                <div style={{fontSize:11,color:C.soft,lineHeight:1.6,background:C.cream2,borderRadius:9,padding:"9px 11px",margin:"4px 0 10px"}}>
+                  Savvy ne voit jamais ton IBAN : c'est Stripe qui le collecte et te verse ta part.
+                  Prévois une pièce d'identité, ça prend 5 minutes.
+                </div>
+                <button onClick={startConnectOnboarding} disabled={connectBusy} style={{width:"100%",padding:"11px",borderRadius:10,border:"none",cursor:connectBusy?"wait":"pointer",fontWeight:700,fontSize:12.5,fontFamily:SERIF,color:C.white,background:`linear-gradient(135deg,${C.gold},${C.goldB})`,opacity:connectBusy?.6:1}}>
+                  {connectBusy ? "Ouverture…" : "Configurer mes paiements"}
+                </button>
+              </>
+            )}
+            {connect.error && (
+              <div style={{fontSize:11,color:"#B91C1C",marginTop:8,lineHeight:1.5}}>
+                Configuration indisponible pour le moment. Réessaie plus tard ou écris-nous à {EMAIL_CONTACT}.
+              </div>
+            )}
           </div>
           <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"13px 15px"}}>
             <div style={{fontSize:12,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:10}}>

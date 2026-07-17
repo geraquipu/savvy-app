@@ -668,15 +668,14 @@ function PaymentModal({ session, expert, onClose }) {
     setPaying(true);
     setErr(null);
     try {
+      // Le prix et les parties sont lus en base côté serveur : on n'envoie que l'id.
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
-        body: {
-          amount: session.price,
-          expertName: expert.name,
-          phaseName: session.topic || session.phase_name || "Session",
-          bookingId: session.id,
-        },
+        body: { bookingId: session.id },
       });
-      if (error || !data?.url) throw new Error(error?.message || "Erreur paiement");
+      if (data?.code === "expert_not_onboarded") {
+        throw new Error(`${expert.name.split(" ")[0]} finalise encore sa configuration de paiement. On te prévient dès que c'est bon — rien n'est perdu.`);
+      }
+      if (error || !data?.url) throw new Error(data?.error || error?.message || "Erreur paiement");
       window.location.href = data.url;
     } catch (e) {
       setErr(e.message);

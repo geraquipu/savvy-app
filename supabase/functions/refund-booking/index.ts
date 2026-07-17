@@ -48,10 +48,19 @@ serve(async (req) => {
     if (!paymentIntent) return json({ error: "Paiement Stripe introuvable" }, 400);
 
     // ── 3. Créer le remboursement ──
+    // reverse_transfer : reprend la part déjà versée au Conseiller. Sans ça, les
+    // 100 % remboursés au client sortiraient de la poche de Savvy alors que 80 %
+    // sont déjà partis chez le Conseiller.
+    // refund_application_fee : Savvy rend aussi sa commission — une session qui
+    // n'a pas eu lieu ne se commissionne pas.
     const rRes = await fetch("https://api.stripe.com/v1/refunds", {
       method: "POST",
       headers: { Authorization: `Bearer ${STRIPE_SECRET_KEY}`, "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ payment_intent: paymentIntent }),
+      body: new URLSearchParams({
+        payment_intent: paymentIntent,
+        reverse_transfer: "true",
+        refund_application_fee: "true",
+      }),
     });
     const refund = await rRes.json();
     if (refund.error) return json({ error: refund.error.message || "Échec du remboursement" }, 400);
