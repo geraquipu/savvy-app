@@ -157,7 +157,7 @@ function ProfileSetupModal({ authUser, onDone }) {
     // Step 0 — Bienvenue + prénom/nom
     <div key="s0" style={{display:"flex",flexDirection:"column",gap:16}}>
       <div style={{fontSize:26,fontWeight:800,color:C.ink,fontFamily:SERIF,lineHeight:1.2}}>
-        Bienvenue sur Savvy 👋
+        Bienvenue sur Savvy
       </div>
       <div style={{fontSize:14,color:C.muted,lineHeight:1.6}}>
         Avant de commencer, dis-nous comment tu t'appelles.
@@ -185,7 +185,7 @@ function ProfileSetupModal({ authUser, onDone }) {
     // Step 1 — Ville (optionnel)
     <div key="s1" style={{display:"flex",flexDirection:"column",gap:16}}>
       <div style={{fontSize:22,fontWeight:800,color:C.ink,fontFamily:SERIF,lineHeight:1.2}}>
-        Tu es basé(e) où ? 📍
+        Tu es basé(e) où ?
       </div>
       <div style={{fontSize:14,color:C.muted,lineHeight:1.6}}>
         Ça aide les experts à mieux te connaître. Tu peux sauter cette étape.

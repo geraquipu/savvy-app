@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabase';
-import { MENU_ICONS } from '../constants/menuIcons.jsx';
+import { MENU_ICONS, Ico } from '../constants/menuIcons.jsx';
 import { C, SERIF } from '../constants/colors';
 import { CATS, SUBCATS } from '../constants/data';
 
@@ -287,7 +287,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
 
         {/* Rémunération — simple */}
         <div style={{background:C.goldL,border:`1px solid ${C.goldB}`,borderRadius:15,padding:"16px 18px",marginBottom:14,display:"flex",gap:12,alignItems:"center"}}>
-          <span style={{fontSize:26,flexShrink:0}}>💰</span>
+          <span style={{flexShrink:0,display:"inline-flex",color:C.gold}}><Ico k="💰" size={24}/></span>
           <div>
             <div style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF}}>{T.earn80}</div>
             <div style={{fontSize:11,color:C.gold,marginTop:2}}>{T.commNote}</div>
@@ -354,7 +354,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
         <button onClick={()=>setLang(l=>l==="fr"?"es":"fr")} style={{position:"absolute",top:14,right:16,padding:"4px 12px",borderRadius:20,border:"1px solid rgba(255,255,255,.25)",background:"rgba(255,255,255,.1)",fontSize:12,fontWeight:700,color:"rgba(253,252,248,.8)",cursor:"pointer",fontFamily:"inherit",letterSpacing:.3}}>{T.langBtn}</button>
         <div style={{ position:"relative" }}>
           <div style={{ fontSize:38, marginBottom:16 }}>✦</div>
-          <div style={{ fontSize:28, marginBottom:10 }}>🌍</div>
+          <div style={{ marginBottom:10, display:"flex", justifyContent:"center", color:C.gold }}><Ico k="🌍" size={26}/></div>
           <h1 style={{ fontSize:26, fontWeight:700, color:C.white, lineHeight:1.3, margin:"0 0 12px", fontFamily:SERIF, letterSpacing:"-.3px" }}>
             {T.heroTitle}
           </h1>
@@ -372,7 +372,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
       <div style={{ flex:1, overflowY:"auto", padding:"24px 22px 30px" }}>
         <div style={{ marginBottom:20 }}>
           <div style={{ background:`linear-gradient(135deg,${C.ink},#2C2825)`, borderRadius:16, padding:"18px 20px", marginBottom:14 }}>
-            <div style={{ fontSize:22, marginBottom:8 }}>💰</div>
+            <div style={{ marginBottom:8, display:"flex", justifyContent:"center", color:C.gold }}><Ico k="💰" size={21}/></div>
             <div style={{ fontSize:17, fontWeight:700, color:C.white, fontFamily:SERIF, marginBottom:6 }}>{T.whyTitle}</div>
             <div style={{ fontSize:13, color:"rgba(253,252,248,.7)", lineHeight:1.6 }}>{T.whySub}</div>
           </div>
@@ -382,7 +382,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
             { emoji:"🛡️", title:T.why3t, sub:T.why3s },
           ].map(item => (
             <div key={item.title} style={{ display:"flex", gap:14, alignItems:"flex-start", marginBottom:12, background:C.white, borderRadius:14, padding:"14px 15px", border:`1px solid ${C.border}` }}>
-              <div style={{ width:44, height:44, borderRadius:13, background:C.goldL, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:C.gold }}>{MENU_ICONS[item.emoji]||item.emoji}</div>
+              <div style={{ width:44, height:44, borderRadius:13, background:C.goldL, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:C.gold }}>{MENU_ICONS[item.emoji]}</div>
               <div>
                 <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:3, fontFamily:SERIF }}>{item.title}</div>
                 <div style={{ fontSize:12, color:C.muted, lineHeight:1.6 }}>{item.sub}</div>
@@ -539,7 +539,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
               style={{padding:"13px 11px",borderRadius:13,cursor:"pointer",textAlign:"center",fontFamily:"inherit",
                 border:form.category===cat.id?`2px solid ${cat.color}`:`1px solid ${C.border}`,
                 background:form.category===cat.id?cat.bg:C.white,transition:"all .15s"}}>
-              <div style={{marginBottom:5,display:"flex",justifyContent:"center",color:C.gold}}>{MENU_ICONS[cat.icon]||cat.icon}</div>
+              <div style={{marginBottom:5,display:"flex",justifyContent:"center",color:C.gold}}>{MENU_ICONS[cat.icon]}</div>
               <div style={{fontSize:12,fontWeight:700,color:form.category===cat.id?cat.color:C.ink,lineHeight:1.3}}>{cat.label}</div>
             </button>
           ))}
@@ -619,9 +619,9 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
           <div style={{fontSize:12,fontWeight:700,color:C.gold,marginBottom:8}}>✦ Donne un nom qui parle</div>
           {offerExamples.map(ex=>(
             <div key={ex.bad} style={{display:"flex",alignItems:"center",gap:6,marginBottom:5,fontSize:11}}>
-              <span style={{color:"#B91C1C",fontWeight:600,flexShrink:0}}>❌</span>
+              <span style={{color:"#B91C1C",flexShrink:0,display:"inline-flex"}}><Ico k="❌" size={13}/></span>
               <span style={{color:"#92400E",textDecoration:"line-through",flex:1}}>{ex.bad}</span>
-              <span style={{color:C.sage,fontWeight:600,flexShrink:0}}>✅</span>
+              <span style={{color:C.sage,flexShrink:0,display:"inline-flex"}}><Ico k="✅" size={13}/></span>
               <span style={{color:"#065F46",fontWeight:600,flex:1}}>{ex.good}</span>
             </div>
           ))}

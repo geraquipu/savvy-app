@@ -3,6 +3,7 @@ import { C, SERIF } from '../constants/colors'
 import { EXPERTS, DEMO_MSGS, getThreads } from '../constants/data'
 import { Av } from '../components/ui'
 import { supabase } from '../supabase'
+import { Ico } from '../constants/menuIcons.jsx';
 
 function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkMsgRead, appMode="client", isNewExpert=false, isRealUser=false, authUser=null, dbExperts=[]}) {
   const [realClientConvs, setRealClientConvs] = useState([]);
@@ -328,7 +329,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
       ))}
       {/* Supprimés chip — uniquement si au moins une conv supprimée */}
       <button onClick={()=>setMsgFilter(msgFilter==="supprimes"?"tous":"supprimes")} style={{padding:"7px 14px",borderRadius:20,border:`1.5px solid ${msgFilter==="supprimes"?"#DC2626":C.border}`,background:msgFilter==="supprimes"?"#DC2626":"transparent",color:msgFilter==="supprimes"?C.white:C.muted,fontSize:12,fontWeight:msgFilter==="supprimes"?700:400,cursor:"pointer",fontFamily:"inherit",flexShrink:0,display:"flex",alignItems:"center",gap:5}}>
-        🗑 Supprimés
+        <span style={{display:"inline-flex",alignItems:"center",gap:5}}><Ico k="🗑" size={12}/>Supprimés</span>
         {archivedIds.length>0 && (
           <span style={{background:msgFilter==="supprimes"?"rgba(255,255,255,.3)":"#DC2626",color:"white",borderRadius:"50%",width:16,height:16,fontSize:9,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>
             {archivedIds.length}
@@ -364,14 +365,14 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
         if (msgFilter === "supprimes") {
           if (archivedConvs.length === 0) return (
             <div style={{textAlign:"center",padding:"48px 16px",color:C.muted,fontSize:13}}>
-              <div style={{fontSize:32,marginBottom:12}}>🗑</div>
+              <div style={{display:"flex",justifyContent:"center",marginBottom:12,color:C.muted}}><Ico k="🗑" size={30} sw={1.5}/></div>
               Aucune conversation supprimée
             </div>
           );
           return (
             <div>
               <div style={{background:"#FEF2F2",borderRadius:12,padding:"10px 14px",marginBottom:14,display:"flex",alignItems:"center",gap:8}}>
-                <span style={{fontSize:12,color:"#DC2626"}}>💡 Ces conversations ont été supprimées. Tu peux les restaurer.</span>
+                <span style={{fontSize:12,color:"#DC2626"}}><span style={{display:"inline-flex",alignItems:"center",gap:5}}><Ico k="💡" size={12}/>Ces conversations ont été supprimées. Tu peux les restaurer.</span></span>
               </div>
               {archivedConvs.map(c => (
                 <div key={c.id||c.eid} style={{display:"flex",gap:12,alignItems:"center",background:C.white,borderRadius:16,padding:"13px 15px",marginBottom:10,border:`1px solid #FEE2E2`,opacity:.8}}>
@@ -469,7 +470,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
                         {conv.rating && <span style={{fontSize:10,color:C.gold,fontWeight:600}}>★ {conv.rating.toFixed(1)}</span>}
                         {conv.session && <span style={{fontSize:10,color:C.muted}}>{conv.session.format} · {conv.session.dur} · {conv.session.price}</span>}
                       </div>
-                      {conv.session && <div style={{fontSize:10,color:isRead?C.faint:C.teal,fontWeight:600,marginBottom:2}}>🗓 {conv.session.date}</div>}
+                      {conv.session && <div style={{fontSize:10,color:isRead?C.faint:C.teal,fontWeight:600,marginBottom:2}}><span style={{display:"inline-flex",alignItems:"center",gap:4}}><Ico k="🗓" size={10}/>{conv.session.date}</span></div>}
                       <div style={{fontSize:12,color:isRead?C.muted:C.ink,fontWeight:isRead?400:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{conv.lastMsg}</div>
                     </div>
                     {!isRead&&<div style={{width:8,height:8,borderRadius:"50%",background:C.sage,flexShrink:0}}/>}

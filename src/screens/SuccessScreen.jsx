@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
 import { C, SERIF } from '../constants/colors';
 import { addBooking, addThread } from '../constants/data';
+import { Ico } from '../constants/menuIcons.jsx';
 
 const ICN = {
   date: <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>,
@@ -143,7 +144,7 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, bookingN
         {(()=>{ const rt=e.metrics?.find(m=>m.label?.includes("réponse")||m.label?.includes("response")); return rt ? (
           <div style={{ background:"#FFFBEB", borderRadius:13, padding:"11px 14px", marginBottom:14, border:"1px solid #FDE68A", display:"flex", gap:9, alignItems:"center" }}>
             <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#92400E" strokeWidth={2}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>
-            <span style={{ fontSize:12, color:"#92400E", lineHeight:1.5 }}>⚡ Répond généralement <strong>{rt.value}</strong></span>
+            <span style={{ fontSize:12, color:"#92400E", lineHeight:1.5 }}><span style={{display:"inline-flex",alignItems:"center",gap:4}}><Ico k="⚡" size={12}/>Répond généralement <strong>{rt.value}</strong></span></span>
           </div>
         ) : null; })()}
 

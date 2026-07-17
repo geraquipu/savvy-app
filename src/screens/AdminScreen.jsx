@@ -3,6 +3,7 @@ import { supabase } from '../supabase';
 import { C, SERIF, SANS } from '../constants/colors';
 import { expertPayout, savvyCut, EXPERT_SHARE } from '../constants/config';
 import { ADMIN_EMAILS } from '../constants/admin';
+import { Ico } from '../constants/menuIcons.jsx';
 
 function StatCard({ icon, label, value, sub, color }) {
   return (
@@ -117,7 +118,7 @@ function AdminScreen({ authUser, onBack }) {
   if (!isAdmin) {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", background: C.cream }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
+        <div style={{ marginBottom:16, display:"flex", justifyContent:"center", color:C.muted }}><Ico k="🔒" size={44} sw={1.4}/></div>
         <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, fontFamily: SERIF }}>Accès restreint</div>
         <button onClick={onBack} style={{ marginTop: 20, padding: "12px 24px", borderRadius: 12, border: `1px solid ${C.border}`, background: C.white, cursor: "pointer", fontSize: 14, fontFamily: "inherit" }}>Retour</button>
       </div>
@@ -266,8 +267,8 @@ function AdminScreen({ authUser, onBack }) {
                   </span>
                 </div>
                 <div style={{ display: "flex", gap: 12, fontSize: 11, color: C.muted }}>
-                  <span>💶 {b.amount ? `${b.amount}€` : "-"}</span>
-                  <span>📅 {new Date(b.created_at).toLocaleDateString("fr-FR")}</span>
+                  <span style={{display:"inline-flex",alignItems:"center",gap:4}}><Ico k="💶" size={11}/>{b.amount ? `${b.amount}€` : "-"}</span>
+                  <span style={{display:"inline-flex",alignItems:"center",gap:4}}><Ico k="📅" size={11}/>{new Date(b.created_at).toLocaleDateString("fr-FR")}</span>
                   {b.stripe_session_id && <span style={{ color: C.faint, overflow: "hidden", textOverflow: "ellipsis", maxWidth: 100 }}>Stripe ✓</span>}
                 </div>
               </div>

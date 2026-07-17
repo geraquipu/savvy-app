@@ -6,7 +6,7 @@ import { DEMO_USERS, CATS, SUBCATS, TRUST_LEVELS, getTrustLevel, getBookings, up
 import { EXPERT_EXTRAS, EXPERT_STYLE_TAGS, EXPERT_FIRST_SESSION } from '../constants/expertExtras';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES, AVIS_DONNES } from '../constants/sessionData';
 import { Stars, Av } from '../components/ui';
-import { MENU_ICONS } from '../constants/menuIcons.jsx';
+import { MENU_ICONS, Ico } from '../constants/menuIcons.jsx';
 import { legalLine, EMAIL_CONTACT, DOMAIN } from '../constants/company';
 import { legalDoc, LEGAL_UPDATED } from '../constants/legal';
 import { resetConsent } from '../consent';
@@ -435,7 +435,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
       <div style={{ background:`linear-gradient(165deg,${C.ink} 0%,#2C2825 100%)`, padding:"36px 24px 32px", textAlign:"center", position:"relative", overflow:"hidden" }}>
         <div style={{ position:"absolute", top:-40, right:-40, width:160, height:160, borderRadius:"50%", background:"rgba(185,134,74,.05)" }}/>
         <div style={{ position:"relative" }}>
-          <div style={{ width:70, height:70, borderRadius:"50%", background:"rgba(185,134,74,.15)", border:`2px solid ${C.goldB}`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", fontSize:30 }}>👤</div>
+          <div style={{ width:70, height:70, borderRadius:"50%", background:"rgba(185,134,74,.15)", border:`2px solid ${C.goldB}`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", color:C.goldB }}><Ico k="👤" size={32} sw={1.5}/></div>
           <h2 style={{ fontSize:22, fontWeight:700, color:C.white, margin:"0 0 8px", fontFamily:SERIF, letterSpacing:"-.3px" }}>
             Bienvenue sur Savvy
           </h2>
@@ -472,7 +472,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           <div style={{ borderBottom:`1px solid ${C.borderF}` }}>
             <div style={{ padding:"14px 16px", cursor:"pointer" }}>
               <div style={{ display:"flex", alignItems:"center", gap:13 }}>
-                <div style={{ width:38, height:38, borderRadius:11, background:"#FEF3C7", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>❓</div>
+                <div style={{ width:38, height:38, borderRadius:11, background:"#FEF3C7", display:"flex", alignItems:"center", justifyContent:"center", color:"#B45309", flexShrink:0 }}><Ico k="❓" size={18}/></div>
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:13, fontWeight:700, color:C.ink }}>Centre d'aide</div>
                   <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>Questions fréquentes · Comment ça marche</div>
@@ -528,7 +528,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
 
           {/* Savvy.fr */}
           <div style={{ display:"flex", alignItems:"center", gap:13, padding:"13px 16px", cursor:"pointer" }}>
-            <div style={{ width:38, height:38, borderRadius:11, background:C.goldL, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>🌐</div>
+            <div style={{ width:38, height:38, borderRadius:11, background:C.goldL, display:"flex", alignItems:"center", justifyContent:"center", color:C.gold, flexShrink:0 }}><Ico k="🌐" size={18}/></div>
             <div style={{ flex:1 }}>
               <div style={{ fontSize:13, fontWeight:700, color:C.ink }}>{DOMAIN}</div>
               <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>Découvrir la plateforme en version web</div>
@@ -584,7 +584,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
         </div>
         <div style={{ flex:1 }}>
           <div style={{ fontSize:19, fontWeight:700, color:C.white, fontFamily:SERIF, letterSpacing:"-.3px" }}>{USER.prenom} {USER.nom}</div>
-          <div style={{ fontSize:11, color:"rgba(253,252,248,.5)", marginTop:3 }}>📍 {USER.location} · Membre {USER.since}</div>
+          <div style={{ fontSize:11, color:"rgba(253,252,248,.5)", marginTop:3 }}><span style={{display:"inline-flex",alignItems:"center",gap:4}}><Ico k="📍" size={11}/>{USER.location} · Membre {USER.since}</span></div>
         </div>
         {mode === "expert" && isExpert && (
           <div style={{ background:"rgba(16,185,129,.15)", border:"1px solid rgba(16,185,129,.3)", borderRadius:20, padding:"5px 11px" }}>
@@ -597,7 +597,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
         <div style={{ background: mode==="expert" ? "rgba(16,185,129,.15)" : "rgba(185,134,74,.15)", border:`1px solid ${mode==="expert"?"rgba(16,185,129,.3)":"rgba(185,134,74,.3)"}`, borderRadius:20, padding:"5px 13px", display:"inline-flex", alignItems:"center", gap:6 }}>
           <div style={{ width:6, height:6, borderRadius:"50%", background: mode==="expert" ? "#10B981" : C.gold }}/>
           <span style={{ fontSize:11, fontWeight:700, color: mode==="expert" ? "#6EE7B7" : C.goldB }}>
-            {mode==="expert" ? "⚡ Mode Expert actif" : "👤 Mode Client actif"}
+            <span style={{display:"inline-flex",alignItems:"center",gap:5}}><Ico k={mode==="expert"?"⚡":"👤"} size={12}/>{mode==="expert" ? "Mode Expert actif" : "Mode Client actif"}</span>
           </span>
         </div>
       </div>
@@ -746,11 +746,11 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           <div style={{fontSize:17,fontWeight:800,color:C.ink,fontFamily:SERIF,marginBottom:4}}>Que veux-tu faire ?</div>
           <div style={{fontSize:12,color:C.muted,marginBottom:20}}>Session · {s.heure||s.time} · {s.date}</div>
           <div style={{background:"#EFF6FF",borderRadius:13,padding:"14px 15px",marginBottom:10,border:"1px solid #BFDBFE",cursor:"pointer"}} onClick={()=>setCancelModal({...cancelModal,step:"reschedule"})}>
-            <div style={{fontSize:14,fontWeight:700,color:"#1D4ED8",marginBottom:2}}>📅 Reprogrammer</div>
+            <div style={{fontSize:14,fontWeight:700,color:"#1D4ED8",marginBottom:2}}><span style={{display:"inline-flex",alignItems:"center",gap:6}}><Ico k="📅" size={14}/>Reprogrammer</span></div>
             <div style={{fontSize:11,color:"#3B82F6"}}>Propose une nouvelle date</div>
           </div>
           <div style={{background:"#FFF5F5",borderRadius:13,padding:"14px 15px",marginBottom:16,border:"1px solid #FEE2E2",cursor:"pointer"}} onClick={()=>setCancelModal({...cancelModal,step:"reason",selectedMotif:"",motifTexte:""})}>
-            <div style={{fontSize:14,fontWeight:700,color:"#B91C1C",marginBottom:2}}>✕ Annuler la session</div>
+            <div style={{fontSize:14,fontWeight:700,color:"#B91C1C",marginBottom:2}}><span style={{display:"inline-flex",alignItems:"center",gap:6}}><Ico k="❌" size={13}/>Annuler la session</span></div>
             <div style={{fontSize:11,color:"#EF4444"}}>Motif obligatoire · impact sur ton score de fiabilité</div>
           </div>
           <button onClick={()=>setCancelModal(null)} style={{width:"100%",padding:"12px",borderRadius:12,border:`1px solid ${C.border}`,background:C.white,color:C.muted,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Retour</button>
@@ -824,7 +824,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
 
             {/* Score warning */}
             <div style={{background:"#FFF5F5",border:"1px solid #FEE2E2",borderRadius:12,padding:"11px 14px",marginBottom:18,display:"flex",gap:10,alignItems:"flex-start"}}>
-              <span style={{fontSize:16,flexShrink:0}}>⚠️</span>
+              <span style={{flexShrink:0,display:"inline-flex",color:"#B45309"}}><Ico k="⚠️" size={16}/></span>
               <div>
                 <div style={{fontSize:12,fontWeight:700,color:"#B91C1C",marginBottom:2}}>Impact sur ton score</div>
                 <div style={{fontSize:11,color:"#DC2626",lineHeight:1.5}}>Chaque annulation {cancelModal.type==="exp"?"de ta part":"tardive"} réduit ton score de fiabilité. Un score bas limite ta visibilité sur Savvy.</div>
@@ -883,7 +883,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
       <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.45)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:9999}}>
         <div style={{background:C.white,borderRadius:"20px 20px 0 0",padding:"28px 20px 32px",width:"100%",maxWidth:480}}>
           <div style={{width:36,height:4,borderRadius:2,background:C.border,margin:"0 auto 20px"}}/>
-          <div style={{fontSize:32,textAlign:"center",marginBottom:10}}>⚠️</div>
+          <div style={{display:"flex",justifyContent:"center",marginBottom:10,color:"#B45309"}}><Ico k="⚠️" size={30} sw={1.5}/></div>
           <div style={{fontSize:17,fontWeight:800,color:"#B91C1C",fontFamily:SERIF,textAlign:"center",marginBottom:6}}>Confirmer l'annulation ?</div>
           <div style={{fontSize:11,color:C.muted,textAlign:"center",marginBottom:8,lineHeight:1.5}}>Cette action est irréversible.{cancelModal.type==="exp"?" Ton client sera notifié et remboursé automatiquement.":" Tu seras remboursé(e) selon la politique d'annulation de l'expert."}</div>
           {cancelModal.selectedMotif && (
@@ -1024,7 +1024,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
             </button>
             <div style={{ width:90, height:90, borderRadius:"50%", background:`linear-gradient(135deg,${C.goldL},#FDE68A)`, color:C.gold, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:32, border:`3px solid ${C.goldB}`, boxShadow:`0 0 0 5px rgba(185,134,74,.2)`, fontFamily:SERIF, margin:"0 auto 16px" }}>{USER.initials}</div>
             <div style={{ fontSize:24, fontWeight:700, color:C.white, fontFamily:SERIF, marginBottom:4 }}>{nomValue}</div>
-            <div style={{ fontSize:12, color:"rgba(253,252,248,.55)" }}>📍 Paris, France · Membre depuis {USER.since}</div>
+            <div style={{ fontSize:12, color:"rgba(253,252,248,.55)" }}><span style={{display:"inline-flex",alignItems:"center",gap:4}}><Ico k="📍" size={11}/>Paris, France · Membre depuis {USER.since}</span></div>
           </div>
           {/* Stats Airbnb style */}
           <div style={{ background:C.white, margin:"0 0 16px", padding:"20px" }}>
@@ -1092,7 +1092,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           <div style={{ width:36, height:4, borderRadius:2, background:C.cream3, margin:"0 auto 20px" }}/>
           {pwdStep === 3
             ? <div style={{ textAlign:"center" }}>
-                <div style={{ fontSize:44, marginBottom:14 }}>✅</div>
+                <div style={{ marginBottom:14, display:"flex", justifyContent:"center", color:C.sage }}><Ico k="✅" size={42} sw={1.4}/></div>
                 <div style={{ fontSize:18, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:8 }}>Mot de passe modifié !</div>
                 <div style={{ fontSize:13, color:C.muted, marginBottom:22 }}>Ton nouveau mot de passe est actif.</div>
                 <button onClick={()=>{setShowPwdModal(false);setPwdStep(1);}} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", background:C.ink, color:C.white, fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:SERIF }}>Parfait !</button>
@@ -1105,7 +1105,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                     <label style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:6, display:"block", textTransform:"uppercase", letterSpacing:.5 }}>Mot de passe actuel</label>
                     <div style={{ position:"relative" }}>
                       <input value={pwdCurrent} onChange={e=>setPwdCurrent(e.target.value)} type={showPwdCurrent?"text":"password"} placeholder="••••••••" style={{ width:"100%", padding:"12px 46px 12px 14px", borderRadius:11, border:`1.5px solid ${C.border}`, fontSize:14, fontFamily:"inherit", color:C.ink, outline:"none", boxSizing:"border-box", background:C.cream2 }} autoFocus/>
-                      <button type="button" onClick={()=>setShowPwdCurrent(v=>!v)} style={{ position:"absolute", right:13, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", fontSize:17, padding:0 }}>{showPwdCurrent?"🙈":"👁️"}</button>
+                      <button type="button" onClick={()=>setShowPwdCurrent(v=>!v)} style={{ position:"absolute", right:13, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", fontSize:17, padding:0 }}><Ico k={showPwdCurrent?"🙈":"👁"} size={15}/></button>
                     </div>
                   </div>
                   <button onClick={()=>{ if(!pwdCurrent){alert("Entre ton mot de passe actuel.");return;} setPwdStep(2); }} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", background:C.ink, color:C.white, fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:SERIF }}>Continuer →</button>
@@ -1116,11 +1116,11 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                       <label style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:6, display:"block", textTransform:"uppercase", letterSpacing:.5 }}>{label.trim()}</label>
                       <div style={{ position:"relative" }}>
                         <input value={val} onChange={e=>setter(e.target.value)} type={show?"text":"password"} placeholder="••••••••" style={{ width:"100%", padding:"12px 46px 12px 14px", borderRadius:11, border:`1.5px solid ${C.border}`, fontSize:14, fontFamily:"inherit", color:C.ink, outline:"none", boxSizing:"border-box", background:C.cream2 }} autoFocus={key==="pwdNew"}/>
-                        <button type="button" onClick={()=>setShow(v=>!v)} style={{ position:"absolute", right:13, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", fontSize:17, padding:0 }}>{show?"🙈":"👁️"}</button>
+                        <button type="button" onClick={()=>setShow(v=>!v)} style={{ position:"absolute", right:13, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", fontSize:17, padding:0 }}><Ico k={show?"🙈":"👁"} size={15}/></button>
                       </div>
                     </div>
                   ))}
-                  {pwdNew.length > 0 && pwdNew.length < 8 && <div style={{ fontSize:11, color:"#B91C1C", marginBottom:10 }}>⚠️ Minimum 8 caractères</div>}
+                  {pwdNew.length > 0 && pwdNew.length < 8 && <div style={{ fontSize:11, color:"#B91C1C", marginBottom:10 }}><span style={{display:"inline-flex",alignItems:"center",gap:5}}><Ico k="⚠️" size={12}/>Minimum 8 caractères</span></div>}
                   <button onClick={()=>{ if(pwdNew.length<8){alert("Minimum 8 caractères.");return;} if(pwdNew!==pwdConfirm){alert("Les mots de passe ne correspondent pas.");return;} setPwdStep(3); }} style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", background:pwdNew.length>=8&&pwdNew===pwdConfirm?C.ink:C.cream3, color:pwdNew.length>=8&&pwdNew===pwdConfirm?C.white:C.muted, fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:SERIF }}>Enregistrer →</button>
                 </>}
               </>}
@@ -1181,7 +1181,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
             {legalModal==="nda" && <>
               <div style={{ fontSize:13, color:C.muted, marginBottom:16, lineHeight:1.6 }}>Les accords de confidentialité sont signés automatiquement lors de tes sessions avec des experts qui l'exigent.</div>
               <div style={{ background:C.cream2, borderRadius:13, padding:"16px", textAlign:"center", border:`1px solid ${C.border}` }}>
-                <div style={{ fontSize:20, marginBottom:8 }}>📋</div>
+                <div style={{ marginBottom:8, display:"flex", justifyContent:"center", color:C.muted }}><Ico k="📋" size={20}/></div>
                 <div style={{ fontSize:13, fontWeight:600, color:C.ink, marginBottom:6 }}>Aucun NDA signé pour le moment</div>
                 <div style={{ fontSize:11, color:C.muted, lineHeight:1.6 }}>Tes NDAs apparaîtront ici après tes premières sessions avec des experts qui l'exigent (Ahmed Rashidi, par exemple).</div>
               </div>
@@ -1304,7 +1304,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                   : <div style={{ width:96, height:96, borderRadius:"50%", background:`linear-gradient(135deg,${C.goldL},#FDE68A)`, color:C.gold, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:34, border:`4px solid ${C.goldB}`, boxShadow:`0 0 0 6px rgba(185,134,74,.2)`, fontFamily:SERIF, margin:"0 auto 16px" }}>{USER.initials}</div>
                 }
                 <div style={{ fontSize:24, fontWeight:700, color:C.white, fontFamily:SERIF, marginBottom:4 }}>{realName}</div>
-                <div style={{ fontSize:12, color:"rgba(253,252,248,.55)", marginBottom:14 }}>📍 {realLoc} · Membre depuis {realSince}</div>
+                <div style={{ fontSize:12, color:"rgba(253,252,248,.55)", marginBottom:14 }}><span style={{display:"inline-flex",alignItems:"center",gap:4}}><Ico k="📍" size={11}/>{realLoc} · Membre depuis {realSince}</span></div>
               </>;
             })()}
             {/* Badge identité vérifiée */}
@@ -1380,7 +1380,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                 </div>
                 <div style={{ textAlign:"right" }}>
                   <div style={{ fontSize:16, fontWeight:700, color:C.ink, fontFamily:SERIF }}>dès {e.phases[0].price}€</div>
-                  <div style={{ fontSize:11, color:C.muted }}>❤️</div>
+                  <div style={{ color:C.muted, display:"flex" }}><Ico k="❤️" size={12}/></div>
                 </div>
               </div>
             ))}

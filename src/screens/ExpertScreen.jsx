@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { C, SERIF } from '../constants/colors';
 import { EXPERT_EXTRAS, EXPERT_STYLE_TAGS, EXPERT_FIRST_SESSION } from '../constants/expertExtras';
 import { supabase } from '../supabase';
+import { Ico } from '../constants/menuIcons.jsx';
 
 function ExpertScreen({ e: eProp, onBack, onBook, onMsg }) {
   const e = {
@@ -108,7 +109,7 @@ function ExpertScreen({ e: eProp, onBack, onBook, onMsg }) {
             <div style={{ fontSize:12, color:C.soft, lineHeight:1.5, marginBottom:8 }}>{e.role.split("·")[0].trim()}</div>
             <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
               {e.langs.map(l => <span key={l} style={{ fontSize:10, padding:"2px 7px", borderRadius:10, background:"rgba(255,255,255,.6)", color:C.soft, fontWeight:600 }}>{l}</span>)}
-              {e.nda && <span style={{ fontSize:10, padding:"2px 7px", borderRadius:10, background:"rgba(0,0,0,.08)", color:C.soft, fontWeight:700 }}>🔒 NDA</span>}
+              {e.nda && <span style={{ fontSize:10, padding:"2px 7px", borderRadius:10, background:"rgba(0,0,0,.08)", color:C.soft, fontWeight:700, display:"inline-flex", alignItems:"center", gap:4 }}><Ico k="🔒" size={9} sw={2.2}/>NDA</span>}
             </div>
           </div>
         </div>
@@ -165,7 +166,7 @@ function ExpertScreen({ e: eProp, onBack, onBook, onMsg }) {
             style={{ width:"100%", padding:"12px 14px", borderRadius:12, border:`1.5px solid ${C.border}`, fontSize:13, color:C.ink, fontFamily:"inherit", lineHeight:1.6, resize:"none", background:C.cream2, outline:"none", boxSizing:"border-box" }}
           />
           <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:8, padding:"10px 13px", borderRadius:11, background:`linear-gradient(135deg,${C.goldL},#FFF9F0)`, border:`1px solid ${C.goldB}` }}>
-            <span style={{ fontSize:16 }}>💡</span>
+            <span style={{ display:"inline-flex", color:C.gold }}><Ico k="💡" size={15}/></span>
             <span style={{ fontSize:12, color:C.gold, lineHeight:1.5 }}>
               <b>Conseil :</b> une question précise = une réponse concrète. Évitez les questions trop larges.
             </span>
@@ -291,8 +292,8 @@ function ExpertScreen({ e: eProp, onBack, onBook, onMsg }) {
         {/* ── CONFIANCE ────────────────────────────────────────────── */}
         <div style={{ height:1, background:C.border, marginBottom:20 }}/>
         <div style={{ display:"flex", justifyContent:"center", gap:16, flexWrap:"wrap", marginBottom:8, paddingBottom:8 }}>
-          {["🔒 Paiement sécurisé","🔁 Annulation flexible","✅ Vérifié Savvy"].map(t => (
-            <span key={t} style={{ fontSize:11, color:C.muted }}>{t}</span>
+          {[["🔒","Paiement sécurisé"],["🔁","Annulation flexible"],["✅","Vérifié Savvy"]].map(([ic,t]) => (
+            <span key={t} style={{ fontSize:11, color:C.muted, display:"inline-flex", alignItems:"center", gap:4 }}><Ico k={ic} size={11}/>{t}</span>
           ))}
         </div>
       </div>

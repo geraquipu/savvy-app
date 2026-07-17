@@ -3,6 +3,7 @@ import { supabase } from '../supabase';
 import { C, SERIF } from '../constants/colors';
 import { EXPERTS } from '../constants/data';
 import { EXPERT_EXTRAS } from '../constants/expertExtras';
+import { Ico } from '../constants/menuIcons.jsx';
 
 function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) {
   const [sbExpert, setSbExpert] = useState(null);
@@ -41,7 +42,7 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
             : <div style={{ width:96,height:96,borderRadius:"50%",background:`linear-gradient(135deg,${C.goldL},#FDE68A)`,color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:34,border:`4px solid ${C.goldB}`,boxShadow:`0 0 0 6px rgba(185,134,74,.2)`,fontFamily:SERIF,margin:"0 auto 14px" }}>{e.initials}</div>
           }
           <div style={{ fontSize:24,fontWeight:700,color:C.white,fontFamily:SERIF,letterSpacing:"-.5px" }}>{e.name}</div>
-          <div style={{ fontSize:13,color:"rgba(253,252,248,.55)",marginTop:4 }}>📍 {e.location} · {e.country}</div>
+          <div style={{ fontSize:13,color:"rgba(253,252,248,.55)",marginTop:4 }}><span style={{display:"inline-flex",alignItems:"center",gap:4}}><Ico k="📍" size={12}/>{e.location} · {e.country}</span></div>
           <div style={{ display:"flex",gap:6,justifyContent:"center",marginTop:10,flexWrap:"wrap" }}>
             {langs.map(l=><span key={l} style={{ fontSize:11,padding:"3px 10px",borderRadius:20,background:"rgba(185,134,74,.18)",color:C.goldB,fontWeight:600 }}>{l}</span>)}
             <span style={{ fontSize:11,padding:"3px 10px",borderRadius:20,background:C.sageL,color:C.sage,fontWeight:700 }}>Très actif</span>
@@ -64,9 +65,9 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
           Réserver une session →
         </button>
         <div style={{ display:"flex",justifyContent:"center",gap:18,marginTop:8 }}>
-          <span style={{ fontSize:12,color:C.muted }}>💶 dès <b style={{ color:C.ink }}>{phases[0].price}€</b></span>
+          <span style={{ fontSize:12,color:C.muted }}><span style={{display:"inline-flex",alignItems:"center",gap:4}}><Ico k="💶" size={12}/>dès <b style={{ color:C.ink }}>{phases[0].price}€</b></span></span>
           <span style={{ fontSize:12,color:C.muted }}>⚡ {repValue}</span>
-          <span style={{ fontSize:12,color:C.muted }}>✅ Vérifié</span>
+          <span style={{ fontSize:12,color:C.muted }}><span style={{display:"inline-flex",alignItems:"center",gap:4}}><Ico k="✅" size={12}/>Vérifié</span></span>
         </div>
       </div>
       <div style={{ padding:"20px 18px 0" }}>
@@ -76,7 +77,7 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
           <div style={{ fontSize:16,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:4 }}>Mes offres</div>
           <div style={{ fontSize:12,color:C.muted,marginBottom:14 }}>Choisis la session qui te correspond</div>
           {phases.map((p,i)=>{
-            const fmtIcons = {video:"🎥",audio:"📞",doc:"📄",chat:"💬"};
+            const fmtIcons = { video:"🎥", audio:"📞", doc:"📄", chat:"💬" }; // clés MENU_ICONS, jamais rendues telles quelles
             const fmts = p.formats||[p.format||"video"];
             return (
               <div key={i} style={{ background:C.white,borderRadius:16,border:`1px solid ${C.border}`,padding:"16px",marginBottom:10,boxShadow:`0 2px 8px ${C.sh}` }}>
@@ -86,7 +87,7 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
                     <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>
                       {fmts.map(f=>(
                         <span key={f} style={{ fontSize:11,padding:"3px 9px",borderRadius:20,background:C.cream3,color:C.muted,fontWeight:500 }}>
-                          {fmtIcons[f]||"📞"} {f==="video"?"Vidéo":f==="audio"?"Audio":f==="doc"?"Document":"Chat"}
+                          <Ico k={fmtIcons[f]||"📞"} size={12}/> {f==="video"?"Vidéo":f==="audio"?"Audio":f==="doc"?"Document":"Chat"}
                         </span>
                       ))}
                       {(p.duree||p.what)&&<span style={{ fontSize:11,color:C.muted,padding:"3px 0" }}>· {p.duree||(p.what?.split(" ").pop())}</span>}

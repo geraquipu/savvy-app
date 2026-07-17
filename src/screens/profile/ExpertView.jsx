@@ -4,9 +4,17 @@ import { C, SERIF, SANS } from '../../constants/colors';
 import { expertPayout, savvyCut } from '../../constants/config';
 import { EXPERTS, getCountdown, updateBooking } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../constants/sessionData';
-import { MENU_ICONS, FormatIcon } from '../../constants/menuIcons.jsx';
+import { MENU_ICONS, FormatIcon, Ico } from '../../constants/menuIcons.jsx';
 import { isAdmin } from '../../constants/admin';
 import { legalLine, EMAIL_CONTACT, DOMAIN } from '../../constants/company';
+
+/** Logos des réseaux pour le partage de profil — SVG de marque, pas d'emoji. */
+const SHARE_ICONS = {
+  "WhatsApp":    <svg width={17} height={17} viewBox="0 0 24 24" fill="white"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2zm5.8 14.1c-.2.7-1.2 1.3-2 1.4-.5.1-1.2.1-3.4-.8-2.9-1.2-4.7-4.1-4.9-4.3-.1-.2-1.1-1.5-1.1-2.8s.7-2 .9-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.4.5-.3.3c-.1.1-.2.3 0 .5.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.2.1.4.1.5-.1l.8-.9c.2-.2.3-.2.5-.1l2 1c.2.1.4.2.4.3.1.1.1.7-.1 1.4z"/></svg>,
+  "Facebook":    <svg width={17} height={17} viewBox="0 0 24 24" fill="white"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z"/></svg>,
+  "X / Twitter": <svg width={15} height={15} viewBox="0 0 24 24" fill="white"><path d="M18.2 2h3.4l-7.4 8.5L23 22h-6.8l-5.3-7-6.1 7H1.4l7.9-9.1L1 2h7l4.8 6.3L18.2 2zm-1.2 18h1.9L7.1 3.9H5.1L17 20z"/></svg>,
+  "Email":       <svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
+};
 
 const OFFER_EXAMPLES = [
   "Trouver des fournisseurs dans mon secteur",
@@ -100,7 +108,7 @@ function OfferEditForm({ initial, onSave, onCancel }) {
             return (
               <div key={fmt.v} onClick={()=>toggleFmt(fmt.v)}
                 style={{display:"flex",alignItems:"center",gap:9,padding:"9px 11px",borderRadius:10,border:`1.5px solid ${checked?C.gold:C.border}`,background:checked?C.goldL:C.white,cursor:"pointer",transition:"all .15s"}}>
-                <span style={{display:"flex",flexShrink:0,color:"currentColor"}}>{MENU_ICONS[fmt.icon]||fmt.icon}</span>
+                <span style={{display:"flex",flexShrink:0,color:"currentColor"}}>{MENU_ICONS[fmt.icon]}</span>
                 <div>
                   <div style={{fontSize:12,fontWeight:checked?700:500,color:checked?C.gold:C.ink}}>{fmt.l}</div>
                   <div style={{fontSize:10,color:C.muted}}>{fmt.sub}</div>
@@ -344,7 +352,7 @@ function ExpertInbox({ authUser, onBack }) {
       <div style={{padding:"12px 14px"}}>
         {threads.length === 0 ? (
           <div style={{textAlign:"center",padding:"60px 20px",color:C.muted}}>
-            <div style={{fontSize:48,marginBottom:12}}>💬</div>
+            <div style={{marginBottom:12,display:"flex",justifyContent:"center",color:C.goldB}}><Ico k="💬" size={44} sw={1.4}/></div>
             <div style={{fontSize:15,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:6}}>Aucun message</div>
             <div style={{fontSize:13,color:C.muted}}>Les messages de tes clients apparaîtront ici.</div>
           </div>
@@ -497,7 +505,7 @@ export function ExpertView({
 
     const MenuRowExp = ({icon, bg, title, sub, badge, onClick}) => (
       <div onClick={onClick} style={{display:"flex",alignItems:"center",gap:16,padding:"14px 20px",background:C.white,cursor:"pointer",borderBottom:`1px solid ${C.borderF}`}}>
-        <div style={{color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",width:20,flexShrink:0}}>{MENU_ICONS[icon]||<span style={{fontSize:14}}>{icon}</span>}</div>
+        <div style={{color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",width:20,flexShrink:0}}>{MENU_ICONS[icon]}</div>
         <div style={{flex:1,minWidth:0}}>
           <div style={{fontSize:14,fontWeight:400,color:C.ink,letterSpacing:"-.1px"}}>{title}</div>
           {sub && <div style={{fontSize:11,color:C.faint,marginTop:1}}>{sub}</div>}
@@ -1049,7 +1057,7 @@ export function ExpertView({
         const AccRowExp = ({id, icon, bg, title, sub, children}) => (
           <div style={{background:C.white,overflow:"hidden",borderBottom:acc===id?`1px solid ${C.borderF}`:"none"}}>
             <div onClick={()=>setAcc(acc===id?null:id)} style={{display:"flex",alignItems:"center",gap:16,padding:"14px 20px",cursor:"pointer",borderBottom:`1px solid ${C.borderF}`}}>
-              <div style={{color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",width:20,flexShrink:0}}>{MENU_ICONS[icon]||<span style={{fontSize:14}}>{icon}</span>}</div>
+              <div style={{color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",width:20,flexShrink:0}}>{MENU_ICONS[icon]}</div>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:14,fontWeight:400,color:C.ink,letterSpacing:"-.1px"}}>{title}</div>
                 {sub && <div style={{fontSize:11,color:C.faint,marginTop:1}}>{sub}</div>}
@@ -1169,14 +1177,14 @@ export function ExpertView({
           <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"13px 15px",marginBottom:14}}>
             <div style={{fontSize:12,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:10}}>Mode de virement</div>
             <div style={{display:"flex",alignItems:"center",gap:11,padding:"9px 0",borderBottom:`1px solid ${C.borderF}`}}>
-              <span style={{fontSize:20}}>🏦</span>
+              <Ico k="🏦" size={19}/>
               <div style={{flex:1}}>
                 <div style={{fontSize:13,fontWeight:700,color:C.ink}}>SEPA — IBAN configuré</div>
                 <div style={{fontSize:11,color:C.muted}}>Virement sous 3–5 jours ouvrés</div>
               </div>
               <span style={{fontSize:10,padding:"2px 8px",borderRadius:20,background:C.sageL,color:C.sage,fontWeight:700}}>Actif</span>
             </div>
-            <button onClick={()=>setShowCardModal(true)} style={{width:"100%",marginTop:10,padding:"9px",borderRadius:10,border:`1px dashed ${C.gold}`,background:"transparent",color:C.gold,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>✏️ Modifier les coordonnées bancaires</button>
+            <button onClick={()=>setShowCardModal(true)} style={{width:"100%",marginTop:10,padding:"9px",borderRadius:10,border:`1px dashed ${C.gold}`,background:"transparent",color:C.gold,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6}}><Ico k="✏️" size={12}/>Modifier les coordonnées bancaires</span></button>
           </div>
           <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"13px 15px"}}>
             <div style={{fontSize:12,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:10}}>
@@ -1205,7 +1213,7 @@ export function ExpertView({
             {realRevenu>0 && <div style={{marginTop:10,paddingTop:8,borderTop:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",fontSize:13,fontWeight:700,color:C.ink}}>
               <span>Total net (80%)</span><span style={{color:C.gold}}>{realRevenu.toFixed(0)}€</span>
             </div>}
-            <button onClick={()=>generateFacturesPDF(EXPERT_DATA.prenom+" "+EXPERT_DATA.nom, true)} style={{width:"100%",marginTop:10,padding:"9px",borderRadius:10,border:`1px solid ${C.gold}`,background:C.goldL,color:C.gold,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>📄 Télécharger mes factures PDF</button>
+            <button onClick={()=>generateFacturesPDF(EXPERT_DATA.prenom+" "+EXPERT_DATA.nom, true)} style={{width:"100%",marginTop:10,padding:"9px",borderRadius:10,border:`1px solid ${C.gold}`,background:C.goldL,color:C.gold,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6}}><Ico k="📄" size={12}/>Télécharger mes factures PDF</span></button>
           </div>
         </div>
       );
@@ -1232,7 +1240,7 @@ export function ExpertView({
             <BackHeaderExp title="Mes clients aidés" sub="Personnes que tu as accompagnées" onBack={goBackToCompte}/>
             {clientsData.length===0
               ? <div style={{textAlign:"center",padding:"40px 20px",color:C.muted}}>
-                  <div style={{fontSize:40,marginBottom:12}}>🤝</div>
+                  <div style={{marginBottom:12,display:"flex",justifyContent:"center",color:C.goldB}}><Ico k="🤝" size={38} sw={1.4}/></div>
                   <div style={{fontSize:15,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:6}}>Pas encore de clients</div>
                   <div style={{fontSize:13,color:C.muted,lineHeight:1.6}}>Tes premiers clients apparaîtront ici après ta première session confirmée.</div>
                 </div>
@@ -1281,14 +1289,14 @@ export function ExpertView({
           <div style={{background:`linear-gradient(135deg,${C.ink},#2C2825)`,borderRadius:16,padding:"20px",marginBottom:18,position:"relative",overflow:"hidden"}}>
             <div style={{position:"absolute",top:-30,right:-30,width:100,height:100,borderRadius:"50%",background:"rgba(185,134,74,.06)"}}/>
             <div style={{position:"relative"}}>
-              <div style={{fontSize:28,marginBottom:10}}>🤝</div>
+              <div style={{marginBottom:10,display:"flex",justifyContent:"center",color:C.goldB}}><Ico k="🤝" size={26} sw={1.4}/></div>
               <div style={{fontSize:17,fontWeight:700,color:C.white,fontFamily:SERIF,marginBottom:6}}>On est là pour toi</div>
               <div style={{fontSize:12,color:"rgba(253,252,248,.65)",lineHeight:1.8,marginBottom:14}}>Un problème avec une session ? Une question sur ton compte ?</div>
               {!helpMsgSent ? (
                 <>
                   <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:14}}>
-                    {["💳 Paiement","📅 Session","👤 Compte","🔒 Sécurité","💡 Autre"].map(s=>(
-                      <button key={s} onClick={()=>setHelpMsgText(t=>t||s+" — ")} style={{padding:"6px 13px",borderRadius:20,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.08)",color:"rgba(253,252,248,.85)",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{s}</button>
+                    {[["💳","Paiement"],["📅","Session"],["👤","Compte"],["🔒","Sécurité"],["💡","Autre"]].map(([ic,s])=>(
+                      <button key=<><Ico k={ic} size={11}/>{s}</> onClick={()=>setHelpMsgText(t=>t||s+" — ")} style={{padding:"6px 13px",borderRadius:20,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.08)",color:"rgba(253,252,248,.85)",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}><><Ico k={ic} size={11}/>{s}</></button>
                     ))}
                   </div>
                   <textarea value={helpMsgText} onChange={e=>setHelpMsgText(e.target.value)} placeholder="Décris-nous ton problème…" rows={3}
@@ -1300,7 +1308,7 @@ export function ExpertView({
                 </>
               ) : (
                 <div style={{textAlign:"center",padding:"8px 0"}}>
-                  <div style={{fontSize:32,marginBottom:8}}>🙌</div>
+                  <div style={{marginBottom:8,display:"flex",justifyContent:"center",color:C.goldB}}><Ico k="🙌" size={30} sw={1.4}/></div>
                   <div style={{fontSize:15,fontWeight:700,color:C.white,fontFamily:SERIF,marginBottom:6}}>Message reçu, merci !</div>
                   <div style={{fontSize:12,color:"rgba(253,252,248,.7)",lineHeight:1.7,marginBottom:14}}>Notre équipe te répond sous 2h.</div>
                   <button onClick={()=>{ setHelpMsgSent(false); setHelpMsgText(""); }} style={{padding:"8px 18px",borderRadius:20,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:C.white,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
@@ -1373,7 +1381,7 @@ export function ExpertView({
             <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"20px"}}>
               {avisSent ? (
                 <div style={{textAlign:"center",padding:"20px 0"}}>
-                  <div style={{fontSize:44,marginBottom:12}}>🙏</div>
+                  <div style={{marginBottom:12,display:"flex",justifyContent:"center",color:C.goldB}}><Ico k="🙏" size={40} sw={1.4}/></div>
                   <div style={{fontSize:17,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:6}}>Merci pour ton avis !</div>
                   <div style={{fontSize:12,color:C.muted,marginBottom:20}}>Ton retour nous aide à améliorer Savvy pour tout le monde.</div>
                   <button onClick={()=>{setAvisSent(false);setAvisNote(0);setAvisTxt("");}} style={{padding:"10px 20px",borderRadius:10,border:`1px solid ${C.border}`,background:C.white,color:C.muted,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Laisser un autre avis</button>
@@ -1456,7 +1464,7 @@ export function ExpertView({
                       </div>
                     : <div>
                         <div style={{fontSize:13,color:"rgba(253,252,248,.55)",letterSpacing:.3}}>{greeting},</div>
-                        <div style={{fontSize:22,fontWeight:700,color:C.white,fontFamily:SERIF,letterSpacing:"-.3px"}}>{USER.prenom} 👋</div>
+                        <div style={{fontSize:22,fontWeight:700,color:C.white,fontFamily:SERIF,letterSpacing:"-.3px"}}>{USER.prenom}</div>
                       </div>
                   }
                 </div>
@@ -1536,7 +1544,7 @@ export function ExpertView({
           {isNewExpert && (
             <div style={{background:`linear-gradient(135deg,#EFF6FF,#DBEAFE)`,borderRadius:16,border:"1.5px solid #BFDBFE",padding:"16px 18px",marginBottom:14}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-                <span style={{fontSize:22}}>🎯</span>
+                <Ico k="🎯" size={20}/>
                 <div>
                   <div style={{fontSize:13,fontWeight:700,color:"#1E3A8A"}}>Ton objectif</div>
                   <div style={{fontSize:12,color:"#3B82F6",fontWeight:600}}>Obtenir ta première réservation</div>
@@ -1620,7 +1628,7 @@ export function ExpertView({
             </div>
           ) : isNewExpert ? (
             <div style={{background:`linear-gradient(135deg,${C.goldL},#FFF9F0)`,borderRadius:16,border:`1px solid ${C.goldB}`,padding:"18px 18px",marginBottom:14}}>
-              <div style={{fontSize:13,fontWeight:700,color:C.ink,marginBottom:4}}>🚀 Plus qu'une étape avant tes premières demandes</div>
+              <div style={{fontSize:13,fontWeight:700,color:C.ink,marginBottom:4}}><span style={{display:"inline-flex",alignItems:"center",gap:6}}><Ico k="🚀" size={13}/>Plus qu'une étape avant tes premières demandes</span></div>
               <div style={{fontSize:11,color:"#92400E",lineHeight:1.6,marginBottom:4}}>Ton profil est actuellement en cours de validation.</div>
               <div style={{fontSize:11,color:C.gold,lineHeight:1.6,marginBottom:12}}>Pendant ce temps, optimise ton profil pour être prêt dès son activation :</div>
               {[
@@ -1667,7 +1675,7 @@ export function ExpertView({
               {icon:"📋",bg:"#EDE8DF",title:"Mes sessions",sub:"Voir le planning",action:()=>setSection("sesiones")},
             ].map(card=>(
               <div key={card.title} onClick={card.action} style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"14px",cursor:"pointer",boxShadow:`0 1px 4px ${C.sh}`}}>
-                <div style={{width:40,height:40,borderRadius:12,background:card.bg,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10,color:C.soft}}>{MENU_ICONS[card.icon]||<span style={{fontSize:18}}>{card.icon}</span>}</div>
+                <div style={{width:40,height:40,borderRadius:12,background:card.bg,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10,color:C.soft}}>{MENU_ICONS[card.icon]}</div>
                 <div style={{fontSize:13,fontWeight:700,color:C.ink}}>{card.title}</div>
                 <div style={{fontSize:10,color:C.muted,marginTop:2}}>{card.sub}</div>
               </div>
@@ -1986,7 +1994,7 @@ export function ExpertView({
                 ].map(s=>(
                   <button key={s.label} onClick={()=>window.open(s.url,"_blank")} style={{padding:"12px 10px",borderRadius:13,border:`1px solid ${C.border}`,background:C.white,cursor:"pointer",fontFamily:SANS,textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
                     <div style={{width:36,height:36,borderRadius:10,background:s.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>
-                      {s.label==="WhatsApp"?"💬":s.label==="Facebook"?"📘":s.label==="X / Twitter"?"𝕏":"📧"}
+                      {SHARE_ICONS[s.label]}
                     </div>
                     <span style={{fontSize:10,fontWeight:600,color:C.soft}}>{s.label}</span>
                   </button>

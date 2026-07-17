@@ -111,7 +111,7 @@ function SearchScreen({ initQ="", initCat=null, onExpert, onBack, experts=[], ex
             return (
               <button key={cat.id} onClick={()=>{ setActiveCat(isActive?null:cat.id); setActiveSubcat(null); }}
                 style={{ flexShrink:0, padding:"8px 16px", borderRadius:20, border:`1.5px solid ${isActive?cat.color:C.border}`, background:isActive?cat.color:"transparent", color:isActive?C.white:C.ink, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit", transition:"all .2s", whiteSpace:"nowrap", display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ display:"flex", alignItems:"center" }}>{MENU_ICONS[cat.icon]||cat.icon}</span>
+                <span style={{ display:"flex", alignItems:"center" }}>{MENU_ICONS[cat.icon]}</span>
                 {cat.label}
                 {isActive && <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><polyline points="20 6 9 17 4 12"/></svg>}
               </button>
@@ -222,7 +222,7 @@ function SearchScreen({ initQ="", initCat=null, onExpert, onBack, experts=[], ex
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
                 {CATS.map(cat=>(
                   <button key={cat.id} onClick={()=>setActiveCat(cat.id)} style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 15px", borderRadius:16, border:`1px solid ${C.border}`, background:C.white, cursor:"pointer", textAlign:"left", fontFamily:"inherit", boxShadow:`0 2px 8px ${C.sh}`, transition:"all .2s" }}>
-                    <div style={{ width:46, height:46, borderRadius:13, background:cat.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, border:`1px solid ${cat.color}20`, color:cat.color }}>{MENU_ICONS[cat.icon]||cat.icon}</div>
+                    <div style={{ width:46, height:46, borderRadius:13, background:cat.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, border:`1px solid ${cat.color}20`, color:cat.color }}>{MENU_ICONS[cat.icon]}</div>
                     <div>
                       <div style={{ fontSize:12, fontWeight:700, color:C.ink, lineHeight:1.3 }}>{cat.label}</div>
                       <div style={{ fontSize:10, color:C.muted, marginTop:3, lineHeight:1.3 }}>{cat.sub}</div>

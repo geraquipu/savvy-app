@@ -249,7 +249,7 @@ function AuthModal({ onClose, onSuccess, initialRegister, isAdmin }) {
             <div style={{ position:"relative" }}>
             <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" type={showPwd?"text":"password"} style={{...inp2, paddingRight:44}} autoFocus/>
             <button type="button" onClick={()=>setShowPwd(v=>!v)} style={{ position:"absolute", right:13, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.muted, fontSize:18, padding:0 }}>
-              {showPwd ? "🙈" : "👁"}
+              <Ico k={showPwd ? "🙈" : "👁"} size={15}/>
             </button>
           </div>
           </div>

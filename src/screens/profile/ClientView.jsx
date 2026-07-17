@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { C, SERIF, SANS } from '../../constants/colors';
 import { EXPERTS, getBookings, getTrustLevel } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, AVIS_DONNES } from '../../constants/sessionData';
-import { MENU_ICONS } from '../../constants/menuIcons.jsx';
+import { MENU_ICONS, Ico } from '../../constants/menuIcons.jsx';
 import { legalLine, legalShort, EMAIL_CONTACT, DOMAIN, SITE_URL } from '../../constants/company';
 import { LEGAL_DOCS } from '../../constants/legal';
 
@@ -273,7 +273,7 @@ export function ClientView({
         const AccRow = ({id, icon, bg, title, sub, children}) => (
           <div style={{background:C.white,overflow:"hidden",borderBottom:acc===id?`1px solid ${C.borderF}`:"none"}}>
             <div onClick={()=>setAcc(acc===id?null:id)} style={{display:"flex",alignItems:"center",gap:16,padding:"14px 20px",cursor:"pointer",borderBottom:`1px solid ${C.borderF}`}}>
-              <div style={{color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",width:20,flexShrink:0}}>{MENU_ICONS[icon]||<span style={{fontSize:14}}>{icon}</span>}</div>
+              <div style={{color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",width:20,flexShrink:0}}>{MENU_ICONS[icon]}</div>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:14,fontWeight:400,color:C.ink,letterSpacing:"-.1px"}}>{title}</div>
                 {sub && <div style={{fontSize:11,color:C.faint,marginTop:1}}>{sub}</div>}
@@ -392,7 +392,7 @@ export function ClientView({
             <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"13px 15px",marginBottom:14}}>
               <div style={{fontSize:12,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:10}}>Méthode de paiement</div>
               <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:10,padding:"9px 0",borderBottom:`1px solid ${C.borderF}`}}>
-                <span style={{fontSize:20}}>💳</span>
+                <Ico k="💳" size={19}/>
                 <div style={{flex:1}}>
                   <div style={{fontSize:13,fontWeight:700,color:C.ink}}>Visa 4242</div>
                   <div style={{fontSize:11,color:C.muted}}>Expire 12/27</div>
@@ -419,7 +419,7 @@ export function ClientView({
                 ? <div style={{textAlign:"center",padding:"24px 0",color:C.faint,fontSize:12}}>Aucun recu trouve</div>
                 : filtered.map((f,i)=>(
                   <div key={f.id} onClick={()=>setSubSection(f.id)} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 0",borderBottom:i<filtered.length-1?`1px solid ${C.borderF}`:"none",cursor:"pointer"}}>
-                    <div style={{width:42,height:42,borderRadius:11,background:C.cream2,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19,flexShrink:0}}>🧾</div>
+                    <div style={{width:42,height:42,borderRadius:11,background:C.cream2,display:"flex",alignItems:"center",justifyContent:"center",color:C.soft,flexShrink:0}}><Ico k="🧾" size={19}/></div>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontSize:13,fontWeight:700,color:C.ink,fontFamily:SERIF}}>{f.conseiller}</div>
                       <div style={{fontSize:10,color:C.muted,marginTop:2}}>{f.dateSession}</div>
@@ -540,7 +540,7 @@ export function ClientView({
                   <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>
                     {[["💳","Paiement"],["📅","Session"],["👤","Compte"],["🔒","Securite"],["💡","Autre"]].map(([ico,label])=>(
                       <button key={label} onClick={()=>setHelpMsgText(label+": ")} style={{padding:"6px 12px",borderRadius:20,border:"1px solid rgba(255,255,255,.15)",background:"rgba(255,255,255,.08)",color:C.white,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
-                        {ico} {label}
+                        <Ico k={ico} size={12}/>{label}
                       </button>
                     ))}
                   </div>
@@ -553,7 +553,7 @@ export function ClientView({
                 </>
               ) : (
                 <div style={{textAlign:"center",padding:"8px 0"}}>
-                  <div style={{fontSize:32,marginBottom:8}}>🙌</div>
+                  <div style={{marginBottom:8,display:"flex",justifyContent:"center",color:C.goldB}}><Ico k="🙌" size={30} sw={1.4}/></div>
                   <div style={{fontSize:15,fontWeight:700,color:C.white,fontFamily:SERIF,marginBottom:6}}>Message recu, merci !</div>
                   <div style={{fontSize:12,color:"rgba(253,252,248,.7)",lineHeight:1.7,marginBottom:14}}>Notre equipe te repond sous 2h.</div>
                   <button onClick={()=>{ setHelpMsgSent(false); setHelpMsgText(""); }} style={{padding:"8px 18px",borderRadius:20,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.1)",color:C.white,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
@@ -627,7 +627,7 @@ export function ClientView({
             <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"20px"}}>
               {avisSent ? (
                 <div style={{textAlign:"center",padding:"20px 0"}}>
-                  <div style={{fontSize:44,marginBottom:12}}>🙏</div>
+                  <div style={{marginBottom:12,display:"flex",justifyContent:"center",color:C.goldB}}><Ico k="🙏" size={40} sw={1.4}/></div>
                   <div style={{fontSize:17,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:6}}>Merci pour ton avis !</div>
                   <div style={{fontSize:12,color:C.muted,marginBottom:20}}>Ton retour nous aide à améliorer Savvy pour tout le monde.</div>
                   <button onClick={()=>{setAvisSent(false);setAvisNote(0);setAvisTxt("");}} style={{padding:"10px 20px",borderRadius:10,border:`1px solid ${C.border}`,background:C.white,color:C.muted,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Laisser un autre avis</button>
@@ -686,7 +686,7 @@ export function ClientView({
         {/* ── Header profil ── */}
         {authUser?.real && (
           <div style={{background:`linear-gradient(135deg,${C.ink},#2C2825)`,padding:"18px 20px",marginBottom:8}}>
-            <div style={{fontSize:13,fontWeight:700,color:C.white,fontFamily:SERIF,marginBottom:4}}>Bienvenue sur Savvy, {USER.prenom} 👋</div>
+            <div style={{fontSize:13,fontWeight:700,color:C.white,fontFamily:SERIF,marginBottom:4}}>Bienvenue sur Savvy, {USER.prenom}</div>
             <div style={{fontSize:11,color:"rgba(253,252,248,.6)",marginBottom:14,lineHeight:1.5}}>Trouve ton premier expert et réserve une session en moins de 2 minutes.</div>
             <div style={{display:"flex",gap:8}}>
               {[
