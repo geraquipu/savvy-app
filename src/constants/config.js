@@ -20,3 +20,20 @@ export const savvyCut = (price) => (Number(price) || 0) - expertPayout(price);
 export const JOIN_OPEN_BEFORE_MIN = 15;   // la salle ouvre 15 min avant
 export const JOIN_CLOSE_AFTER_MIN = 75;   // et se ferme 75 min après le début
 export const SESSION_DONE_AFTER_MIN = 90; // considérée "terminée" 90 min après
+
+/**
+ * Ouvre la salle de visio.
+ *
+ * window.open vers un domaine externe est très souvent bloqué — surtout dans
+ * une PWA installée — et le blocage est silencieux : le conseiller clique,
+ * rien ne se passe, et il rate sa session sans comprendre. On tente la
+ * fenêtre, et si elle est refusée on navigue dans l'onglet courant, ce qui
+ * n'est jamais bloqué.
+ */
+export function openMeetingRoom(url) {
+  let win = null;
+  try { win = window.open(url, "_blank", "noopener"); } catch { win = null; }
+  if (!win || win.closed || typeof win.closed === "undefined") {
+    window.location.href = url;
+  }
+}

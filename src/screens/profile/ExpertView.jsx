@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../../supabase';
 import { C, SERIF, SANS } from '../../constants/colors';
-import { expertPayout, savvyCut } from '../../constants/config';
+import { expertPayout, savvyCut, openMeetingRoom } from '../../constants/config';
 import { EXPERTS, getCountdown, updateBooking } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../constants/sessionData';
 import { MENU_ICONS, FormatIcon, Ico } from '../../constants/menuIcons.jsx';
@@ -442,13 +442,13 @@ export function ExpertView({
       const now = Date.now();
       if (!s?.startTs) {
         const roomId = s?.id ? String(s.id).replace(/-/g,"").slice(0,16) : "savvy";
-        window.open(`https://meet.jit.si/savvy-${roomId}`, "_blank");
+        openMeetingRoom(`https://meet.jit.si/savvy-${roomId}`);
         return;
       }
       const openAt = s.startTs - 15*60000, closeAt = s.startTs + 75*60000;
       if (now >= openAt && now <= closeAt) {
         const roomId = String(s.id).replace(/-/g,"").slice(0,16) || "savvy";
-        window.open(`https://meet.jit.si/savvy-${roomId}`, "_blank");
+        openMeetingRoom(`https://meet.jit.si/savvy-${roomId}`);
         return;
       }
       const hhmm = new Date(s.startTs).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});

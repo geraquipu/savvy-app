@@ -5,6 +5,7 @@ import { EXPERTS, getBookings, updateBooking, addBooking, getCountdown } from '.
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../constants/sessionData';
 import { LoginGate } from '../components/ui';
 import { DOMAIN } from '../constants/company';
+import { openMeetingRoom } from '../constants/config';
 import { MENU_ICONS, FormatIcon } from '../constants/menuIcons.jsx';
 
 function CalendarPicker({ expert, onDone, onSelect }) {
@@ -890,7 +891,7 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondReschedule,
               if (!canJoin) return;
               const customLink = s.expertData?.meet_link;
               const roomId = s.id ? s.id.replace(/-/g,"").slice(0,16) : "savvy";
-              window.open(customLink || `https://meet.jit.si/savvy-${roomId}`, "_blank");
+              openMeetingRoom(customLink || `https://meet.jit.si/savvy-${roomId}`);
             }} style={{ flex:2, padding:"10px", borderRadius:11, border:"none", cursor:canJoin?"pointer":"default", fontWeight:700, fontSize:12, background:canJoin?C.sage:C.cream3, color:canJoin?C.white:C.muted, fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
               <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>
               {label}
