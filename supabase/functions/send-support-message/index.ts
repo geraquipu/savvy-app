@@ -1,7 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const SUPPORT_TO = Deno.env.get("SUPPORT_EMAIL") || "geraquipu@hotmail.com";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +15,16 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   try {
+    // Seuls les comptes connectés écrivent au support. La fonction n'est appelée
+    // que par des utilisateurs réels ; sans ce contrôle, la clé anon (publique)
+    // permettait d'inonder la boîte du support depuis l'extérieur.
+    const authHeader = req.headers.get("Authorization") || "";
+    const asUser = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: authHeader } } });
+    const { data: { user } } = await asUser.auth.getUser();
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Non autorisé" }), { status: 401, headers: { ...cors, "Content-Type": "application/json" } });
+    }
+
     const { message, fromName, fromEmail, userId } = await req.json();
     if (!message || !message.trim()) {
       return new Response(JSON.stringify({ error: "message vide" }), { status: 400, headers: { ...cors, "Content-Type": "application/json" } });

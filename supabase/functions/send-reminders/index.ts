@@ -7,6 +7,17 @@ const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+
+/**
+ * Appel interne uniquement.
+ *
+ * Cette fonction était joignable avec la clé anon — qui est publique, elle est
+ * dans le bundle. N'importe qui pouvait donc déclencher l'envoi du lot de rappels à volonté (courriels en double, quota Resend).
+ * Seuls les appels portant la clé de service (notify-booking, cron) passent.
+ */
+const isInternal = (req: Request) =>
+  (req.headers.get("Authorization") || "") === `Bearer ${SUPABASE_SERVICE_KEY}`;
+
 const sendEmail = async (to: string, subject: string, html: string) => {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -16,7 +27,8 @@ const sendEmail = async (to: string, subject: string, html: string) => {
   return res.ok;
 };
 
-serve(async () => {
+serve(async (req) => {
+  if (!isInternal(req)) return new Response("Non autorisé", { status: 403 });
   // Find confirmed+paid bookings happening in the next 20-28 hours (reminder window)
   const now = new Date();
   const windowStart = new Date(now.getTime() + 20 * 3600 * 1000).toISOString();

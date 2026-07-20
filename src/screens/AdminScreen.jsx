@@ -70,12 +70,8 @@ function AdminScreen({ authUser, onBack }) {
       return;
     }
     if (exp.user_id) await supabase.from("profiles").update({ is_expert: true }).eq("id", exp.user_id);
-    // Notifier l'expert par email
-    if (exp.user_id) {
-      supabase.functions.invoke("notify-expert-approved", {
-        body: { expertUserId: exp.user_id, expertName: exp.name || "Expert" },
-      }).catch(e => console.warn("notify-expert-approved:", e));
-    }
+    // L'e-mail de validation part depuis approve-expert (côté serveur) :
+    // il ne peut donc pas être déclenché sans validation réelle.
     setPendingExperts(p => p.filter(e => e.id !== exp.id));
     setStats(s => ({ ...s, experts: s.experts + 1 }));
   };

@@ -10,9 +10,21 @@ const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+
+/**
+ * Appel interne uniquement.
+ *
+ * Cette fonction était joignable avec la clé anon — qui est publique, elle est
+ * dans le bundle. N'importe qui pouvait donc adresser une notification au titre et au contenu de son choix à n'importe quel utilisateur dont il connaît l'identifiant.
+ * Seuls les appels portant la clé de service (notify-booking, cron) passent.
+ */
+const isInternal = (req: Request) =>
+  (req.headers.get("Authorization") || "") === `Bearer ${SUPABASE_SERVICE_KEY}`;
+
 webpush.setVapidDetails("mailto:notifications@getsavvy.fr", VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
 serve(async (req) => {
+  if (!isInternal(req)) return new Response("Non autorisé", { status: 403 });
   const { userId, title, body, url } = await req.json();
   if (!userId) return new Response("missing userId", { status: 400 });
 

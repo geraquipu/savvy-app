@@ -7,7 +7,17 @@ const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+/**
+ * Appel interne uniquement (depuis approve-expert).
+ *
+ * Joignable avec la clé anon — publique — n'importe qui pouvait annoncer à un
+ * inscrit que sa candidature était validée alors qu'elle ne l'était pas.
+ */
+const isInternal = (req: Request) =>
+  (req.headers.get("Authorization") || "") === `Bearer ${SUPABASE_SERVICE_KEY}`;
+
 serve(async (req) => {
+  if (!isInternal(req)) return new Response("Non autorisé", { status: 403 });
   const { expertUserId, expertName } = await req.json();
   if (!expertUserId) return new Response("missing expertUserId", { status: 400 });
 

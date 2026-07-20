@@ -47,6 +47,18 @@ serve(async (req) => {
       .single();
 
     if (error) return json({ error: error.message }, 400);
+
+    // La notification part d'ici, avec la clé de service : notify-expert-approved
+    // n'est plus joignable depuis l'extérieur, donc on ne peut pas annoncer une
+    // validation qui n'a pas eu lieu.
+    if (approve && data?.user_id) {
+      await fetch(`${SUPABASE_URL}/functions/v1/notify-expert-approved`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
+        body: JSON.stringify({ expertUserId: data.user_id, expertName: data.name || "Expert" }),
+      }).catch(() => {});
+    }
+
     return json({ ok: true, expert: data });
   } catch (err) {
     return json({ error: (err as Error).message }, 500);
