@@ -5,7 +5,7 @@ import { EXPERTS, getBookings, updateBooking, addBooking, getCountdown } from '.
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../constants/sessionData';
 import { LoginGate } from '../components/ui';
 import { DOMAIN } from '../constants/company';
-import { openMeetingRoom } from '../constants/config';
+import { openMeetingRoom, dayBucket } from '../constants/config';
 import { MENU_ICONS, FormatIcon } from '../constants/menuIcons.jsx';
 
 function CalendarPicker({ expert, onDone, onSelect }) {
@@ -735,9 +735,11 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondReschedule,
   const expert = s.expertData || EXPERTS[s.eid] || EXPERTS.find(x=>x.initials===s.expertInitials);
   if (!expert) return null;
   const countdown = getCountdown(s.hoursUntil);
-  const isToday   = s.hoursUntil <= 24;
-  const isTomorrow = s.hoursUntil > 24 && s.hoursUntil <= 48;
-  const isWeek     = s.hoursUntil > 48 && s.hoursUntil <= 168;
+  // Par jour de calendrier : « moins de 24 h » n'est pas « aujourd'hui ».
+  const bucket = dayBucket(s.startTs);
+  const isToday   = bucket === "today";
+  const isTomorrow = bucket === "tomorrow";
+  const isWeek     = bucket === "week";
   const isPending  = s.status === "pending";
   const borderCol  = isPending ? "#F59E0B" : isToday ? "#FCA5A5" : isTomorrow ? "#A5B4FC" : C.border;
   const topBarCol  = isPending
@@ -1249,8 +1251,8 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
             allAvenir.length > 0
               ? (()=>{
                   const groups = [
-                    { label:"Aujourd'hui", color:"#EF4444", sessions: allAvenir.filter(s=>s.hoursUntil<=24) },
-                    { label:"Demain",      color:"#6366F1", sessions: allAvenir.filter(s=>s.hoursUntil>24&&s.hoursUntil<=48) },
+                    { label:"Aujourd'hui", color:"#EF4444", sessions: allAvenir.filter(s=>dayBucket(s.startTs)==="today") },
+                    { label:"Demain",      color:"#6366F1", sessions: allAvenir.filter(s=>dayBucket(s.startTs)==="tomorrow") },
                     { label:"Cette semaine", color:"#F59E0B", sessions: allAvenir.filter(s=>s.hoursUntil>48&&s.hoursUntil<=168) },
                     { label:"Plus tard",   color:C.muted,   sessions: allAvenir.filter(s=>s.hoursUntil>168) },
                   ].filter(g=>g.sessions.length>0);

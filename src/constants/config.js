@@ -37,3 +37,28 @@ export function openMeetingRoom(url) {
     window.location.href = url;
   }
 }
+
+/**
+ * Regroupement d'une session par jour de calendrier.
+ *
+ * On comparait des heures écoulées : « moins de 24 h » était affiché comme
+ * « Aujourd'hui ». Une session demain à 20:00, vue ce soir, tombait donc dans
+ * « Aujourd'hui · 20:00 » — le conseiller cliquait sur Rejoindre et lisait
+ * « reviens dans 24 h ». Deux jours différents peuvent être à moins de 24 h
+ * d'écart : seule la date compte.
+ *
+ * @returns {"today"|"tomorrow"|"week"|"later"|"past"}
+ */
+export function dayBucket(ts, now = Date.now()) {
+  if (!ts) return "later";
+  const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime(); };
+  const days = Math.round((startOfDay(ts) - startOfDay(now)) / 86400000);
+  if (days < 0) return "past";
+  if (days === 0) return "today";
+  if (days === 1) return "tomorrow";
+  if (days <= 7) return "week";
+  return "later";
+}
+
+/** Vrai si la session tombe aujourd'hui (date, pas « dans moins de 24 h »). */
+export const isToday = (ts, now = Date.now()) => dayBucket(ts, now) === "today";

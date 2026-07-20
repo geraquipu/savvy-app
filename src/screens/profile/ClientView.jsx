@@ -6,6 +6,7 @@ import { MENU_ICONS, Ico } from '../../constants/menuIcons.jsx';
 import { legalLine, legalShort, EMAIL_CONTACT, DOMAIN, SITE_URL } from '../../constants/company';
 import { LEGAL_DOCS } from '../../constants/legal';
 import { generateReleve } from '../../lib/releve';
+import { dayBucket } from '../../constants/config';
 
 /** Icônes des quatre documents légaux — SVG, pas d'emoji. */
 const LEGAL_ICONS = {
@@ -78,7 +79,7 @@ export function ClientView({
 
     const _sessionsBase = authUser?.real ? [] : SESSIONS_AVENIR;
     const SESSIONS_BY_FILTER = {
-      jour:    _sessionsBase.filter(s => s.hoursUntil <= 24),
+      jour:    _sessionsBase.filter(s => dayBucket(s.startTs) === "today"),
       semaine: _sessionsBase.filter(s => s.hoursUntil <= 168),
       "2sem":  _sessionsBase.filter(s => s.hoursUntil <= 336),
       mois:    _sessionsBase,

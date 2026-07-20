@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../../supabase';
 import { C, SERIF, SANS } from '../../constants/colors';
-import { expertPayout, savvyCut, openMeetingRoom } from '../../constants/config';
+import { expertPayout, savvyCut, openMeetingRoom, dayBucket } from '../../constants/config';
 import { EXPERTS, getCountdown, updateBooking } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../constants/sessionData';
 import { MENU_ICONS, FormatIcon, Ico } from '../../constants/menuIcons.jsx';
@@ -788,10 +788,10 @@ export function ExpertView({
             const sorted = [...visible].filter(x=>!isDone(x)).sort((a,b)=>a.hoursUntil-b.hoursUntil);
             const doneSessions = [...visible].filter(isDone).sort((a,b)=>(b.startTs||0)-(a.startTs||0));
             const expGroups = [
-              {label:"Aujourd'hui", color:"#EF4444", bg:"#FEF2F2", sessions: sorted.filter(s=>s.hoursUntil<=24)},
-              {label:"Demain",      color:"#6366F1", bg:"#EEF2FF", sessions: sorted.filter(s=>s.hoursUntil>24&&s.hoursUntil<=48)},
-              {label:"Cette semaine",color:"#F59E0B",bg:"#FFFBEB", sessions: sorted.filter(s=>s.hoursUntil>48&&s.hoursUntil<=168)},
-              {label:"Plus tard",   color:C.muted,   bg:C.cream2,  sessions: sorted.filter(s=>s.hoursUntil>168)},
+              {label:"Aujourd'hui", color:"#EF4444", bg:"#FEF2F2", sessions: sorted.filter(s=>dayBucket(s.startTs)==="today")},
+              {label:"Demain",      color:"#6366F1", bg:"#EEF2FF", sessions: sorted.filter(s=>dayBucket(s.startTs)==="tomorrow")},
+              {label:"Cette semaine",color:"#F59E0B",bg:"#FFFBEB", sessions: sorted.filter(s=>dayBucket(s.startTs)==="week")},
+              {label:"Plus tard",   color:C.muted,   bg:C.cream2,  sessions: sorted.filter(s=>dayBucket(s.startTs)==="later")},
               {label:"Terminées",   color:C.sage,    bg:C.sageL,   sessions: doneSessions},
             ].filter(g=>g.sessions.length>0);
             return expGroups.map(group=>(
@@ -1630,7 +1630,7 @@ export function ExpertView({
           )}
 
           {/* ── Aujourd'hui (session imminente) ── */}
-          {nextSession && nextSession.hoursUntil <= 24 && (
+          {nextSession && dayBucket(nextSession.startTs) === "today" && (
             <div style={{background:"#FFFBEB",borderRadius:16,border:"1.5px solid #FDE68A",padding:"14px 16px",marginBottom:14,boxShadow:`0 2px 8px rgba(245,158,11,.12)`}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
                 <div style={{width:8,height:8,borderRadius:"50%",background:"#F59E0B",animation:"spin 2s linear infinite"}}/>
