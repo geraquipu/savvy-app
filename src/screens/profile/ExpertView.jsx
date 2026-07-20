@@ -6,6 +6,7 @@ import { EXPERTS, getCountdown, updateBooking } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../constants/sessionData';
 import { MENU_ICONS, FormatIcon, Ico } from '../../constants/menuIcons.jsx';
 import { isAdmin } from '../../constants/admin';
+import { generateReleve } from '../../lib/releve';
 import { legalLine, EMAIL_CONTACT, DOMAIN } from '../../constants/company';
 
 /** Logos des réseaux pour le partage de profil — SVG de marque, pas d'emoji. */
@@ -139,48 +140,6 @@ function OfferEditForm({ initial, onSave, onCancel }) {
     </div>
   );
 }
-
-const generateFacturesPDF = (userName, isExpert) => {
-  const openPDF = (title, bodyHTML) => {
-    const html = '<html><head><meta charset="UTF-8"><title>' + title + '</title>'
-      + '<style>body{font-family:-apple-system,sans-serif;padding:40px;max-width:700px;margin:0 auto;color:#1C1917}'
-      + '.logo{font-size:26px;font-weight:700;font-family:Georgia,serif;margin-bottom:24px}'
-      + 'table{width:100%;border-collapse:collapse;margin:20px 0}'
-      + 'th{background:#1C1917;color:#fff;padding:9px 12px;text-align:left;font-size:12px}'
-      + 'td{padding:9px 12px;border-bottom:1px solid #eee;font-size:13px}'
-      + 'h2{font-family:Georgia,serif;margin:24px 0 8px}'
-      + 'p{font-size:13px;line-height:1.8;color:#44403C}'
-      + '.footer{margin-top:40px;font-size:11px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:16px}'
-      + '@media print{.noprint{display:none}}</style></head><body>'
-      + '<div class="logo">sav<em style="color:#B8864A;font-style:italic">vy</em></div>'
-      + bodyHTML
-      + `<div class="footer">${legalLine()} &middot; ${EMAIL_CONTACT} &middot; &copy; 2025</div>`
-      + '<div class="noprint" style="margin-top:24px;text-align:center">'
-      + '<button onclick="window.print()" style="background:#1C1917;color:#fff;border:none;padding:11px 24px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">'
-      + 'Enregistrer en PDF</button></div>'
-      + '</body></html>';
-    const w = window.open('', '_blank');
-    if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 600); }
-  };
-  const date = new Date().toLocaleDateString('fr-FR');
-  const rows = isExpert
-    ? '<tr><td>15 mai 2025</td><td>Sophie Martin</td><td>M&eacute;thode inventaire 1h</td><td>60&euro;</td><td>12&euro;</td><td style="color:#065F46;font-weight:700">48&euro;</td></tr>'
-    + '<tr><td>8 mai 2025</td><td>Antoine Dupont</td><td>Tableau Excel KPIs</td><td>40&euro;</td><td>8&euro;</td><td style="color:#065F46;font-weight:700">32&euro;</td></tr>'
-    : '<tr><td>Demain</td><td>German Quintana</td><td>M&eacute;thode inventaire 1h</td><td style="font-weight:700">60&euro;</td></tr>'
-    + '<tr><td>15 mai 2025</td><td>Marie Aubert</td><td>Question p&acirc;tisserie</td><td style="font-weight:700">20&euro;</td></tr>'
-    + '<tr><td>8 mai 2025</td><td>Lucas Bertrand</td><td>Export Colombie</td><td style="font-weight:700">50&euro;</td></tr>';
-  const headers = isExpert
-    ? '<th>Date</th><th>Client</th><th>Session</th><th>Montant</th><th>Commission 20%</th><th>Re&ccedil;u 80%</th>'
-    : '<th>Date</th><th>Conseiller</th><th>Session</th><th>Montant</th>';
-  const body = '<h2>' + (isExpert ? 'Mes revenus — ' : 'Mes paiements — ') + userName + '</h2>'
-    + '<p style="font-size:12px;color:#78716C">G&eacute;n&eacute;r&eacute; le ' + date + '</p>'
-    + '<table><thead><tr>' + headers + '</tr></thead><tbody>' + rows + '</tbody></table>'
-    + '<p style="font-size:12px;color:#78716C">'
-    + (isExpert ? '&bull; Ces revenus sont imposables en France. Conservez ce document pour votre d&eacute;claration.'
-                : '&bull; Ces d&eacute;penses peuvent &ecirc;tre d&eacute;ductibles si usage professionnel.')
-    + '</p>';
-  openPDF((isExpert ? 'Revenus' : 'Factures') + ' Savvy — ' + userName, body);
-};
 
 function downloadICS({ expertName, topic, date, slot, durationH=1 }) {
   // date can be a Date object or a label string — we build a best-effort date
@@ -1263,7 +1222,12 @@ export function ExpertView({
               <div style={{fontSize:11,color:"#B91C1C",marginTop:8,lineHeight:1.5}}>
                 {connect.error === "demo"
                   ? "Cette démo ne permet pas de configurer les paiements. Crée ton profil conseiller pour y accéder."
-                  : <>Configuration indisponible pour le moment. Réessaie plus tard ou écris-nous à {EMAIL_CONTACT}.</>}
+                  : <>
+                      Configuration indisponible pour le moment. Réessaie plus tard ou écris-nous à {EMAIL_CONTACT}.
+                      {connect.error !== "unavailable" && (
+                        <div style={{marginTop:4,opacity:.75,fontSize:10}}>Détail : {String(connect.error)}</div>
+                      )}
+                    </>}
               </div>
             )}
           </div>
@@ -1294,7 +1258,7 @@ export function ExpertView({
             {realRevenu>0 && <div style={{marginTop:10,paddingTop:8,borderTop:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",fontSize:13,fontWeight:700,color:C.ink}}>
               <span>Tu reçois</span><span style={{color:C.gold}}>{realRevenu.toFixed(0)}€</span>
             </div>}
-            <button onClick={()=>generateFacturesPDF(EXPERT_DATA.prenom+" "+EXPERT_DATA.nom, true)} style={{width:"100%",marginTop:10,padding:"9px",borderRadius:10,border:`1px solid ${C.gold}`,background:C.goldL,color:C.gold,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6}}><Ico k="📄" size={12}/>Télécharger mes factures PDF</span></button>
+            <button onClick={()=>generateReleve(authUser?.real ? (authUser?.name || EXPERT_DATA.prenom+" "+EXPERT_DATA.nom) : EXPERT_DATA.prenom+" "+EXPERT_DATA.nom, true, authUser?.real ? realPaidBookings : null)} style={{width:"100%",marginTop:10,padding:"9px",borderRadius:10,border:`1px solid ${C.gold}`,background:C.goldL,color:C.gold,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6}}><Ico k="📄" size={12}/>Télécharger mes factures PDF</span></button>
           </div>
         </div>
       );

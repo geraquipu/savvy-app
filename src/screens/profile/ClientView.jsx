@@ -36,48 +36,6 @@ function TrustBadge({ score, size="sm" }) {
   );
 }
 
-const generateFacturesPDF = (userName, isExpert) => {
-  const openPDF = (title, bodyHTML) => {
-    const html = '<html><head><meta charset="UTF-8"><title>' + title + '</title>'
-      + '<style>body{font-family:-apple-system,sans-serif;padding:40px;max-width:700px;margin:0 auto;color:#1C1917}'
-      + '.logo{font-size:26px;font-weight:700;font-family:Georgia,serif;margin-bottom:24px}'
-      + 'table{width:100%;border-collapse:collapse;margin:20px 0}'
-      + 'th{background:#1C1917;color:#fff;padding:9px 12px;text-align:left;font-size:12px}'
-      + 'td{padding:9px 12px;border-bottom:1px solid #eee;font-size:13px}'
-      + 'h2{font-family:Georgia,serif;margin:24px 0 8px}'
-      + 'p{font-size:13px;line-height:1.8;color:#44403C}'
-      + '.footer{margin-top:40px;font-size:11px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:16px}'
-      + '@media print{.noprint{display:none}}</style></head><body>'
-      + '<div class="logo">sav<em style="color:#B8864A;font-style:italic">vy</em></div>'
-      + bodyHTML
-      + `<div class="footer">${legalLine()} &middot; ${EMAIL_CONTACT} &middot; &copy; 2025</div>`
-      + '<div class="noprint" style="margin-top:24px;text-align:center">'
-      + '<button onclick="window.print()" style="background:#1C1917;color:#fff;border:none;padding:11px 24px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">'
-      + 'Enregistrer en PDF</button></div>'
-      + '</body></html>';
-    const w = window.open('', '_blank');
-    if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 600); }
-  };
-  const date = new Date().toLocaleDateString('fr-FR');
-  const rows = isExpert
-    ? '<tr><td>15 mai 2025</td><td>Sophie Martin</td><td>M&eacute;thode inventaire 1h</td><td>60&euro;</td><td>12&euro;</td><td style="color:#065F46;font-weight:700">48&euro;</td></tr>'
-    + '<tr><td>8 mai 2025</td><td>Antoine Dupont</td><td>Tableau Excel KPIs</td><td>40&euro;</td><td>8&euro;</td><td style="color:#065F46;font-weight:700">32&euro;</td></tr>'
-    : '<tr><td>Demain</td><td>German Quintana</td><td>M&eacute;thode inventaire 1h</td><td style="font-weight:700">60&euro;</td></tr>'
-    + '<tr><td>15 mai 2025</td><td>Marie Aubert</td><td>Question p&acirc;tisserie</td><td style="font-weight:700">20&euro;</td></tr>'
-    + '<tr><td>8 mai 2025</td><td>Lucas Bertrand</td><td>Export Colombie</td><td style="font-weight:700">50&euro;</td></tr>';
-  const headers = isExpert
-    ? '<th>Date</th><th>Client</th><th>Session</th><th>Montant</th><th>Commission 20%</th><th>Re&ccedil;u 80%</th>'
-    : '<th>Date</th><th>Conseiller</th><th>Session</th><th>Montant</th>';
-  const body = '<h2>' + (isExpert ? 'Mes revenus — ' : 'Mes paiements — ') + userName + '</h2>'
-    + '<p style="font-size:12px;color:#78716C">G&eacute;n&eacute;r&eacute; le ' + date + '</p>'
-    + '<table><thead><tr>' + headers + '</tr></thead><tbody>' + rows + '</tbody></table>'
-    + '<p style="font-size:12px;color:#78716C">'
-    + (isExpert ? '&bull; Ces revenus sont imposables en France. Conservez ce document pour votre d&eacute;claration.'
-                : '&bull; Ces d&eacute;penses peuvent &ecirc;tre d&eacute;ductibles si usage professionnel.')
-    + '</p>';
-  openPDF((isExpert ? 'Revenus' : 'Factures') + ' Savvy — ' + userName, body);
-};
-
 export function ClientView({
   USER, authUser, isExpert,
   onNavigate, onSignup, onBecomeExpert, onLogout,
@@ -260,7 +218,7 @@ export function ClientView({
                 </div>
               </div>
             </div>
-            <button onClick={()=>generateFacturesPDF(USER.prenom+" "+USER.nom,false)} style={{width:"100%",padding:"13px",borderRadius:12,border:`1.5px solid ${C.gold}`,background:C.goldL,color:C.gold,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:SERIF,marginBottom:10}}>
+            <button onClick={()=>generateReleve(authUser?.real ? (authUser?.name || USER.prenom+" "+USER.nom) : USER.prenom+" "+USER.nom, false)} style={{width:"100%",padding:"13px",borderRadius:12,border:`1.5px solid ${C.gold}`,background:C.goldL,color:C.gold,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:SERIF,marginBottom:10}}>
               Telecharger ce recu en PDF
             </button>
           </div>
@@ -431,7 +389,7 @@ export function ClientView({
                   </div>
                 ))
               }
-              <button onClick={()=>generateFacturesPDF(USER.prenom+" "+USER.nom,false)} style={{width:"100%",marginTop:14,padding:"10px",borderRadius:10,border:`1px solid ${C.gold}`,background:C.goldL,color:C.gold,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+              <button onClick={()=>generateReleve(authUser?.real ? (authUser?.name || USER.prenom+" "+USER.nom) : USER.prenom+" "+USER.nom, false)} style={{width:"100%",marginTop:14,padding:"10px",borderRadius:10,border:`1px solid ${C.gold}`,background:C.goldL,color:C.gold,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
                 Telecharger tous les recus en PDF
               </button>
             </div>
