@@ -101,17 +101,36 @@ export function normalizeOffers(list) {
 }
 
 /**
+ * Unité minimale de réservation, en minutes.
+ *
+ * La durée d'une offre est un PLAFOND, pas un quota : « jusqu'à 30 min ». Si la
+ * réponse est claire en 8 minutes, la session s'arrête là — personne n'a
+ * intérêt à meubler. Descendre sous 30 min découpait l'agenda en mosaïque,
+ * multipliait les risques de chevauchement, et poussait à vendre du temps
+ * plutôt que de l'expérience vécue.
+ */
+export const MIN_SLOT_MIN = 30;
+
+/**
  * Pas des créneaux dans le calendrier, en minutes.
- * Borné : un "Document 24h" ne doit pas vider le calendrier.
+ * Borné des deux côtés : jamais sous l'unité minimale, et un "Document 24h"
+ * ne doit pas vider le calendrier.
  */
 export function slotStepFor(durationMin) {
   const n = Number(durationMin) || 60;
-  return Math.min(240, Math.max(15, n));
+  return Math.min(240, Math.max(MIN_SLOT_MIN, n));
 }
 
-/** Sous-titre lisible : "Appel audio · 15 min" */
+/** Durée annoncée au client : un plafond, jamais une promesse de remplissage. */
+export function durationCeiling(min) {
+  return `jusqu'à ${formatDuration(min)}`;
+}
+
+/** Sous-titre lisible : "Appel audio · jusqu'à 30 min" */
 export function offerSubtitle(offer) {
   const o = offer.durationMin ? offer : normalizeOffer(offer);
   const label = FORMAT_META[o.formats[0]]?.label || "Session";
-  return `${label} · ${formatDuration(o.durationMin)}`;
+  // Un livrable écrit a un délai, pas une durée d'entretien.
+  if (o.formats[0] === "doc") return `${label} · ${formatDuration(o.durationMin)}`;
+  return `${label} · ${durationCeiling(o.durationMin)}`;
 }

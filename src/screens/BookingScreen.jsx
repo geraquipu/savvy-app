@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { C, SERIF } from '../constants/colors'
 import { supabase } from '../supabase'
 import { FormatIcon } from '../constants/menuIcons.jsx'
-import { FORMAT_META, FORMAT_IDS, normalizeOffer, normalizeOffers, formatDuration, slotStepFor, parseDurationMin } from '../constants/offers'
+import { FORMAT_META, FORMAT_IDS, normalizeOffer, normalizeOffers, formatDuration, durationCeiling, offerSubtitle, slotStepFor, parseDurationMin } from '../constants/offers'
 
 const BOOKING_FORMATS = FORMAT_IDS.map(id => ({ id, label: FORMAT_META[id].label, sub: FORMAT_META[id].sub }));
 
@@ -375,7 +375,19 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
                     </div>
                   </div>
                 </div>
-                <div style={{ fontSize:12, color:isSel?"rgba(253,252,248,.7)":C.muted, lineHeight:1.5 }}>{p.what}</div>
+                {/* Format et durée viennent de l'offre normalisée : la durée
+                    s'affiche comme un plafond ("jusqu'à 30 min"), pas comme un
+                    temps dû. La description libre de l'expert vient dessous. */}
+                <div style={{ fontSize:12, color:isSel?"rgba(253,252,248,.7)":C.muted, lineHeight:1.5 }}>
+                  {offerSubtitle(p)}
+                </div>
+                {(() => {
+                  const free = (p.what || p.desc || "").trim();
+                  const auto = /^(vidéocall|appel audio|document|chat|accompagnement)\s*\d/i.test(free);
+                  return free && !auto ? (
+                    <div style={{ fontSize:12, color:isSel?"rgba(253,252,248,.55)":C.soft, lineHeight:1.5, marginTop:3 }}>{free}</div>
+                  ) : null;
+                })()}
               </div>
             );
           })}

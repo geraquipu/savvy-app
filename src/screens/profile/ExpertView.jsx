@@ -33,7 +33,10 @@ const OFFER_FORMATS = [
   {v:"doc",   icon:"📄", l:"Document", sub:"Analyse écrite ou guide"},
   {v:"chat",  icon:"💬", l:"Chat écrit", sub:"Échange par messages"},
 ];
-const OFFER_DUREES = ["15 min","30 min","45 min","1h","1h30","2h"];
+// 30 min est l'unité minimale (voir MIN_SLOT_MIN) : c'est un plafond annoncé
+// au client, pas un temps à remplir. En dessous, l'agenda devenait une
+// mosaïque et les chevauchements inévitables.
+const OFFER_DUREES = ["30 min","45 min","1h","1h30","2h"];
 
 function OfferEditForm({ initial, onSave, onCancel }) {
   const [name, setName] = useState(initial.name||"");
