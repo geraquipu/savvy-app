@@ -25,7 +25,7 @@ export function CalendarPicker({ expert, onDone, onSelect, slotMinutes = 30 }) {
     const from = new Date();
     from.setHours(0,0,0,0);
     supabase.from("bookings")
-      .select("date_session")
+      .select("date_session, session_duration, phase_name")
       .eq("expert_id", expert.id)
       .in("status", ["pending","confirmed"])
       .gte("date_session", from.toISOString())
@@ -35,10 +35,18 @@ export function CalendarPicker({ expert, onDone, onSelect, slotMinutes = 30 }) {
         data.forEach(b => {
           if (!b.date_session) return;
           const dt = new Date(b.date_session);
-          const key = dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");
-          const t = String(dt.getHours()).padStart(2,"0")+":"+String(dt.getMinutes()).padStart(2,"0");
-          if (!map[key]) map[key] = [];
-          map[key].push(t);
+          // On bloque toute la DURÉE, pas seulement l'heure de début : une
+          // session d'1h à 10:00 ne marquait que "10:00", donc 10:15, 10:30 et
+          // 10:45 restaient réservables par-dessus. Avec des offres de 15 min
+          // le chevauchement était garanti.
+          const mins = parseDurationMin(b.session_duration) || 60;
+          for (let off = 0; off < mins; off += 15) {
+            const t = new Date(dt.getTime() + off * 60000);
+            const key = t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");
+            const hhmm = String(t.getHours()).padStart(2,"0")+":"+String(t.getMinutes()).padStart(2,"0");
+            if (!map[key]) map[key] = [];
+            if (!map[key].includes(hhmm)) map[key].push(hhmm);
+          }
         });
         setBookedSlots(map);
       });

@@ -59,7 +59,16 @@ function AdminScreen({ authUser, onBack }) {
   };
 
   const approveExpert = async (exp) => {
-    await supabase.from("experts").update({ active: true, verified: true }).eq("id", exp.id);
+    // Passe par une fonction serveur : `verified` et `active` ne sont plus
+    // écrivables depuis un compte utilisateur, sinon un conseiller pourrait
+    // se décerner le badge « vérifié » sur sa propre ligne.
+    const { data, error } = await supabase.functions.invoke("approve-expert", {
+      body: { expertId: exp.id, approve: true },
+    });
+    if (error || data?.error) {
+      alert(`Impossible de valider ${exp.name} : ${data?.error || error?.message || "erreur"}`);
+      return;
+    }
     if (exp.user_id) await supabase.from("profiles").update({ is_expert: true }).eq("id", exp.user_id);
     // Notifier l'expert par email
     if (exp.user_id) {
