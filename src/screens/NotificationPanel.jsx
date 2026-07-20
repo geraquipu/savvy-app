@@ -1,7 +1,7 @@
 import React from 'react';
 import { C, SERIF } from '../constants/colors';
 
-function NotificationPanel({ onClose, onNavigate, isExpert, readNotifIds=[], onMarkRead, isNewExpert=false, expRequestsCount=0, unreadMsgsCount=0, isRealUser=false, pendingPayCount=0 }) {
+function NotificationPanel({ onClose, onNavigate, isExpert, readNotifIds=[], onMarkRead, isNewExpert=false, expRequestsCount=0, unreadMsgsCount=0, isRealUser=false, pendingPayCount=0, toPayCount=0 }) {
   const NIcon = {
     msg:  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
     bell: <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
@@ -16,7 +16,11 @@ function NotificationPanel({ onClose, onNavigate, isExpert, readNotifIds=[], onM
     const out = [];
     if (unreadMsgsCount > 0) out.push({ id:"real-msg", svg:NIcon.msg, title:`${unreadMsgsCount} message${unreadMsgsCount>1?"s":""} non lu${unreadMsgsCount>1?"s":""}`, sub:"Consulte tes échanges", time:"Récemment", screen:"messages" });
     if (isExpert && expRequestsCount > 0) out.push({ id:"real-req", svg:NIcon.bell, title:`${expRequestsCount} demande${expRequestsCount>1?"s":""} de session en attente`, sub:"Réponds vite pour augmenter ton taux d'acceptation", time:"Récemment", screen:"exp-sessions" });
-    if (!isExpert && pendingPayCount > 0) out.push({ id:"real-pay", svg:NIcon.euro, title:`${pendingPayCount} session${pendingPayCount>1?"s":""} à finaliser`, sub:"Confirme le paiement pour valider ta session", time:"Récemment", screen:"reservations" });
+    // Une demande acceptée est un événement : elle a son propre message, sinon
+    // le compteur reste identique avant et après et le client ne voit rien.
+    if (!isExpert && toPayCount > 0) out.push({ id:"real-topay", svg:NIcon.check, title:toPayCount>1?`${toPayCount} demandes acceptées`:"Ta demande a été acceptée", sub:"Procède au paiement pour confirmer ta session", time:"Récemment", screen:"reservations", cta:"pay" });
+    const waiting = Math.max(0, pendingPayCount - toPayCount);
+    if (!isExpert && waiting > 0) out.push({ id:"real-wait", svg:NIcon.bell, title:`${waiting} demande${waiting>1?"s":""} en attente`, sub:"Le conseiller doit encore répondre", time:"Récemment", screen:"reservations" });
     return out;
   };
 

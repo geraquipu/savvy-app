@@ -1061,7 +1061,9 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           price: b.phase_price || 0,
           status: b.status,
           statusLabel: b.status === "confirmed" ? "Confirmée" : b.status === "cancelled" ? "Annulée" : "En attente",
-          paid: !!b.paid || !!localStorage.getItem(`savvy_paid_${b.id}`),
+          // Seul le webhook Stripe écrit `paid`. Pas de repli localStorage :
+          // le navigateur ne peut pas être la preuve qu'un paiement a eu lieu.
+          paid: !!b.paid,
           rescheduleFrom: b.reschedule_from || null,
           rescheduleBy: b.reschedule_by || null,
           startTs: b.date_session ? new Date(b.date_session).getTime() : null,

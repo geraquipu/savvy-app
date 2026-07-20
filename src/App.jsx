@@ -380,6 +380,7 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser?.id, authUser?.isExpert]);
   const [clientPendingCount, setClientPendingCount] = useState(0);
+  const [clientToPayCount, setClientToPayCount] = useState(0);  // demandes acceptées, en attente de paiement
   // ── Réservations du client qui demandent une action (à payer / à accepter) ──
   // Calculé ici (pas dans ReservationsScreen) pour que la cloche et le badge
   // se mettent à jour même si l'utilisateur n'ouvre jamais l'écran Réservations.
@@ -394,10 +395,14 @@ export default function App() {
           // Ne compter que les sessions encore actionnables (pas déjà passées),
           // sinon une session expirée non payée gonfle le badge à vide.
           const notPast = (b) => !b.date_session || (new Date(b.date_session).getTime() + 90*60000) > Date.now();
-          const n = data.filter(b =>
-            notPast(b) && (b.status === "pending" || (b.status === "confirmed" && !b.paid))
-          ).length;
-          setClientPendingCount(n);
+          const actionable = data.filter(notPast);
+          // On distingue les deux états : sinon accepter une demande ne change
+          // pas le compteur (1 avant, 1 après) et le client ne voit jamais que
+          // le conseiller a répondu.
+          const toPay = actionable.filter(b => b.status === "confirmed" && !b.paid).length;
+          const waiting = actionable.filter(b => b.status === "pending").length;
+          setClientToPayCount(toPay);
+          setClientPendingCount(toPay + waiting);
         });
     load();
     // Nom unique : ReservationsScreen utilise déjà "client-bookings-<cid>".
@@ -512,11 +517,12 @@ export default function App() {
     const paymentStatus = urlParams.get("payment");
     const bookingId = urlParams.get("booking");
     if (paymentStatus === "success" && bookingId) {
-      // Le webhook Stripe (service role) marque paid:true côté serveur.
-      // On tente aussi côté client mais sans bloquer si RLS le refuse.
-      supabase.from("bookings").update({ paid: true }).eq("id", bookingId)
-        .then(({ error }) => { if (error) console.warn("[paid] update client refusé (le webhook s'en charge):", error.message); });
-      try { localStorage.setItem(`savvy_paid_${bookingId}`, "1"); } catch {}
+      // On ne marque JAMAIS payé depuis le navigateur : seul le webhook Stripe
+      // (service role) fait foi. Cette URL est publique — la visiter suffisait
+      // à marquer n'importe quelle réservation comme payée sans qu'un euro
+      // n'ait bougé, et c'est ce qui a créé de faux revenus côté conseiller.
+      // Ici on se contente d'emmener l'utilisateur voir sa réservation ; le
+      // statut se mettra à jour quand Stripe aura confirmé.
       window.history.replaceState({}, "", window.location.pathname);
       // Emmener l'utilisateur vers ses réservations pour voir la session payée
       setScreen("reservations"); setNav("reservations");
@@ -684,7 +690,7 @@ export default function App() {
       {main && <TopBar onNotif={()=>setShowNotif(v=>!v)} notifCount={isLoggedIn?(authUser?.real?((authUser?.isExpert&&appMode==="expert"?expRequestsCount:clientPendingCount)+realUnreadCount):Math.max(0,(newExpertProfile?3:4)-readNotifIds.length)):0} isLoggedIn={isLoggedIn} onLogin={()=>setShowSplash(true)} isExpert={isExpert} appMode={appMode} onToggleMode={m=>{ setAppMode(m); if(m==="expert"){ setNav("exp-dashboard"); setExpInitSection("dashboard"); setScreen("profile"); } else { setNav("home"); setExpInitSection(null); setScreen("home"); } }} expertBadge={appMode==="client" ? expRequestsCount : 0}/>}
       {showAuth && <Suspense fallback={null}><AuthModal onClose={()=>setShowAuth(false)} onSuccess={(user)=>{ setIsLoggedIn(true); setAuthUser(user); setIsExpert(!!user.isExpert); setNewExpertProfile(null); setShowAuth(false); setShowSplash(false); setAuthIntent(null); }} initialRegister={authIntent==="register"} isAdmin={authUser?.email==="geraquipu@hotmail.com"}/></Suspense>}
       {showProfileSetup && authUser?.real && <ProfileSetupModal authUser={authUser} onDone={updated=>{ setAuthUser(updated); setShowProfileSetup(false); }}/>}
-      {showNotif && <Suspense fallback={null}><NotificationPanel onClose={()=>setShowNotif(false)} onNavigate={(s)=>{ setShowNotif(false); handleNav(s); }} readNotifIds={readNotifIds} onMarkRead={setReadNotifIds} isExpert={isExpert&&appMode==="expert"} isNewExpert={!!newExpertProfile} expRequestsCount={expRequestsCount} unreadMsgsCount={unread} isRealUser={!!authUser?.real} pendingPayCount={clientPendingCount}/></Suspense>}
+      {showNotif && <Suspense fallback={null}><NotificationPanel onClose={()=>setShowNotif(false)} onNavigate={(s)=>{ setShowNotif(false); handleNav(s); }} readNotifIds={readNotifIds} onMarkRead={setReadNotifIds} isExpert={isExpert&&appMode==="expert"} isNewExpert={!!newExpertProfile} expRequestsCount={expRequestsCount} unreadMsgsCount={unread} isRealUser={!!authUser?.real} pendingPayCount={clientPendingCount} toPayCount={clientToPayCount}/></Suspense>}
       {screen==="home"         && <div key="home" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><HomeScreen onExpert={goExpert} onSearch={q=>goSearch(q)} onCat={id=>goSearch("",id)} onMatch={()=>{setScreen("match");setNav("home");}} isLoggedIn={isLoggedIn} authUser={authUser} isExpert={isExpert} experts={dbExperts}/></div>}
       {screen==="match"        && <Suspense fallback={ScreenFallback}><div key="match" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><MatchScreen onExpert={goExpert} onBrowseAll={()=>goSearch("")} experts={dbExperts}/></div></Suspense>}
       {screen==="search"       && <Suspense fallback={ScreenFallback}><div key="search" className="screen-enter" style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}><SearchScreen initQ={searchQ} initCat={searchCat} onExpert={goExpert} onBack={()=>{setScreen("home");setNav("home");}} experts={dbExperts} expertsLoaded={expertsLoaded}/></div></Suspense>}
