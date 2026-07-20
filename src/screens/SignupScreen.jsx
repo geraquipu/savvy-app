@@ -828,9 +828,13 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
           if (expertId) {
             const rows = Object.entries(form.dispoJours)
               .filter(([,v]) => v)
-              .map(([dow]) => ({ expert_id: expertId, day_of_week: (Number(dow)+6)%7, start_time: form.dispoStart||"09:00", end_time: form.dispoEnd||"18:00" }));
-            await supabase.from("availability").delete().eq("expert_id", expertId);
-            if (rows.length > 0) await supabase.from("availability").insert(rows);
+              .map(([dow]) => ({ day_of_week: (Number(dow)+6)%7, start_time: form.dispoStart||"09:00", end_time: form.dispoEnd||"18:00" }));
+            // Atomique (voir migration 008) : sans ça, un insert raté laissait
+            // le nouvel inscrit avec un agenda vide sans le savoir.
+            const { error: dispoErr } = await supabase.rpc("save_availability", {
+              p_expert_id: expertId, p_rows: rows,
+            });
+            if (dispoErr) console.warn("[dispo] enregistrement refusé:", dispoErr.message);
           }
         }
       }

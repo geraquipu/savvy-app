@@ -107,12 +107,20 @@ export function CalendarPicker({ expert, onDone, onSelect, slotMinutes = 30 }) {
 
   const fmtKey = (d) => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 
+  // Les conseillers de démonstration ont un identifiant numérique ; les vrais
+  // un uuid. Le repli « lun-ven 9h-16h » ne concerne que la démo : proposer des
+  // créneaux qu'un conseiller réel n'a jamais ouverts revient à prendre un
+  // rendez-vous à sa place, peut-être pendant ses heures de travail.
+  const isDemoExpert = !(typeof expert?.id === "string" && expert.id.includes("-"));
+  const useFallback = !hasDispo && isDemoExpert;
+  const noRealDispo = !hasDispo && !isDemoExpert;
+
   const isAvail = (d) => {
     if (!d) return false;
     const cmp = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     if (d <= cmp) return false;
-    if (!hasDispo) {
-      // fallback demo: weekdays only
+    if (noRealDispo) return false;
+    if (useFallback) {
       const day = d.getDay();
       return day !== 0 && day !== 6;
     }
@@ -121,7 +129,8 @@ export function CalendarPicker({ expert, onDone, onSelect, slotMinutes = 30 }) {
 
   const getSlots = (d) => {
     if (!d) return [];
-    if (!hasDispo) return ["09:00","10:00","11:00","14:00","15:00","16:00"];
+    if (noRealDispo) return [];
+    if (useFallback) return ["09:00","10:00","11:00","14:00","15:00","16:00"];
     const key = fmtKey(d);
     const range = savedHours[key] || "09:00-18:00";
     const [startStr, endStr] = range.split("-");
@@ -151,6 +160,25 @@ export function CalendarPicker({ expert, onDone, onSelect, slotMinutes = 30 }) {
         En attente de confirmation par {expert.name.split(" ")[0]}.
       </div>
       <button onClick={onDone} style={{ width:"100%", padding:"13px", borderRadius:13, border:"none", background:C.ink, color:C.white, fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:SERIF }}>Parfait !</button>
+    </div>
+  );
+
+  // Conseiller réel sans aucun créneau ouvert : on le dit, et on propose la
+  // seule action qui a du sens — lui écrire. Afficher un calendrier vide sans
+  // explication laisse croire à une panne.
+  if (noRealDispo) return (
+    <div style={{ background:C.cream2, borderRadius:14, border:`1px solid ${C.border}`, padding:"22px 18px", textAlign:"center" }}>
+      <div style={{ display:"flex", justifyContent:"center", marginBottom:11 }}>
+        <div style={{ width:40, height:40, borderRadius:"50%", background:C.white, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <svg width={19} height={19} viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth={2}><rect x={3} y={4} width={18} height={18} rx={2}/><line x1={16} y1={2} x2={16} y2={6}/><line x1={8} y1={2} x2={8} y2={6}/><line x1={3} y1={10} x2={21} y2={10}/></svg>
+        </div>
+      </div>
+      <div style={{ fontSize:14, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:6 }}>
+        {expert?.name?.split(" ")[0] || "Ce conseiller"} n'a pas encore ouvert de créneaux
+      </div>
+      <div style={{ fontSize:12.5, color:C.muted, lineHeight:1.6 }}>
+        Écris-lui pour convenir d'un moment — il recevra ta demande et pourra ouvrir une date.
+      </div>
     </div>
   );
 

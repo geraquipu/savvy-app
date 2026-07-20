@@ -5,6 +5,7 @@ import { SESSIONS_AVENIR, SESSIONS_PASSEES, AVIS_DONNES } from '../../constants/
 import { MENU_ICONS, Ico } from '../../constants/menuIcons.jsx';
 import { legalLine, legalShort, EMAIL_CONTACT, DOMAIN, SITE_URL } from '../../constants/company';
 import { LEGAL_DOCS } from '../../constants/legal';
+import { generateReleve } from '../../lib/releve';
 
 /** Icônes des quatre documents légaux — SVG, pas d'emoji. */
 const LEGAL_ICONS = {

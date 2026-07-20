@@ -1020,9 +1020,17 @@ export function ExpertView({
             }
             const rows = Object.entries(weekSchedule)
               .filter(([,d]) => d.active)
-              .map(([dow, d]) => ({ expert_id: resolvedExpertId, day_of_week: Number(dow), start_time: d.start, end_time: d.end }));
-            await supabase.from("availability").delete().eq("expert_id", resolvedExpertId);
-            if (rows.length > 0) await supabase.from("availability").insert(rows);
+              .map(([dow, d]) => ({ day_of_week: Number(dow), start_time: d.start, end_time: d.end }));
+            // Atomique : l'ancien enchaînement delete puis insert pouvait vider
+            // l'agenda si l'insert échouait, tout en affichant « enregistré ».
+            const { error: saveErr } = await supabase.rpc("save_availability", {
+              p_expert_id: resolvedExpertId,
+              p_rows: rows,
+            });
+            if (saveErr) {
+              alert(`Ton planning n'a pas pu être enregistré : ${saveErr.message}\n\nRien n'a été modifié — réessaie.`);
+              return;
+            }
             // Sync immédiat du compteur dashboard + barre de profil
             const sel = {}, hrs = {};
             const today0 = new Date(); today0.setHours(0,0,0,0);
