@@ -36,26 +36,7 @@ const openPDF = (title, bodyHTML) => {
   if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 600); }
 };
 
-const generateFacturesPDF = (userName, isExpert) => {
-  const date = new Date().toLocaleDateString('fr-FR');
-  const rows = isExpert
-    ? '<tr><td>15 mai 2025</td><td>Sophie Martin</td><td>M&eacute;thode inventaire 1h</td><td>60&euro;</td><td>12&euro;</td><td style="color:#065F46;font-weight:700">48&euro;</td></tr>'
-    + '<tr><td>8 mai 2025</td><td>Antoine Dupont</td><td>Tableau Excel KPIs</td><td>40&euro;</td><td>8&euro;</td><td style="color:#065F46;font-weight:700">32&euro;</td></tr>'
-    : '<tr><td>Demain</td><td>German Quintana</td><td>M&eacute;thode inventaire 1h</td><td style="font-weight:700">60&euro;</td></tr>'
-    + '<tr><td>15 mai 2025</td><td>Marie Aubert</td><td>Question p&acirc;tisserie</td><td style="font-weight:700">20&euro;</td></tr>'
-    + '<tr><td>8 mai 2025</td><td>Lucas Bertrand</td><td>Export Colombie</td><td style="font-weight:700">50&euro;</td></tr>';
-  const headers = isExpert
-    ? '<th>Date</th><th>Client</th><th>Session</th><th>Montant</th><th>Commission 20%</th><th>Re&ccedil;u 80%</th>'
-    : '<th>Date</th><th>Conseiller</th><th>Session</th><th>Montant</th>';
-  const body = '<h2>' + (isExpert ? 'Mes revenus — ' : 'Mes paiements — ') + userName + '</h2>'
-    + '<p style="font-size:12px;color:#78716C">G&eacute;n&eacute;r&eacute; le ' + date + '</p>'
-    + '<table><thead><tr>' + headers + '</tr></thead><tbody>' + rows + '</tbody></table>'
-    + '<p style="font-size:12px;color:#78716C">'
-    + (isExpert ? '&bull; Ces revenus sont imposables en France. Conservez ce document pour votre d&eacute;claration.'
-                : '&bull; Ces d&eacute;penses peuvent &ecirc;tre d&eacute;ductibles si usage professionnel.')
-    + '</p>';
-  openPDF((isExpert ? 'Revenus' : 'Factures') + ' Savvy — ' + userName, body);
-};
+
 
 const generateCGUPDF = () => {
   const body = '<h2>Conditions G&eacute;n&eacute;rales d&#39;Utilisation</h2>'

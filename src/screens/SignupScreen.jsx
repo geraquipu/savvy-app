@@ -17,7 +17,10 @@ const SIGNUP_T = {
     why1t: "Ton vécu vaut plus qu'un diplôme", why1s: "Les utilisateurs recherchent des personnes qui ont déjà parcouru le chemin.",
     why2t: "Tu décides comment et quand aider", why2s: "Chat, appel, vidéo ou accompagnement par étapes — tu choisis.",
     why3t: "Savvy te protège à chaque session", why3s: "Paiements sécurisés, NDA automatique, support en français 7j/7.",
-    socialTitle: "Ils ont déjà rejoint Savvy",
+    socialTitle: "Ce que Savvy t'apporte",
+    guarantee1: "Tu fixes tes tarifs et tes disponibilités, librement.",
+    guarantee2: "Tu reçois 80% de chaque session. Savvy prend 20%.",
+    guarantee3: "Paiement sécurisé par Stripe, versé après chaque session.",
     createBtn: "Créer mon profil →",
     cguNote: "En créant un profil, tu acceptes les CGU Savvy",
     // step 1
@@ -100,7 +103,10 @@ const SIGNUP_T = {
     why1t: "Tu experiencia vale más que un diploma", why1s: "Los usuarios buscan personas que ya recorrieron el camino.",
     why2t: "Tú decides cómo y cuándo ayudar", why2s: "Chat, llamada, video o acompañamiento por etapas — tú eliges.",
     why3t: "Savvy te protege en cada sesión", why3s: "Pagos seguros, NDA automático, soporte 7d/7.",
-    socialTitle: "Ya se unieron a Savvy",
+    socialTitle: "Lo que Savvy te aporta",
+    guarantee1: "Tú fijas tus tarifas y tu disponibilidad, libremente.",
+    guarantee2: "Recibes el 80% de cada sesión. Savvy se queda el 20%.",
+    guarantee3: "Pago seguro con Stripe, abonado tras cada sesión.",
     createBtn: "Crear mi perfil →",
     cguNote: "Al crear un perfil, aceptas los Términos y Condiciones de Savvy",
     // step 1
@@ -391,22 +397,15 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
           ))}
         </div>
 
-        {/* Social proof */}
+        {/* Ce que Savvy garantit — pas de chiffres de revenus tant qu'aucun
+            conseiller réel n'en a gagné : inventer des gains pour recruter est
+            une pratique commerciale trompeuse (art. L121-2 code conso). */}
         <div style={{ background:C.white, borderRadius:16, padding:"16px", border:`1px solid ${C.border}`, marginTop:6 }}>
           <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:.6, marginBottom:12 }}>{T.socialTitle}</div>
-          {[
-            { name:"Patrick G.", role:"Expert labo pâtisserie", earn:"1 240€", months:lang==="es"?"este mes":"ce mois" },
-            { name:"Marie A.",   role:"Chef pâtissière",        earn:"680€",   months:lang==="es"?"este mes":"ce mois" },
-            { name:"Lucas B.",   role:"Expert export Colombie", earn:"950€",   months:lang==="es"?"este mes":"ce mois" },
-          ].map(e => (
-            <div key={e.name} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 0", borderBottom:`1px solid ${C.borderF}` }}>
-              <div>
-                <div style={{ fontSize:13, fontWeight:600, color:C.ink }}>{e.name} · <span style={{ fontWeight:400, color:C.muted }}>{e.role}</span></div>
-              </div>
-              <div style={{ textAlign:"right" }}>
-                <div style={{ fontSize:14, fontWeight:700, color:C.sage, fontFamily:SERIF }}>{e.earn}</div>
-                <div style={{ fontSize:10, color:C.muted }}>{e.months}</div>
-              </div>
+          {[T.guarantee1, T.guarantee2, T.guarantee3].map(g => (
+            <div key={g} style={{ display:"flex", alignItems:"flex-start", gap:9, padding:"8px 0", borderBottom:`1px solid ${C.borderF}` }}>
+              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={C.sage} strokeWidth={2.5} style={{flexShrink:0,marginTop:2}}><polyline points="20 6 9 17 4 12"/></svg>
+              <div style={{ fontSize:12.5, color:C.ink, lineHeight:1.5 }}>{g}</div>
             </div>
           ))}
         </div>

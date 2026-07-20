@@ -145,7 +145,10 @@ export function ClientView({
       const goBackToCompte = () => { setSection(null); setSubSection(null); };
       const goBackToMain   = () => { setSection(null); setSubSection(null); };
 
-      const FACTURES = [
+      // Reçus de démonstration. Un compte réel n'en voit aucun tant qu'il n'a
+      // pas payé de session : un historique d'achats inventé au nom d'un client
+      // réel, avec des reçus téléchargeables, n'a rien à faire dans un compte.
+      const FACTURES = authUser?.real ? [] : [
         { id:"SAV-2025-003", mois:"mai", conseiller:"Clement Rousseau", domaine:"Vie & Reconversion",
           description:"Session video individuelle 30 min\nConseils reconversion professionnelle",
           dateSession:"15 mai 2025", dateEmission:"15 mai 2025",
@@ -349,15 +352,18 @@ export function ClientView({
             </div>
             <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"13px 15px",marginBottom:14}}>
               <div style={{fontSize:12,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:10}}>Méthode de paiement</div>
-              <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:10,padding:"9px 0",borderBottom:`1px solid ${C.borderF}`}}>
-                <Ico k="💳" size={19}/>
+              {/* Savvy n'enregistre aucune carte : le paiement se fait à chaque
+                  session sur Stripe. Afficher une carte "enregistrée" laissait
+                  croire à un moyen de paiement qui n'existe pas. */}
+              <div style={{display:"flex",alignItems:"flex-start",gap:11,padding:"4px 0"}}>
+                <Ico k="🔒" size={19}/>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:13,fontWeight:700,color:C.ink}}>Visa 4242</div>
-                  <div style={{fontSize:11,color:C.muted}}>Expire 12/27</div>
+                  <div style={{fontSize:13,fontWeight:700,color:C.ink}}>Paiement sécurisé par Stripe</div>
+                  <div style={{fontSize:11,color:C.muted,lineHeight:1.5,marginTop:2}}>
+                    Tu payes au moment de réserver. Savvy n'enregistre jamais ta carte.
+                  </div>
                 </div>
-                <span style={{fontSize:10,padding:"2px 8px",borderRadius:20,background:C.sageL,color:C.sage,fontWeight:700}}>Defaut</span>
               </div>
-              <button style={{width:"100%",padding:"9px",borderRadius:10,border:`1px dashed ${C.gold}`,background:"transparent",color:C.gold,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>+ Ajouter une methode</button>
             </div>
             <div style={{background:C.white,borderRadius:14,border:`1px solid ${C.border}`,padding:"13px 15px"}}>
               <div style={{fontSize:12,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:10}}>Historique et Recus</div>
