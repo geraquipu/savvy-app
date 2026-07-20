@@ -686,7 +686,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                 if(!r._fromLS && r.id){
                   let { data: upd, error } = await supabase.from("bookings").update({status:"cancelled", cancel_reason:"Demande refusée par l'expert", cancelled_by:"expert"}).eq("id", r.id).select().single();
                   if(error) ({ data: upd } = await supabase.from("bookings").update({status:"cancelled"}).eq("id", r.id).select().single());
-                  if(upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{});
+                  if(upd) supabase.functions.invoke("notify-booking", { body: { bookingId: upd?.id, type: "UPDATE" } }).catch(()=>{});
                 }
                 setExpCancelled(prev=>[{...r,statut:"refusé",motif:"Refusé par l'expert"},...prev]);
                 setExpRequests(prev=>prev.filter(x=>x.id!==r.id));
@@ -700,7 +700,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                 if(r._fromLS) updateBooking(r.id, {status:"confirmed"});
                 if(!r._fromLS && r.id) {
                   const { data: upd } = await supabase.from("bookings").update({status:"confirmed"}).eq("id", r.id).select().single();
-                  if(upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{});
+                  if(upd) supabase.functions.invoke("notify-booking", { body: { bookingId: upd?.id, type: "UPDATE" } }).catch(()=>{});
                 }
                 setExpConfirmed(prev=>[confirmed,...prev]);
                 setExpRequests(prev=>prev.filter(x=>x.id!==r.id));
@@ -779,7 +779,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
               setRescheduleSaving(false);
               if (error) { alert("Erreur : " + error.message); return; }
               // Notifie le client
-              if (upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{});
+              if (upd) supabase.functions.invoke("notify-booking", { body: { bookingId: upd?.id, type: "UPDATE" } }).catch(()=>{});
               // Sort la session des confirmées : elle attend l'accord du client
               setExpConfirmed(prev => prev.filter(x => x.id !== s.id));
               setCancelModal(null); setReschedulePick(null);
@@ -884,7 +884,7 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                 const cancelPatch = {status:"cancelled", cancel_reason:motif||null, cancelled_by:cancelledBy, ...(s.paid ? { refund_status:"requested" } : {})};
                 let { data: upd, error } = await supabase.from("bookings").update(cancelPatch).eq("id", s.id).select().single();
                 if(error) ({ data: upd } = await supabase.from("bookings").update({status:"cancelled"}).eq("id", s.id).select().single());
-                if(upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{});
+                if(upd) supabase.functions.invoke("notify-booking", { body: { bookingId: upd?.id, type: "UPDATE" } }).catch(()=>{});
               }
               if(cancelModal.type==="exp"){
                 setExpCancelled(prev=>[{...s,statut:"annulé",motif},...prev]);

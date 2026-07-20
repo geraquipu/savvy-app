@@ -748,7 +748,7 @@ export function ExpertView({
                       if(r._fromLS) updateBooking(r.id, {status:"confirmed"});
                       if(r._fromSB) {
                         const { data: upd } = await supabase.from("bookings").update({status:"confirmed"}).eq("id",r.id).select().single();
-                        if(upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{});
+                        if(upd) supabase.functions.invoke("notify-booking", { body: { bookingId: upd?.id, type: "UPDATE" } }).catch(()=>{});
                       }
                       setSessionConfirmToast({name:r.client, type:"confirmed"});
                       setTimeout(()=>setSessionConfirmToast(null),3000);
@@ -762,7 +762,7 @@ export function ExpertView({
                       if(r._fromLS) updateBooking(r.id, {status:"cancelled"});
                       if(r._fromSB) {
                         const { data: upd } = await supabase.from("bookings").update({status:"cancelled", cancelled_by:"expert", cancel_reason:"Refusé par l'expert"}).eq("id",r.id).select().single();
-                        if(upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{});
+                        if(upd) supabase.functions.invoke("notify-booking", { body: { bookingId: upd?.id, type: "UPDATE" } }).catch(()=>{});
                       }
                       setSessionConfirmToast({name:r.client, type:"refused"});
                       setTimeout(()=>setSessionConfirmToast(null),3000);

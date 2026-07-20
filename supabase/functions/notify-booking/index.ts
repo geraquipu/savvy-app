@@ -29,14 +29,49 @@ const sendEmail = async (to: string, subject: string, html: string) => {
   return res.ok;
 };
 
+const json = (b: unknown, status = 200) =>
+  new Response(JSON.stringify(b), { status, headers: { ...cors, "Content-Type": "application/json" } });
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
-  const { record, type } = await req.json();
+  const { record, type, bookingId: bodyBookingId } = await req.json();
 
-  if (!record) return new Response("no record", { status: 400, headers: cors });
+  // ── L'appelant doit être partie prenante de la réservation ──
+  //
+  // La fonction acceptait le `record` fourni par l'appelant et en tirait le
+  // destinataire ET le contenu du message. Comme la table `profiles` est
+  // lisible publiquement, n'importe qui pouvait récupérer l'identifiant d'un
+  // utilisateur, appeler cette fonction avec un `phase_name` de son choix, et
+  // faire partir un e-mail arbitraire depuis notifications@getsavvy.fr vers
+  // cet utilisateur. Adresse d'expéditeur légitime, contenu contrôlé par un
+  // tiers : hameçonnage, et réputation du domaine en jeu.
+  //
+  // On ne lit donc plus rien de ce que l'appelant envoie : seul l'identifiant
+  // sert, la réservation est relue en base, et on vérifie que l'appelant en
+  // est bien le client ou le conseiller.
+  const bookingId = bodyBookingId || record?.id;
+  if (!bookingId) return json({ error: "bookingId manquant" }, 400);
 
-  const booking = record;
+  const authHeader = req.headers.get("Authorization") || "";
+  const asUser = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user } } = await asUser.auth.getUser();
+  if (!user) return json({ error: "Non autorisé" }, 401);
+
+  const { data: booking } = await supabase
+    .from("bookings")
+    .select("*")
+    .eq("id", bookingId)
+    .single();
+  if (!booking) return json({ error: "Réservation introuvable" }, 404);
+
+  // Client de la réservation, ou conseiller concerné ?
+  const { data: ownerRow } = await supabase
+    .from("experts").select("user_id").eq("id", booking.expert_id).single();
+  const isParty = booking.client_id === user.id || ownerRow?.user_id === user.id;
+  if (!isParty) return json({ error: "Non autorisé" }, 403);
   const expertId = booking.expert_id; // experts.id (PK), not the expert's auth user id
   const clientId = booking.client_id;
   const status = booking.status;
@@ -144,8 +179,7 @@ serve(async (req) => {
 
   // ── Confirmée → notifier le client ──
   if (type === "UPDATE" && status === "confirmed" && clientEmail) {
-    const bookingId = record.id || "";
-    const roomId = bookingId.replace(/-/g,"").slice(0,16);
+    const roomId = String(booking.id || "").replace(/-/g,"").slice(0,16);
     const meetUrl = expertMeetLink || `https://meet.jit.si/savvy-${roomId}`;
     await sendEmail(
       clientEmail,

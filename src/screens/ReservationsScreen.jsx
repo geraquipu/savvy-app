@@ -991,7 +991,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
         .update({ status: patch.status }).eq("id", s.id).select().single());
     }
     if (error) { alert("Erreur : " + error.message); return; }
-    if (upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{});
+    if (upd) supabase.functions.invoke("notify-booking", { body: { bookingId: upd?.id, type: "UPDATE" } }).catch(()=>{});
     setSbBookings(prev => prev.map(b => b.id === s.id
       ? { ...b, status: patch.status, statusLabel: action==="accept"?"Confirmée":"Annulée", rescheduleFrom: null, rescheduleBy: null }
       : b));
@@ -1370,7 +1370,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
                 let { data: upd, error } = await supabase.from("bookings").update(cancelPatch).eq("id", s.id).select().single();
                 if (error) { ({ data: upd, error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", s.id).select().single()); }
                 if (error) { console.warn("[cancel booking]", error.message); alert("Erreur lors de l'annulation : " + error.message); }
-                else { if(upd) supabase.functions.invoke("notify-booking", { body: { record: upd, type: "UPDATE" } }).catch(()=>{}); setSbBookings(prev => prev.map(b => b.id === s.id ? { ...b, status: "cancelled", statusLabel: "Annulée", annuledBy: "client" } : b)); }
+                else { if(upd) supabase.functions.invoke("notify-booking", { body: { bookingId: upd?.id, type: "UPDATE" } }).catch(()=>{}); setSbBookings(prev => prev.map(b => b.id === s.id ? { ...b, status: "cancelled", statusLabel: "Annulée", annuledBy: "client" } : b)); }
               } else if (s._fromLS && s.id) {
                 updateBooking(s.id, { status: "cancelled" });
                 setLsBookings(getBookings());
