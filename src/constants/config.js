@@ -62,3 +62,46 @@ export function dayBucket(ts, now = Date.now()) {
 
 /** Vrai si la session tombe aujourd'hui (date, pas « dans moins de 24 h »). */
 export const isToday = (ts, now = Date.now()) => dayBucket(ts, now) === "today";
+
+/**
+ * Une session est « tenue » quand son heure de fin est passée et que le délai
+ * de réclamation est écoulé sans signalement.
+ *
+ * Savvy ne peut pas observer la visio : personne ne coche « je m'y suis
+ * rendu ». On s'appuie donc sur le silence du client, qui dispose du bouton
+ * « Signaler un problème » — le même mécanisme que la plupart des
+ * marketplaces de services.
+ */
+export const CLAIM_WINDOW_HOURS = 48;
+
+/** La session a-t-elle eu lieu, du point de vue de la plateforme ? */
+export function sessionHeld(booking, now = Date.now()) {
+  if (!booking?.paid) return false;
+  if (booking.refund_status === "requested" || booking.refund_status === "done") return false;
+  const start = booking.date_session ? new Date(booking.date_session).getTime() : null;
+  if (!start) return false;
+  return now > start + SESSION_DONE_AFTER_MIN * 60000;
+}
+
+/** Le délai de réclamation est-il écoulé ? Au-delà, le revenu est acquis. */
+export function revenueSettled(booking, now = Date.now()) {
+  if (!sessionHeld(booking, now)) return false;
+  const start = new Date(booking.date_session).getTime();
+  return now > start + CLAIM_WINDOW_HOURS * 3600000;
+}
+
+/**
+ * Répartit les réservations payées en trois états, pour ne jamais annoncer un
+ * revenu qui n'est pas encore gagné.
+ *   · aVenir  : payée, session pas encore passée
+ *   · enCours : session passée, délai de réclamation en cours
+ *   · acquis  : plus rien ne peut la remettre en cause
+ */
+export function splitRevenue(bookings = [], now = Date.now()) {
+  const paid = (bookings || []).filter(b => b?.paid);
+  return {
+    aVenir:  paid.filter(b => !sessionHeld(b, now)),
+    enCours: paid.filter(b => sessionHeld(b, now) && !revenueSettled(b, now)),
+    acquis:  paid.filter(b => revenueSettled(b, now)),
+  };
+}

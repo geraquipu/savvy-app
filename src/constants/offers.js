@@ -65,13 +65,18 @@ export function normalizeOffer(raw, index = 0) {
   const o = raw || {};
 
   // ── Durée : ordre de confiance, du plus explicite au plus dérivé ──
-  const durationMin =
+  const rawDuration =
     parseDurationMin(o.durationMin) ??
     parseDurationMin(o.duree) ??
     parseDurationMin(o.what) ??      // legacy signup : "Chat 30min"
     parseDurationMin(o.format) ??
     parseDurationMin(o.name) ??
     60;
+  // Les offres créées avant l'unité minimale (« Appel audio 15min ») restent
+  // en base : on les relève ici plutôt que de migrer les données. Un livrable
+  // écrit garde son délai — 24h n'est pas une durée d'entretien.
+  const isDoc = normalizeFormatId(Array.isArray(o.formats) ? o.formats[0] : o.format) === "doc";
+  const durationMin = isDoc ? rawDuration : Math.max(MIN_SLOT_MIN, rawDuration);
 
   // ── Formats : tableau `formats`, sinon `format` seul ──
   let formats = [];

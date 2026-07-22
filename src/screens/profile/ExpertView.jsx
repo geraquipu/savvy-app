@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../../supabase';
 import { C, SERIF, SANS } from '../../constants/colors';
-import { expertPayout, savvyCut, openMeetingRoom, dayBucket } from '../../constants/config';
+import { expertPayout, savvyCut, openMeetingRoom, dayBucket, splitRevenue } from '../../constants/config';
 import { EXPERTS, getCountdown, updateBooking } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../constants/sessionData';
 import { MENU_ICONS, FormatIcon, Ico } from '../../constants/menuIcons.jsx';
@@ -472,15 +472,25 @@ export function ExpertView({
       if (filter === "semana") return new Date(now.getTime() - 7*24*3600000);
       return new Date(now.getFullYear(), now.getMonth(), 1);
     };
-    const realRevenuTotal = authUser?.real ? realPaidBookings.reduce((s,b)=>s+expertPayout(b.phase_price),0) : EXPERT_DATA.impact.revenu;
+    // Un paiement encaissé n'est pas un revenu gagné : la session n'a pas
+    // encore eu lieu, et le client peut encore la signaler. On ne compte donc
+    // dans « revenus » que les sessions tenues, et on annonce le reste
+    // séparément comme « à venir ».
+    const { aVenir: bkAVenir, enCours: bkEnCours, acquis: bkAcquis } = splitRevenue(realPaidBookings);
+    const bkTenues = [...bkEnCours, ...bkAcquis];
+    const sumPayout = (list) => list.reduce((s,b)=>s+expertPayout(b.phase_price),0);
+
+    const realRevenuTotal = authUser?.real ? sumPayout(bkTenues) : EXPERT_DATA.impact.revenu;
+    const revenuAVenir    = authUser?.real ? sumPayout(bkAVenir) : 0;
     const realRevenu = authUser?.real
-      ? realPaidBookings.filter(b=>new Date(b.date_session)>=getStart(revFilter)).reduce((s,b)=>s+expertPayout(b.phase_price),0)
+      ? sumPayout(bkTenues.filter(b=>new Date(b.date_session)>=getStart(revFilter)))
       : EXPERT_DATA.impact.revenu;
     const calcRevenu = (filter) => authUser?.real
-      ? realPaidBookings.filter(b=>new Date(b.date_session)>=getStart(filter)).reduce((s,b)=>s+expertPayout(b.phase_price),0)
+      ? sumPayout(bkTenues.filter(b=>new Date(b.date_session)>=getStart(filter)))
       : EXPERT_DATA.impact.revenu;
-    const realClientsCount = authUser?.real ? new Set(realPaidBookings.map(b=>b.client_id)).size : EXPERT_DATA.impact.clients;
-    const realSessionsCount = authUser?.real ? realPaidBookings.length : EXPERT_DATA.impact.sessions;
+    // « Clients aidés » compte des personnes réellement accompagnées.
+    const realClientsCount = authUser?.real ? new Set(bkTenues.map(b=>b.client_id)).size : EXPERT_DATA.impact.clients;
+    const realSessionsCount = authUser?.real ? bkTenues.length : EXPERT_DATA.impact.sessions;
     const toggleExpN = k => setExpNotifToggles(s=>({...s,[k]:!s[k]}));
     const showShareModal = expShowShareModal; const setShowShareModal = setExpShowShareModal;
     const setCancelModalExp = (v) => setCancelModal(v ? {...v, type:"exp"} : null);
@@ -1176,7 +1186,20 @@ export function ExpertView({
                 {showRevenu?"Masquer":"Voir"}
               </button>
             </div>
-            <div style={{fontSize:11,color:"rgba(253,252,248,.5)"}}>Prochain virement SEPA après ta première session</div>
+            {/* On distingue ce qui est gagné de ce qui est seulement encaissé :
+                annoncer un total qui inclut des sessions pas encore tenues
+                donne un chiffre qui peut redescendre. */}
+            <div style={{fontSize:11,color:"rgba(253,252,248,.5)"}}>
+              {realRevenuTotal > 0 ? "Sessions tenues · versé par Stripe" : "Ton premier versement arrivera après ta première session"}
+            </div>
+            {revenuAVenir > 0 && (
+              <div style={{marginTop:9,paddingTop:9,borderTop:"1px solid rgba(255,255,255,.12)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <span style={{fontSize:11,color:"rgba(253,252,248,.6)"}}>Sessions à venir (déjà payées)</span>
+                <span style={{fontSize:13,fontWeight:700,color:"rgba(253,252,248,.85)",fontFamily:SERIF}}>
+                  {showRevenu ? `${revenuAVenir}€` : "••€"}
+                </span>
+              </div>
+            )}
           </div>
           <div style={{display:"flex",gap:6,marginBottom:14}}>
             {[{id:"hoy",l:"Aujourd'hui"},{id:"semana",l:"Semaine"},{id:"mes",l:"Mois"}].map(f=>(
