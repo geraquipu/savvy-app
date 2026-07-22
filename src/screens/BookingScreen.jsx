@@ -583,9 +583,9 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
         <div style={{ background:C.white, borderRadius:14, padding:"14px 16px", marginBottom:14, border:`1px solid ${C.border}` }}>
           <div style={{ fontSize:12, fontWeight:700, color:C.ink, marginBottom:12 }}>Comment ça marche</div>
           {[
-            { icon:<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>, step:"1", title:"Votre demande est envoyée", sub:`${e.name.split(" ")[0]} reçoit votre demande et vous répond.` },
-            { icon:<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>, step:"2", title:"L'expert accepte", sub:"Vous recevez une notification avec la date, durée et prix confirmés." },
-            { icon:<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x={1} y={4} width={22} height={16} rx={2}/><line x1={1} y1={10} x2={23} y2={10}/></svg>, step:"3", title:"Vous payez", sub:"Carte, Apple Pay ou Google Pay — seulement si vous êtes prêt." },
+            { icon:<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>, step:"1", title:"Demande envoyée", sub:`${e.name.split(" ")[0]} la reçoit.` },
+            { icon:<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>, step:"2", title:"Si elle est acceptée", sub:"Tu reçois une notification." },
+            { icon:<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x={1} y={4} width={22} height={16} rx={2}/><line x1={1} y1={10} x2={23} y2={10}/></svg>, step:"3", title:"Paiement sécurisé", sub:"Tu payes seulement après acceptation." },
           ].map((s,i)=>(
             <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:i<2?12:0 }}>
               <div style={{ width:28, height:28, borderRadius:"50%", background:C.goldL, color:C.gold, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, border:`1px solid ${C.goldB}30` }}>{s.icon}</div>
@@ -597,11 +597,6 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
           ))}
         </div>
 
-        {/* Garantie */}
-        <div style={{ display:"flex", gap:9, alignItems:"center", background:C.sageL, borderRadius:12, padding:"10px 14px", marginBottom:20, border:"1px solid rgba(16,185,129,.2)" }}>
-          <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={C.sage} strokeWidth={2}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span style={{ fontSize:11, color:C.sage }}>Gratuit pour envoyer · Vous payez seulement si l'expert accepte</span>
-        </div>
 
         {/* CTA */}
         <button onClick={handleSend} disabled={sending}
