@@ -364,7 +364,13 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
   }, [authUser?.id, authUser?.isExpert]);
   const expertUser = newExpertProfile || (authUser?.real ? sbExpertData : null) || (authUser?.real ? null : EXPERTS.find(e => e.initials === (activeUser?.initials || "GQ"))) || (authUser?.real ? null : EXPERTS[EXPERTS.length-1]);
   const expertExtras = newExpertProfile
-    ? { resout: newExpertProfile.phases?.map(p=>p.what)||[], reviews:[], preuves: newExpertProfile.creds||[] }
+    ? { resout: (newExpertProfile.phases||[]).map(p => {
+          // `what` vaut souvent le libellé auto (« Vidéocall 30min ») : ce
+          // n'est pas ce que l'offre résout. On préfère alors son titre.
+          const free = (p.what || p.desc || "").trim();
+          const auto = /^(vidéocall|appel audio|document|chat|accompagnement)\s*\d/i.test(free);
+          return (free && !auto) ? free : (p.name || "").trim();
+        }).filter(Boolean), reviews:[], preuves: newExpertProfile.creds||[] }
     : (EXPERT_EXTRAS[expertUser?.id] || { resout:[], reviews:[], preuves:[] });
   const EXPERT_DATA = {
     prenom:    (expertUser?.name || activeUser?.name || "German Quintana").split(" ")[0],

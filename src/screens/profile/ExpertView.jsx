@@ -7,6 +7,7 @@ import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../cons
 import { MENU_ICONS, FormatIcon, Ico } from '../../constants/menuIcons.jsx';
 import { isAdmin } from '../../constants/admin';
 import { generateReleve } from '../../lib/releve';
+import { normalizeOffer, durationCeiling, formatDuration } from '../../constants/offers';
 import { legalLine, EMAIL_CONTACT, DOMAIN } from '../../constants/company';
 
 /** Logos des réseaux pour le partage de profil — SVG de marque, pas d'emoji. */
@@ -2000,7 +2001,7 @@ export function ExpertView({
                                   {f==="video"||f?.includes?.("Vidéo")?"Vidéo":f==="audio"||f?.includes?.("audio")?"Audio":f==="doc"||f?.includes?.("Doc")?"Document":"Chat"}
                                 </span>
                               ))}
-                              {(o.duree||o.what)&&<span style={{fontSize:10,color:C.muted}}>· {o.duree||(o.what?.split(" ").slice(-1)[0])}</span>}
+                              <span style={{fontSize:10,color:C.muted}}>· {durationCeiling(normalizeOffer(o).durationMin)}</span>
                             </div>
                           </div>
                         </div>
@@ -2009,7 +2010,7 @@ export function ExpertView({
                         </div>
                       </div>
                       <div style={{display:"flex",justifyContent:"flex-end"}}>
-                        <button onClick={()=>{setEditingOffer(i);setEditOfferData({name:o.name,price:String(o.price),duree:o.duree||"30 min",formats:o.formats||(o.format?.toLowerCase().includes("vid")?["video"]:o.format?.toLowerCase().includes("doc")?["doc"]:["chat"])});}} style={{fontSize:11,color:C.gold,fontWeight:700,background:C.white,border:`1px solid ${C.goldB}`,borderRadius:20,padding:"4px 12px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}><svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Modifier</button>
+                        <button onClick={()=>{setEditingOffer(i);setEditOfferData({name:o.name,price:String(o.price),duree:formatDuration(normalizeOffer(o).durationMin),formats:o.formats||(o.format?.toLowerCase().includes("vid")?["video"]:o.format?.toLowerCase().includes("doc")?["doc"]:["chat"])});}} style={{fontSize:11,color:C.gold,fontWeight:700,background:C.white,border:`1px solid ${C.goldB}`,borderRadius:20,padding:"4px 12px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}><svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Modifier</button>
                       </div>
                     </div>
                   )}

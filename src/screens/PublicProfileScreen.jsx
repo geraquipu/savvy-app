@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { C, SERIF } from '../constants/colors';
+import { normalizeOffer, durationCeiling } from '../constants/offers';
 import { EXPERTS } from '../constants/data';
 import { EXPERT_EXTRAS } from '../constants/expertExtras';
 import { Ico } from '../constants/menuIcons.jsx';
@@ -90,7 +91,7 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
                           <Ico k={fmtIcons[f]||"📞"} size={12}/> {f==="video"?"Vidéo":f==="audio"?"Audio":f==="doc"?"Document":"Chat"}
                         </span>
                       ))}
-                      {(p.duree||p.what)&&<span style={{ fontSize:11,color:C.muted,padding:"3px 0" }}>· {p.duree||(p.what?.split(" ").pop())}</span>}
+                      <span style={{ fontSize:11,color:C.muted,padding:"3px 0" }}>· {durationCeiling(normalizeOffer(p).durationMin)}</span>
                     </div>
                   </div>
                   <div style={{ flexShrink:0,textAlign:"right" }}>
