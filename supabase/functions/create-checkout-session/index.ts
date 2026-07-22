@@ -2,12 +2,14 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /**
- * Création de la session de paiement (Stripe Connect, destination charge).
+ * Création de la session de paiement (Stripe Connect, charges séparées).
  *
- * Le client paie 100 %. Stripe verse directement la part du Conseiller sur son
- * compte Express et laisse la commission Savvy en application fee. La part du
- * Conseiller ne transite jamais par le compte de Savvy — c'est ce qui fait que
- * le chiffre d'affaires de Savvy est égal à sa commission, et non au total.
+ * Le client paie 100 % sur le compte Savvy. La part du Conseiller lui est
+ * transférée plus tard par release-payouts, une fois la session tenue et le
+ * délai de réclamation écoulé — voir le commentaire de l'étape 4.
+ *
+ * Le chiffre d'affaires de Savvy reste sa commission : les 80 % encaissés
+ * pour le Conseiller sont une dette envers lui, pas un produit.
  *
  * Le montant est lu en base, jamais reçu du navigateur : celui qui paie est la
  * dernière personne à qui demander le prix.
