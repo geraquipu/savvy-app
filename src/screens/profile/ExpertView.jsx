@@ -733,6 +733,8 @@ export function ExpertView({
                     <div>
                       <div style={{fontSize:11,color:C.sage,fontWeight:600}}>Tu reçois</div>
                       <div style={{fontSize:20,fontWeight:800,color:C.sage,fontFamily:SERIF,lineHeight:1.1}}>{gain}€</div>
+                      {/* Sans ce repère, on peut croire que la somme est déjà acquise. */}
+                      <div style={{fontSize:10,color:C.muted,marginTop:1}}>après la session</div>
                     </div>
                     <div style={{textAlign:"right",fontSize:10,color:C.muted,lineHeight:1.5}}>
                       <div>Prix client : {r.prix||0}€</div>

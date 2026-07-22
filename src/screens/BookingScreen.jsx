@@ -340,6 +340,15 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
     ? BOOKING_FORMATS.filter(f => offer.formats.includes(f.id))
     : BOOKING_FORMATS;
 
+  // Une offre qui ne propose qu'un format transforme l'étape « Choisir le
+  // format » en écran à une seule option : le client vient de lire
+  // « Vidéocall » sur l'offre, on lui redemande de choisir Vidéocall. On saute
+  // l'étape et le parcours passe de 4 à 3 écrans.
+  const singleFormat = formatsToShow.length === 1;
+  const steps = singleFormat
+    ? [{s:"offre",l:"Offre"},{s:"date",l:"Date"},{s:"confirm",l:"Demande"}]
+    : [{s:"offre",l:"Offre"},{s:"format",l:"Format"},{s:"date",l:"Date"},{s:"confirm",l:"Demande"}];
+
   // Valeurs transmises à la réservation
   const chosenFormat = FORMAT_META[selectedFormat]?.short || "Vidéo";
   const chosenDuree = offer ? formatDuration(offer.durationMin) : "1h";
@@ -348,7 +357,7 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
   const Header = () => (
     <div style={{ background:C.white, padding:"13px 16px 12px", borderBottom:`1px solid ${C.border}`, boxShadow:`0 1px 6px ${C.sh}` }}>
       <div style={{ display:"flex", alignItems:"center", gap:11, marginBottom:12 }}>
-        <button onClick={() => step==="offre" ? onBack() : step==="format" ? setStep("offre") : step==="date" ? setStep("format") : setStep("date")} style={{ background:C.cream2, border:`1px solid ${C.border}`, borderRadius:9, width:34, height:34, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <button onClick={() => step==="offre" ? onBack() : step==="format" ? setStep("offre") : step==="date" ? setStep(singleFormat ? "offre" : "format") : setStep("date")} style={{ background:C.cream2, border:`1px solid ${C.border}`, borderRadius:9, width:34, height:34, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
           <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={C.soft} strokeWidth={2}><path d="m15 18-6-6 6-6"/></svg>
         </button>
         <span style={{ fontSize:15, fontWeight:700, color:C.ink, fontFamily:SERIF }}>
@@ -357,12 +366,12 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
       </div>
       {/* Progress */}
       <div style={{ display:"flex", gap:6 }}>
-        {["offre","format","date","confirm"].map((s,i) => (
-          <div key={s} style={{ flex:1, height:3, borderRadius:2, background:["offre","format","date","confirm"].indexOf(step) >= i ? C.gold : C.cream3, transition:"background .3s" }}/>
+        {steps.map((item,i) => (
+          <div key={item.s} style={{ flex:1, height:3, borderRadius:2, background:steps.findIndex(x=>x.s===step) >= i ? C.gold : C.cream3, transition:"background .3s" }}/>
         ))}
       </div>
       <div style={{ display:"flex", gap:0, marginTop:8 }}>
-        {[{s:"offre",l:"Offre"},{s:"format",l:"Format"},{s:"date",l:"Date"},{s:"confirm",l:"Demande"}].map((item,i)=>(
+        {steps.map((item,i)=>(
           <div key={item.s} style={{ flex:1, textAlign:"center", fontSize:10, color:step===item.s?C.ink:C.faint, fontWeight:step===item.s?700:400 }}>{item.l}</div>
         ))}
       </div>
@@ -420,10 +429,18 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
             );
           })}
         </div>
-        <button onClick={()=>{ if(!selectedPhase){alert("Choisissez une offre."); return;} setStep("format"); }}
+        <button onClick={()=>{
+            if(!selectedPhase){alert("Choisissez une offre."); return;}
+            // Un seul format possible : on le retient et on passe directement
+            // à la date, au lieu d'un écran à une option.
+            if (singleFormat) { setSelectedFormat(formatsToShow[0].id); setStep("date"); return; }
+            setStep("format");
+          }}
           style={{ width:"100%", padding:"14px", borderRadius:13, border:"none", cursor:"pointer", fontWeight:700, fontSize:15, fontFamily:SERIF,
             background:selectedPhase?`linear-gradient(135deg,${C.gold},${C.goldB})`:C.cream3, color:selectedPhase?C.white:C.muted }}>
-          {selectedPhase ? `Continuer avec "${selectedPhase.name}" →` : "Sélectionnez une offre"}
+          {/* Le titre de l'offre est déjà lu juste au-dessus : le répéter dans
+              le bouton alourdit sans rien apprendre. */}
+          {selectedPhase ? "Continuer →" : "Sélectionnez une offre"}
         </button>
       </div>
     </div>
@@ -490,7 +507,10 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
             <div style={{ fontSize:12, fontWeight:700, color:C.ink }}>{BOOKING_FORMATS.find(f=>f.id===selectedFormat)?.label}</div>
             <div style={{ fontSize:11, color:C.muted }}>Format sélectionné</div>
           </div>
-          <button onClick={()=>setStep("format")} style={{ fontSize:11, color:C.gold, fontWeight:700, background:C.goldL, border:`1px solid ${C.goldB}`, borderRadius:20, padding:"3px 10px", cursor:"pointer", fontFamily:"inherit" }}>Modifier</button>
+          {/* Rien à modifier quand l'offre n'accepte qu'un format. */}
+          {!singleFormat && (
+            <button onClick={()=>setStep("format")} style={{ fontSize:11, color:C.gold, fontWeight:700, background:C.goldL, border:`1px solid ${C.goldB}`, borderRadius:20, padding:"3px 10px", cursor:"pointer", fontFamily:"inherit" }}>Modifier</button>
+          )}
         </div>
 
         <div style={{ fontSize:13, fontWeight:700, color:C.ink, marginBottom:12, fontFamily:SERIF }}>Choisir une date & un créneau</div>
