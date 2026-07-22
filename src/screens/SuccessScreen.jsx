@@ -45,7 +45,11 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, bookingN
       duration: bookingDuree || ph?.duree || (ph?.format?.includes("30")?"30 min":ph?.format?.includes("2h")?"2h":"1h"),
       price: ph?.price || 0,
       status: "pending",
-      topic: (bookingNote && bookingNote.trim()) ? bookingNote.trim() : `${ph?.name||"Session"} – ${e.name.split(" ")[0]}`,
+      // Si le client n'écrit rien, on n'invente pas un message à sa place :
+      // la carte du conseiller affichait « Demande : X » puis « Message du
+      // client : X – German », soit deux fois le titre de l'offre, dont une
+      // signée d'un nom que le client n'a jamais tapé.
+      topic: (bookingNote && bookingNote.trim()) ? bookingNote.trim() : "",
       timestamp: Date.now(),
       hoursUntil,
     };

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { C, SERIF } from '../constants/colors';
+import { offerSubtitle } from '../constants/offers';
 import { EXPERT_EXTRAS, EXPERT_STYLE_TAGS, EXPERT_FIRST_SESSION } from '../constants/expertExtras';
 import { supabase } from '../supabase';
 import { Ico } from '../constants/menuIcons.jsx';
@@ -217,7 +218,10 @@ function ExpertScreen({ e: eProp, onBack, onBook, onMsg }) {
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10 }}>
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:14, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:4 }}>{ph.name}</div>
-                    <div style={{ fontSize:12, color:C.soft, lineHeight:1.4, marginBottom:6 }}>{ph.what}</div>
+                    {/* `what` contient le libellé brut enregistré (« Appel audio
+                        15min ») : il court-circuitait l'unité minimale et la
+                        durée-plafond. On passe par l'offre normalisée. */}
+                    <div style={{ fontSize:12, color:C.soft, lineHeight:1.4, marginBottom:6 }}>{offerSubtitle(ph)}</div>
                     <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:isOpen?C.white:C.cream3, color:C.soft, fontWeight:600 }}>{ph.tag}</span>
                   </div>
                   <div style={{ textAlign:"right", flexShrink:0 }}>
