@@ -63,7 +63,8 @@ serve(async (req) => {
 
     const totalCents = Math.round(price * 100);
     const expertCents = Math.round(totalCents * EXPERT_SHARE);
-    const feeCents = totalCents - expertCents;
+    // La commission Savvy n'est plus un `application_fee` : elle est ce qui
+    // reste sur le compte Savvy après le transfert différé au Conseiller.
 
     // ── 3. Le Conseiller doit pouvoir encaisser ──
     const { data: expert } = await admin
@@ -80,7 +81,20 @@ serve(async (req) => {
       }, 409);
     }
 
-    // ── 4. Destination charge ──
+    // ── 4. Encaissement, sans reversement immédiat ──
+    //
+    // On n'utilise PAS `transfer_data[destination]` : avec ce paramètre, la
+    // part du Conseiller part sur son compte à la seconde du paiement, avant
+    // même que la session ait lieu. Si le Conseiller ne se présente pas, il
+    // faut aller rechercher l'argent chez lui — et si Stripe le lui a déjà
+    // viré, on ne peut plus.
+    //
+    // Le paiement est donc encaissé sur le compte Savvy, puis transféré au
+    // Conseiller par release-payouts une fois la session tenue et le délai de
+    // réclamation écoulé. C'est le schéma « separate charges and transfers »
+    // de Stripe, celui d'Airbnb : le client paie à la réservation, l'hôte est
+    // payé après le séjour. On reste sous la licence de Stripe — ce n'est pas
+    // de l'encaissement pour compte de tiers au sens de la DSP2.
     const params = new URLSearchParams({
       "payment_method_types[]": "card",
       "line_items[0][price_data][currency]": "eur",
@@ -92,9 +106,12 @@ serve(async (req) => {
       "success_url": `${SITE_URL}?payment=success&booking=${booking.id}`,
       "cancel_url": `${SITE_URL}?payment=cancel`,
       "metadata[booking_id]": booking.id,
-      "payment_intent_data[application_fee_amount]": String(feeCents),
-      "payment_intent_data[transfer_data][destination]": expert.stripe_account_id,
+      // Le transfert cible ce compte, mais plus tard (voir release-payouts).
       "payment_intent_data[metadata][booking_id]": booking.id,
+      "payment_intent_data[metadata][expert_account]": expert.stripe_account_id,
+      "payment_intent_data[metadata][expert_amount]": String(expertCents),
+      // Le groupe permet à Stripe de rattacher le transfert différé au paiement.
+      "payment_intent_data[transfer_group]": `booking_${booking.id}`,
     });
 
     const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {

@@ -30,7 +30,7 @@ serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: booking } = await admin
       .from("bookings")
-      .select("id, stripe_session_id, paid, refund_status")
+      .select("id, stripe_session_id, paid, refund_status, payout_status, stripe_transfer_id")
       .eq("id", bookingId).single();
 
     if (!booking) return json({ error: "Réservation introuvable" }, 404);
@@ -47,26 +47,55 @@ serve(async (req) => {
     const paymentIntent = session.payment_intent;
     if (!paymentIntent) return json({ error: "Paiement Stripe introuvable" }, 400);
 
-    // ── 3. Créer le remboursement ──
-    // reverse_transfer : reprend la part déjà versée au Conseiller. Sans ça, les
-    // 100 % remboursés au client sortiraient de la poche de Savvy alors que 80 %
-    // sont déjà partis chez le Conseiller.
-    // refund_application_fee : Savvy rend aussi sa commission — une session qui
-    // n'a pas eu lieu ne se commissionne pas.
+    // ── 3. Reprendre la part du Conseiller si elle est déjà partie ──
+    //
+    // Cas courant : le reversement n'a pas encore eu lieu (payout_status =
+    // pending), l'argent est sur le compte Savvy, il n'y a rien à récupérer.
+    // C'est justement pourquoi on diffère le transfert.
+    //
+    // Cas rare : la session avait été validée puis contestée après coup. Il
+    // faut alors annuler le transfert avant de rembourser, sinon Savvy rend
+    // 100 % alors que 80 % sont chez le Conseiller.
+    if (booking.payout_status === "done" && booking.stripe_transfer_id) {
+      const revRes = await fetch(
+        `https://api.stripe.com/v1/transfers/${booking.stripe_transfer_id}/reversals`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Idempotency-Key": `reversal_${bookingId}`,
+          },
+        },
+      );
+      const reversal = await revRes.json();
+      if (reversal.error) {
+        // Souvent : le Conseiller a déjà retiré les fonds, son solde est à zéro.
+        return json({
+          error: `Impossible de récupérer la part du conseiller : ${reversal.error.message}. `
+               + `Le remboursement n'a pas été effectué.`,
+        }, 400);
+      }
+    }
+
+    // ── 4. Rembourser le client ──
     const rRes = await fetch("https://api.stripe.com/v1/refunds", {
       method: "POST",
-      headers: { Authorization: `Bearer ${STRIPE_SECRET_KEY}`, "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        payment_intent: paymentIntent,
-        reverse_transfer: "true",
-        refund_application_fee: "true",
-      }),
+      headers: {
+        Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Idempotency-Key": `refund_${bookingId}`,
+      },
+      body: new URLSearchParams({ payment_intent: paymentIntent }),
     });
     const refund = await rRes.json();
     if (refund.error) return json({ error: refund.error.message || "Échec du remboursement" }, 400);
 
-    // ── 4. Marquer comme remboursé ──
-    await admin.from("bookings").update({ refund_status: "done" }).eq("id", bookingId);
+    // ── 5. Marquer comme remboursé, et ne plus jamais reverser ──
+    await admin.from("bookings").update({
+      refund_status: "done",
+      payout_status: "skipped",
+    }).eq("id", bookingId);
 
     return json({ ok: true, refundId: refund.id });
   } catch (err) {

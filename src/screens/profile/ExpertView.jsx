@@ -1193,11 +1193,13 @@ export function ExpertView({
                 annoncer un total qui inclut des sessions pas encore tenues
                 donne un chiffre qui peut redescendre. */}
             <div style={{fontSize:11,color:"rgba(253,252,248,.5)"}}>
-              {realRevenuTotal > 0 ? "Sessions tenues · versé par Stripe" : "Ton premier versement arrivera après ta première session"}
+              {realRevenuTotal > 0
+                ? "Sessions tenues · virement 48 h après chaque session"
+                : "Ton premier versement arrivera après ta première session"}
             </div>
             {revenuAVenir > 0 && (
               <div style={{marginTop:9,paddingTop:9,borderTop:"1px solid rgba(255,255,255,.12)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                <span style={{fontSize:11,color:"rgba(253,252,248,.6)"}}>Sessions à venir (déjà payées)</span>
+                <span style={{fontSize:11,color:"rgba(253,252,248,.6)"}}>Sessions à venir · payées par le client</span>
                 <span style={{fontSize:13,fontWeight:700,color:"rgba(253,252,248,.85)",fontFamily:SERIF}}>
                   {showRevenu ? `${revenuAVenir}€` : "••€"}
                 </span>
