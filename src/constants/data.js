@@ -314,11 +314,26 @@ export const DEMO_MSGS = [
 ];
 
 
-export function getCountdown(hoursUntil) {
+/**
+ * Étiquette de compte à rebours.
+ *
+ * `startTs` est requis pour « Aujourd'hui » / « Demain » : ces deux libellés
+ * désignent des JOURS, pas des durées. On les déduisait de `hoursUntil < 24`,
+ * si bien qu'une session demain 10:30 vue aujourd'hui à 14:00 (20 h d'écart)
+ * s'affichait « Aujourd'hui ». Sans startTs, on s'en tient aux durées.
+ */
+export function getCountdown(hoursUntil, startTs = null) {
   if (hoursUntil == null) return null;
   if (hoursUntil <= 0)   return { label:"En cours ●", color:"#10B981", pulse:true };
   if (hoursUntil < 1)    return { label:"Dans moins d'1h", color:"#EF4444", pulse:true };
   if (hoursUntil < 3)    return { label:`Dans ${Math.round(hoursUntil)}h`, color:"#EF4444", pulse:false };
+  if (startTs) {
+    const day = (t) => { const d = new Date(t); d.setHours(0,0,0,0); return d.getTime(); };
+    const diff = Math.round((day(startTs) - day(Date.now())) / 86400000);
+    if (diff === 0) return { label:"Aujourd'hui", color:"#F59E0B", pulse:false };
+    if (diff === 1) return { label:"Demain",      color:"#6366F1", pulse:false };
+    return null;
+  }
   if (hoursUntil < 24)   return { label:"Aujourd'hui", color:"#F59E0B", pulse:false };
   if (hoursUntil < 48)   return { label:"Demain", color:"#6366F1", pulse:false };
   return null;

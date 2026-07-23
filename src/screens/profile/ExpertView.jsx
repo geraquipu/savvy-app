@@ -1690,7 +1690,7 @@ export function ExpertView({
             <div style={{background:C.white,borderRadius:16,border:`1px solid ${C.border}`,padding:"16px 18px",marginBottom:14,boxShadow:`0 2px 8px ${C.sh}`}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
                 <div style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.7}}>Prochaine session</div>
-                {(()=>{const cd=getCountdown(nextSession.hoursUntil); return cd?<span style={{fontSize:10,fontWeight:700,color:cd.color,background:cd.color+"18",borderRadius:20,padding:"2px 8px"}}>{cd.label}</span>:null;})()}
+                {(()=>{const cd=getCountdown(nextSession.hoursUntil, nextSession.startTs); return cd?<span style={{fontSize:10,fontWeight:700,color:cd.color,background:cd.color+"18",borderRadius:20,padding:"2px 8px"}}>{cd.label}</span>:null;})()}
               </div>
               <div style={{display:"flex",alignItems:"center",gap:13}}>
                 <div style={{width:48,height:48,borderRadius:14,background:C.goldL,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,color:C.gold}}>{MENU_ICONS["📅"]}</div>
