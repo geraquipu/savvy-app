@@ -356,6 +356,7 @@ function ReviewModal({ session, onClose, authUser, onExpert }) {
   const [text, setText] = useState("");
   const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   const isComplete = q1 !== null && q2 !== null && q3 > 0;
 
@@ -363,7 +364,7 @@ function ReviewModal({ session, onClose, authUser, onExpert }) {
     if (!isComplete) { alert("Réponds aux 3 questions pour continuer."); return; }
     setSaving(true);
     if (authUser?.real && session.expert?.id) {
-      await supabase.from("reviews").insert({
+      const { error } = await supabase.from("reviews").insert({
         expert_id: session.expert.id,
         client_id: authUser.id,
         booking_id: session.bookingId || null,
@@ -371,6 +372,18 @@ function ReviewModal({ session, onClose, authUser, onExpert }) {
         text: text.trim() || null,
         client_name: authUser.name || "Client",
       });
+      // L'écran affichait « Merci pour ton retour ! » même quand rien n'avait
+      // été enregistré : le client croyait avoir évalué, le conseiller ne
+      // recevait jamais son avis.
+      if (error) {
+        setSaving(false);
+        setSaveError(
+          /duplicate|unique/i.test(error.message)
+            ? "Tu as déjà laissé un avis pour cette session."
+            : "Ton avis n'a pas pu être enregistré. Réessaie dans un instant.",
+        );
+        return;
+      }
     }
     setSaving(false);
     setDone(true);
@@ -507,9 +520,14 @@ function ReviewModal({ session, onClose, authUser, onExpert }) {
             </div>
           )}
 
+          {saveError && (
+            <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:11, padding:"10px 13px", marginBottom:10, fontSize:12, color:"#B91C1C", lineHeight:1.5 }}>
+              {saveError}
+            </div>
+          )}
           <div style={{ display:"flex", gap:9 }}>
             <button onClick={onClose} style={{ flex:1, padding:"13px", borderRadius:12, border:`1px solid ${C.border}`, background:C.white, color:C.ink, fontWeight:600, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Plus tard</button>
-            <button onClick={handleSubmit} disabled={saving}
+            <button onClick={()=>{ setSaveError(null); handleSubmit(); }} disabled={saving}
               style={{ flex:2, padding:"13px", borderRadius:12, border:"none", background:isComplete?C.ink:C.cream3, color:isComplete?C.white:C.muted, fontWeight:700, fontSize:14, cursor:isComplete?"pointer":"not-allowed", fontFamily:SERIF, transition:"all .2s" }}>
               {saving ? "Envoi…" : "Publier mon évaluation ✦"}
             </button>
@@ -565,6 +583,7 @@ function ReportModal({ session, onClose, authUser }) {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [delivered, setDelivered] = useState(true);
+  const [refundQueued, setRefundQueued] = useState(false);
   const expertName = session.expert?.name || session.expertData?.name || "l'expert";
   const first = expertName.split(" ")[0];
 
@@ -592,9 +611,14 @@ function ReportModal({ session, onClose, authUser }) {
         body: { message: body, fromName: authUser?.name || "Utilisateur", fromEmail: authUser?.email || null, userId: authUser?.id },
       });
       setDelivered(!!data?.ok);
-      // Expert absent + session payée -> candidat au remboursement (file admin)
+      // Expert absent + session payée -> candidat au remboursement (file admin).
+      // Si l'écriture échoue, la réservation n'entre PAS dans la file : on
+      // n'annonce donc pas au client que son remboursement est enregistré.
       if (reason === "absent" && session.paid && session.id) {
-        await supabase.from("bookings").update({ refund_status: "requested" }).eq("id", session.id);
+        const { error: refErr } = await supabase.from("bookings")
+          .update({ refund_status: "requested" }).eq("id", session.id);
+        if (refErr) { console.warn("[refund_status]", refErr.message); setRefundQueued(false); }
+        else setRefundQueued(true);
       }
     } catch { setDelivered(false); }
     setSending(false);
@@ -618,7 +642,7 @@ function ReportModal({ session, onClose, authUser }) {
           {delivered
             ? <>Notre équipe examine maintenant ta demande.<br/>Tu recevras une réponse sous 24 heures.</>
             : <>Écris-nous à <b style={{color:C.ink}}>contact@getsavvy.fr</b> pour qu'on traite ça au plus vite.</>}
-          {reason === "absent" && session.paid && delivered && (
+          {reason === "absent" && session.paid && delivered && refundQueued && (
             <><br/><b style={{ color:C.ink }}>Ta demande de remboursement est bien enregistrée.</b></>
           )}
         </div>

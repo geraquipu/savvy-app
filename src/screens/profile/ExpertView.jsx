@@ -763,8 +763,18 @@ export function ExpertView({
                       if(onRequestsChange) onRequestsChange(remaining.length);
                       if(r._fromLS) updateBooking(r.id, {status:"confirmed"});
                       if(r._fromSB) {
-                        const { data: upd } = await supabase.from("bookings").update({status:"confirmed"}).eq("id",r.id).select().single();
-                        if(upd) supabase.functions.invoke("notify-booking", { body: { bookingId: upd?.id, type: "UPDATE" } }).catch(()=>{});
+                        const { data: upd, error } = await supabase.from("bookings").update({status:"confirmed"}).eq("id",r.id).select().single();
+                        // L'écriture échouait en silence : la demande disparaissait
+                        // de l'écran alors qu'elle restait « en attente » en base.
+                        // Le conseiller croyait avoir accepté, le client n'était
+                        // jamais prévenu.
+                        if(error || !upd) {
+                          setExpRequests(prev => prev.some(x=>x.id===r.id) ? prev : [r, ...prev]);
+                          if(onRequestsChange) onRequestsChange(expRequests.length);
+                          alert(`La demande de ${r.client} n'a pas pu être confirmée : ${error?.message || "erreur inconnue"}\n\nRéessaie.`);
+                          return;
+                        }
+                        supabase.functions.invoke("notify-booking", { body: { bookingId: upd.id, type: "UPDATE" } }).catch(()=>{});
                       }
                       setSessionConfirmToast({name:r.client, type:"confirmed"});
                       setTimeout(()=>setSessionConfirmToast(null),3000);
@@ -777,8 +787,14 @@ export function ExpertView({
                       if(onRequestsChange) onRequestsChange(remaining.length);
                       if(r._fromLS) updateBooking(r.id, {status:"cancelled"});
                       if(r._fromSB) {
-                        const { data: upd } = await supabase.from("bookings").update({status:"cancelled", cancelled_by:"expert", cancel_reason:"Refusé par l'expert"}).eq("id",r.id).select().single();
-                        if(upd) supabase.functions.invoke("notify-booking", { body: { bookingId: upd?.id, type: "UPDATE" } }).catch(()=>{});
+                        const { data: upd, error } = await supabase.from("bookings").update({status:"cancelled", cancelled_by:"expert", cancel_reason:"Refusé par l'expert"}).eq("id",r.id).select().single();
+                        if(error || !upd) {
+                          setExpRequests(prev => prev.some(x=>x.id===r.id) ? prev : [r, ...prev]);
+                          setExpCancelled(prev => prev.filter(x=>x.id!==r.id));
+                          alert(`Le refus n'a pas pu être enregistré : ${error?.message || "erreur inconnue"}\n\nRéessaie.`);
+                          return;
+                        }
+                        supabase.functions.invoke("notify-booking", { body: { bookingId: upd.id, type: "UPDATE" } }).catch(()=>{});
                       }
                       setSessionConfirmToast({name:r.client, type:"refused"});
                       setTimeout(()=>setSessionConfirmToast(null),3000);

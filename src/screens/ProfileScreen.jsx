@@ -705,8 +705,14 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                 const confirmed={...r,statut:"confirmé",hoursUntil:r.date==="Demain"?22:r.date==="Aujourd'hui"?6:168};
                 if(r._fromLS) updateBooking(r.id, {status:"confirmed"});
                 if(!r._fromLS && r.id) {
-                  const { data: upd } = await supabase.from("bookings").update({status:"confirmed"}).eq("id", r.id).select().single();
-                  if(upd) supabase.functions.invoke("notify-booking", { body: { bookingId: upd?.id, type: "UPDATE" } }).catch(()=>{});
+                  const { data: upd, error } = await supabase.from("bookings").update({status:"confirmed"}).eq("id", r.id).select().single();
+                  // Sans ce contrôle, un échec d'écriture retirait la demande de
+                  // l'écran alors qu'elle restait « en attente » en base.
+                  if(error || !upd) {
+                    alert(`La demande de ${r.client} n'a pas pu être confirmée : ${error?.message || "erreur inconnue"}\n\nRéessaie.`);
+                    return;
+                  }
+                  supabase.functions.invoke("notify-booking", { body: { bookingId: upd.id, type: "UPDATE" } }).catch(()=>{});
                 }
                 setExpConfirmed(prev=>[confirmed,...prev]);
                 setExpRequests(prev=>prev.filter(x=>x.id!==r.id));
