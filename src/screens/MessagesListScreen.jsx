@@ -4,6 +4,7 @@ import { EXPERTS, DEMO_MSGS, getThreads } from '../constants/data'
 import { Av } from '../components/ui'
 import { supabase } from '../supabase'
 import { Ico } from '../constants/menuIcons.jsx';
+import { dayBucket } from '../constants/config';
 
 function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkMsgRead, appMode="client", isNewExpert=false, isRealUser=false, authUser=null, dbExperts=[]}) {
   const [realClientConvs, setRealClientConvs] = useState([]);
@@ -30,7 +31,9 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
           return {
             eid, type:"expert", expert,
             lastMsg: m.content,
+            // `time` n'est qu'un affichage : on garde la date pour regrouper.
             time: new Date(m.created_at).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}),
+            ts: new Date(m.created_at).getTime(),
             unread: (m.sender_id!==authUser.id && !m.read_at) ? 1 : 0,
             id: eid, _fromSB: true,
           };
@@ -68,6 +71,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
             ini: (p?.name||"C").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase(),
             bg:"#EDE9FE", col:"#7C3AED", photoUrl: p?.photo_url,
             lastMsg: m.content, time: new Date(m.created_at).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}),
+            ts: new Date(m.created_at).getTime(),
             unread: (m.sender_id!==authUser.id && !m.read_at) ? 1 : 0, session:null,
           };
         });
@@ -359,7 +363,21 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
       {(()=>{
         // Classe le time string en priorité pour tri + groupe
         const timeRank = t => t?.includes(":")?0:t==="Hier"?1:["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"].includes(t)?2:3;
-        const timeGroup = t => (!t||t==="À l'instant"||t?.includes(":"))?"Aujourd'hui":t==="Hier"?"Hier":["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"].includes(t)?"Cette semaine":"Plus ancien";
+        // Le regroupement se faisait sur la FORME du libellé : tout ce qui
+        // contenait « : » était classé « Aujourd'hui ». Un message de la
+        // semaine dernière affiché « 11:36 » atterrissait donc dans
+        // aujourd'hui. On regroupe sur la date réelle quand on l'a.
+        const timeGroup = (t, ts) => {
+          if (ts) {
+            const b = dayBucket(ts);
+            return b === "today" ? "Aujourd'hui"
+                 : b === "tomorrow" || b === "week" ? "Cette semaine"
+                 : b === "past" ? (dayBucket(ts + 86400000) === "today" ? "Hier" : "Plus ancien")
+                 : "Plus ancien";
+          }
+          // Conversations de démonstration : pas d'horodatage, on garde l'ancien tri.
+          return (!t||t==="À l'instant"||t?.includes(":"))?"Aujourd'hui":t==="Hier"?"Hier":["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"].includes(t)?"Cette semaine":"Plus ancien";
+        };
 
         // Vue Supprimés
         if (msgFilter === "supprimes") {
@@ -415,7 +433,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
         // Grouper
         const ORDER = ["Aujourd'hui","Hier","Cette semaine","Plus ancien"];
         const groups = {};
-        unified.forEach(c=>{ const g=timeGroup(c.time); if(!groups[g]) groups[g]=[]; groups[g].push(c); });
+        unified.forEach(c=>{ const g=timeGroup(c.time, c.ts); if(!groups[g]) groups[g]=[]; groups[g].push(c); });
 
         return ORDER.filter(g=>groups[g]?.length).map(groupLabel=>(
           <div key={groupLabel}>
