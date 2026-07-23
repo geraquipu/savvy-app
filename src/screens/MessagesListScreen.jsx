@@ -73,6 +73,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
             lastMsg: m.content, time: new Date(m.created_at).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}),
             ts: new Date(m.created_at).getTime(),
             unread: (m.sender_id!==authUser.id && !m.read_at) ? 1 : 0, session:null,
+            _fromSB: true,
           };
         });
         setRealClientConvs(convs);
@@ -119,7 +120,30 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
   const [feedbackTxt, setFeedbackTxt]   = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [editingReply, setEditingReply] = useState(null);
-  const markMsgRead = (id) => onMarkMsgRead && onMarkMsgRead(id);
+  /**
+   * Marque une conversation comme lue.
+   *
+   * L'ancienne version ne touchait qu'un état React : en changeant de mode
+   * (client <-> expert) le composant se remonte, relit `read_at` en base — qui
+   * était resté vide — et la conversation redevenait « non lue ». D'où les
+   * mêmes notifications encore et encore.
+   *
+   * On écrit donc aussi en base. On ne marque que les messages REÇUS
+   * (receiver_id = moi) : marquer les siens n'aurait aucun sens.
+   */
+  const markMsgRead = (id, conv) => {
+    onMarkMsgRead && onMarkMsgRead(id);
+    if (!authUser?.real || !authUser?.id || !conv?._fromSB) return;
+    let q = supabase.from("messages")
+      .update({ read_at: new Date().toISOString() })
+      .eq("receiver_id", authUser.id)
+      .is("read_at", null);
+    // Côté client : conversation avec un conseiller. Côté conseiller :
+    // conversation avec un client donné.
+    if (conv._type === "expert" && conv.eid) q = q.eq("expert_id", conv.eid);
+    else if (conv.clientId) q = q.eq("sender_id", conv.clientId);
+    q.then(({ error }) => { if (error) console.warn("[read_at]", error.message); });
+  };
 
   const _getLastMsg = (initials) => {
     try {
@@ -448,7 +472,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
                 const convKey="exp-"+conv.id;
                 const isRead=readMsgIds.includes(convKey)||conv.unread===0;
                 return (
-                  <div key={conv.id} onClick={()=>{ markMsgRead(convKey); onConv(conv.expert); }} style={{display:"flex",gap:12,alignItems:"center",background:C.white,borderRadius:16,padding:"14px 15px",marginBottom:9,cursor:"pointer",border:`1px solid ${isRead?C.border:C.gold}`,boxShadow:`0 1px 6px ${C.sh}`,transition:"border-color .25s"}}>
+                  <div key={conv.id} onClick={()=>{ markMsgRead(convKey, conv); onConv(conv.expert); }} style={{display:"flex",gap:12,alignItems:"center",background:C.white,borderRadius:16,padding:"14px 15px",marginBottom:9,cursor:"pointer",border:`1px solid ${isRead?C.border:C.gold}`,boxShadow:`0 1px 6px ${C.sh}`,transition:"border-color .25s"}}>
                     <div style={{position:"relative"}}>
                       <Av e={conv.expert} size={46}/>
                       {!isRead&&<div style={{position:"absolute",top:-2,right:-2,width:17,height:17,borderRadius:"50%",background:C.gold,color:C.white,fontSize:9,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",border:`2px solid ${C.white}`}}>{conv.unread}</div>}
@@ -473,7 +497,7 @@ function MessagesListScreen({onConv, isLoggedIn, onLogin, readMsgIds=[], onMarkM
                 const convKey="cli-"+(conv.clientId||conv.id);
                 const isRead=readMsgIds.includes(convKey)||conv.unread===0;
                 return (
-                  <div key={conv.id} onClick={()=>{ markMsgRead(convKey); onConv&&onConv({name:conv.name,role:"Client",tagline:conv.lastMsg,color:conv.col,initials:conv.ini,avatar:conv.ini,bg:conv.bg,clientId:conv.clientId,photo_url:conv.photoUrl}); }} style={{display:"flex",gap:12,alignItems:"center",background:C.white,borderRadius:16,padding:"14px 15px",marginBottom:9,cursor:"pointer",border:`1px solid ${isRead?C.border:"#6EE7B7"}`,boxShadow:`0 1px 6px ${C.sh}`,transition:"border-color .25s"}}>
+                  <div key={conv.id} onClick={()=>{ markMsgRead(convKey, conv); onConv&&onConv({name:conv.name,role:"Client",tagline:conv.lastMsg,color:conv.col,initials:conv.ini,avatar:conv.ini,bg:conv.bg,clientId:conv.clientId,photo_url:conv.photoUrl}); }} style={{display:"flex",gap:12,alignItems:"center",background:C.white,borderRadius:16,padding:"14px 15px",marginBottom:9,cursor:"pointer",border:`1px solid ${isRead?C.border:"#6EE7B7"}`,boxShadow:`0 1px 6px ${C.sh}`,transition:"border-color .25s"}}>
                     <div style={{position:"relative"}}>
                       <div style={{width:46,height:46,borderRadius:"50%",background:conv.bg,color:conv.col,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:15}}>{conv.ini}</div>
                       {!isRead&&<div style={{position:"absolute",top:-2,right:-2,width:17,height:17,borderRadius:"50%",background:C.sage,color:C.white,fontSize:9,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",border:`2px solid ${C.white}`}}>{conv.unread}</div>}
