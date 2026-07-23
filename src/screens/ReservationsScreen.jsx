@@ -5,7 +5,7 @@ import { EXPERTS, getBookings, updateBooking, addBooking, getCountdown } from '.
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../constants/sessionData';
 import { LoginGate } from '../components/ui';
 import { DOMAIN } from '../constants/company';
-import { openMeetingRoom, dayBucket } from '../constants/config';
+import { openMeetingRoom, dayBucket, JOIN_OPEN_BEFORE_MIN, JOIN_CLOSE_AFTER_MIN } from '../constants/config';
 import { MENU_ICONS, FormatIcon } from '../constants/menuIcons.jsx';
 
 function CalendarPicker({ expert, onDone, onSelect }) {
@@ -745,7 +745,7 @@ function PaymentModal({ session, expert, onClose }) {
 export function joinState(startTs) {
   const now = Date.now();
   if (!startTs) return { canJoin:true, label:"Rejoindre la session" };
-  const openAt = startTs - 15*60000, closeAt = startTs + 75*60000;
+  const openAt = startTs - JOIN_OPEN_BEFORE_MIN*60000, closeAt = startTs + JOIN_CLOSE_AFTER_MIN*60000;
   if (now >= openAt && now <= closeAt) return { canJoin:true, label:"Rejoindre la session" };
   if (now > closeAt) return { canJoin:false, past:true, label:"Session terminée" };
   const mins = Math.round((startTs - now)/60000);

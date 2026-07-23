@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../../supabase';
 import { C, SERIF, SANS } from '../../constants/colors';
-import { expertPayout, savvyCut, openMeetingRoom, dayBucket, splitRevenue } from '../../constants/config';
+import { expertPayout, savvyCut, openMeetingRoom, dayBucket, splitRevenue, JOIN_OPEN_BEFORE_MIN, JOIN_CLOSE_AFTER_MIN } from '../../constants/config';
 import { EXPERTS, getCountdown, updateBooking } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../constants/sessionData';
 import { MENU_ICONS, FormatIcon, Ico } from '../../constants/menuIcons.jsx';
@@ -446,7 +446,7 @@ export function ExpertView({
         openMeetingRoom(`https://meet.jit.si/savvy-${roomId}`);
         return;
       }
-      const openAt = s.startTs - 15*60000, closeAt = s.startTs + 75*60000;
+      const openAt = s.startTs - JOIN_OPEN_BEFORE_MIN*60000, closeAt = s.startTs + JOIN_CLOSE_AFTER_MIN*60000;
       if (now >= openAt && now <= closeAt) {
         const roomId = String(s.id).replace(/-/g,"").slice(0,16) || "savvy";
         openMeetingRoom(`https://meet.jit.si/savvy-${roomId}`);
@@ -457,7 +457,7 @@ export function ExpertView({
       if (now < openAt) {
         const mins = Math.round((openAt - now)/60000);
         const wait = mins < 60 ? `dans ${mins} min` : mins < 1440 ? `dans ${Math.round(mins/60)} h` : `le ${dayStr}`;
-        setJoinNotice({ type:"early", text:`La salle s'ouvre 15 min avant, à ${new Date(openAt).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}. Reviens ${wait} — ta session avec ${s.client||"ton client"} est à ${hhmm}. ☕` });
+        setJoinNotice({ type:"early", text:`La salle s'ouvre ${JOIN_OPEN_BEFORE_MIN} min avant, à ${new Date(openAt).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}. Reviens ${wait} — ta session avec ${s.client||"ton client"} est à ${hhmm}.` });
       } else {
         setJoinNotice({ type:"late", text:`Cette session (${hhmm}) est terminée. Retrouve-la dans tes sessions passées.` });
       }
