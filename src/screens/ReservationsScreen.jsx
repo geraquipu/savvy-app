@@ -731,7 +731,7 @@ export function joinState(startTs) {
   return { canJoin:false, label };
 }
 
-function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondReschedule, onReport }) {
+export function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondReschedule, onReport }) {
   const expert = s.expertData || EXPERTS[s.eid] || EXPERTS.find(x=>x.initials===s.expertInitials);
   if (!expert) return null;
   const countdown = getCountdown(s.hoursUntil, s.startTs);

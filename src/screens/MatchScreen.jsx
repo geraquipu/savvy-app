@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { C, SERIF } from '../constants/colors';
+import { Ico } from '../constants/menuIcons.jsx';
 import { CATS, CAT_MAP } from '../constants/data';
 import { Av } from '../components/ui';
 
@@ -103,7 +104,7 @@ function MatchScreen({ onExpert, onBrowseAll, experts=[] }) {
             {situations.map(s=>(
               <button key={s.id} onClick={()=>{ setSituation(s.id); go(1); }}
                 style={{padding:"16px 12px",borderRadius:16,border:`1.5px solid ${C.border}`,background:C.white,cursor:"pointer",textAlign:"center",fontFamily:"inherit",boxShadow:`0 2px 8px ${C.sh}`,transition:"all .2s",display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
-                <div style={{width:48,height:48,borderRadius:14,background:s.bg||C.cream2,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>{s.icon}</div>
+                <div style={{width:48,height:48,borderRadius:14,background:s.bg||C.cream2,display:"flex",alignItems:"center",justifyContent:"center",color:s.color||C.soft}}><Ico k={s.icon} size={24}/></div>
                 <span style={{fontSize:12,fontWeight:700,color:C.ink,lineHeight:1.2}}>{s.label}</span>
               </button>
             ))}

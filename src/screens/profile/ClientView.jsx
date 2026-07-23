@@ -6,6 +6,9 @@ import { MENU_ICONS, Ico } from '../../constants/menuIcons.jsx';
 import { legalLine, legalShort, EMAIL_CONTACT, DOMAIN, SITE_URL } from '../../constants/company';
 import { LEGAL_DOCS } from '../../constants/legal';
 import { generateReleve } from '../../lib/releve';
+// Utilisée par la section « Mes sessions » : elle n'était pas importée, l'écran
+// plantait à l'ouverture. Le build ne le voyait pas, seul ESLint le signalait.
+import { SessionCard } from '../ReservationsScreen';
 import { dayBucket } from '../../constants/config';
 
 /** Icônes des quatre documents légaux — SVG, pas d'emoji. */
