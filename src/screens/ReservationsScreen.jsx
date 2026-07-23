@@ -880,6 +880,22 @@ function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondReschedule,
             <div style={{flex:1}}>
               <div style={{fontSize:12,fontWeight:700,color:"#92400E",display:"flex",alignItems:"center",gap:5}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>{expert.name.split(" ")[0]} a accepté votre demande !</div>
               <div style={{fontSize:11,color:"#B45309",marginTop:1}}>Procédez au paiement pour confirmer · {s.price}€</div>
+              {/* Sans échéance visible, le créneau se libérerait sans que le
+                  client comprenne pourquoi sa session a disparu. */}
+              {s.payDeadline && (()=>{
+                const left = new Date(s.payDeadline).getTime() - Date.now();
+                if (left <= 0) return null;
+                const h = Math.floor(left / 3600000);
+                const quand = h >= 1
+                  ? `${h} h`
+                  : `${Math.max(1, Math.round(left / 60000))} min`;
+                return (
+                  <div style={{fontSize:10.5,color:"#92400E",marginTop:3,display:"flex",alignItems:"center",gap:4,fontWeight:600}}>
+                    <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><circle cx={12} cy={12} r={10}/><polyline points="12 6 12 12 16 14"/></svg>
+                    Créneau réservé encore {quand}
+                  </div>
+                );
+              })()}
             </div>
             <div style={{padding:"6px 12px",borderRadius:20,background:"#F59E0B",color:"white",fontSize:12,fontWeight:700,flexShrink:0}}>Payer →</div>
           </div>
@@ -1056,6 +1072,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           expertInitials: exp.initials || "?",
           expertData: { name: exp.name || "Expert", initials: exp.initials || "?", bg: exp.bg || "#EDE8DF", color: exp.color || "#8B7355", role: exp.role || "", id: b.expert_id, user_id: exp.user_id || null, meet_link: exp.meet_link || null, photoUrl: exp.photo_url || null },
           topic: b.notes || b.phase_name || "Session",
+          payDeadline: b.pay_deadline || null,
           date: b.date_session ? new Date(b.date_session).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}) : "À confirmer",
           time: b.date_session ? new Date(b.date_session).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "À confirmer",
           hoursUntil: b.date_session ? Math.max(1, Math.round((new Date(b.date_session) - new Date()) / 3600000)) : 48,
