@@ -1572,7 +1572,11 @@ export function ExpertView({
                   {[
                     {v: revenuMois.toFixed(0)+"€", l:"revenus ce mois"},
                     {v: String(realClientsCount), l:"clients aidés"},
-                    {v: authUser?.real ? "—" : (EXPERT_DATA.rating ? EXPERT_DATA.rating.toFixed(1)+"★" : "—"), l:"note moyenne"},
+                    // EXPERT_DATA.rating vaut déjà la moyenne réelle des avis
+                    // pour un compte réel : la forcer à « — » masquait les
+                    // évaluations que les clients venaient de laisser.
+                    {v: EXPERT_DATA.rating ? EXPERT_DATA.rating.toFixed(1)+"★" : "—",
+                     l: EXPERT_DATA.reviewCount ? `note (${EXPERT_DATA.reviewCount} avis)` : "note moyenne"},
                     {v: String(sessionsThisWeek), l:"sessions sem."},
                   ].map(s=>(
                     <div key={s.l} style={{background:"rgba(255,255,255,.07)",borderRadius:12,padding:"11px 10px",textAlign:"center"}}>
@@ -1639,7 +1643,10 @@ export function ExpertView({
           )}
 
           {/* ── Réputation (active expert) ── */}
-          {!isNewExpert && !authUser?.real && EXPERT_DATA.rating && (
+          {/* Masqué avant : un conseiller réel ne voyait jamais sa note,
+              même avec des avis. Les chiffres inventés (« 12 avis », « Top
+              10% ») ont été remplacés par le compte réel. */}
+          {!isNewExpert && EXPERT_DATA.rating && (
             <div style={{background:C.white,borderRadius:16,border:`1px solid ${C.border}`,padding:"16px 18px",marginBottom:14,boxShadow:`0 2px 8px ${C.sh}`}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
                 <div style={{fontSize:14,fontWeight:700,color:C.ink}}>⭐ Réputation</div>
@@ -1651,8 +1658,9 @@ export function ExpertView({
                 ))}
               </div>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{fontSize:11,color:C.muted}}>{EXPERT_DATA.impact.reviews||12} avis clients</div>
-                <div style={{fontSize:11,color:C.sage,fontWeight:600}}>Top {EXPERT_DATA.impact.topPct||10}% des experts</div>
+                <div style={{fontSize:11,color:C.muted}}>
+                  {EXPERT_DATA.reviewCount || 0} avis client{(EXPERT_DATA.reviewCount||0) > 1 ? "s" : ""}
+                </div>
               </div>
             </div>
           )}
