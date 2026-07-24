@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
+import { openSessionRoom } from '../lib/meeting';
 import { C, SERIF } from '../constants/colors';
 import { EXPERTS, getBookings, updateBooking, addBooking, getCountdown } from '../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../constants/sessionData';
 import { LoginGate } from '../components/ui';
 import { DOMAIN } from '../constants/company';
-import { openMeetingRoom, dayBucket, payWindow, meetingUrl, SESSION_DONE_AFTER_MIN, JOIN_OPEN_BEFORE_MIN, JOIN_CLOSE_AFTER_MIN } from '../constants/config';
+import { dayBucket, payWindow, SESSION_DONE_AFTER_MIN, JOIN_OPEN_BEFORE_MIN, JOIN_CLOSE_AFTER_MIN } from '../constants/config';
 import { MENU_ICONS, FormatIcon } from '../constants/menuIcons.jsx';
 
 function CalendarPicker({ expert, onDone, onSelect }) {
@@ -759,6 +760,7 @@ export function joinState(startTs) {
 }
 
 export function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondReschedule, onReport }) {
+  const [joinErr, setJoinErr] = React.useState(null);
   const expert = s.expertData || EXPERTS[s.eid] || EXPERTS.find(x=>x.initials===s.expertInitials);
   if (!expert) return null;
   // Une session confirmée dont l'heure est passée sans paiement n'est ni
@@ -955,9 +957,10 @@ export function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondResc
             // Fenêtre d'accès : 15 min avant → 75 min après le début
             const { canJoin, label } = joinState(s.startTs);
             return (
-            <button disabled={!canJoin} onClick={()=>{
+            <button disabled={!canJoin} onClick={async ()=>{
               if (!canJoin) return;
-              openMeetingRoom(meetingUrl(s.id, s.expertData?.meet_link));
+              const r = await openSessionRoom(s, { customLink: s.expertData?.meet_link });
+              if (!r.ok) setJoinErr(r.error || "La salle n'est pas accessible pour le moment.");
             }} style={{ flex:2, padding:"10px", borderRadius:11, border:"none", cursor:canJoin?"pointer":"default", fontWeight:700, fontSize:12, background:canJoin?C.sage:C.cream3, color:canJoin?C.white:C.muted, fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
               <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>
               {label}
@@ -971,6 +974,11 @@ export function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondResc
             <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={3}/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Gérer
           </button>
         </div>
+        {joinErr && (
+          <div style={{marginTop:9,background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:11,padding:"9px 12px",fontSize:11.5,color:"#B91C1C",lineHeight:1.5}}>
+            {joinErr}
+          </div>
+        )}
         {/* Filet de sécurité : visible seulement quand la session a (dû) commencer */}
         {onReport && s.status==="confirmed" && s.paid && joinState(s.startTs).canJoin && (
           <button onClick={() => onReport({...s, expert})} style={{ width:"100%", marginTop:9, padding:"7px", background:"none", border:"none", cursor:"pointer", fontFamily:"inherit", fontSize:11.5, color:C.muted, fontWeight:600, display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>

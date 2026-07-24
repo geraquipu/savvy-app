@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { supabase } from '../../supabase';
 import { C, SERIF, SANS } from '../../constants/colors';
-import { expertPayout, savvyCut, openMeetingRoom, dayBucket, splitRevenue, payWindow, meetingUrl, SESSION_DONE_AFTER_MIN, JOIN_OPEN_BEFORE_MIN, JOIN_CLOSE_AFTER_MIN } from '../../constants/config';
+import { openSessionRoom } from '../../lib/meeting';
+import { expertPayout, savvyCut, dayBucket, splitRevenue, payWindow, SESSION_DONE_AFTER_MIN, JOIN_OPEN_BEFORE_MIN, JOIN_CLOSE_AFTER_MIN } from '../../constants/config';
 import { EXPERTS, getCountdown, updateBooking } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../constants/sessionData';
 import { MENU_ICONS, FormatIcon, Ico } from '../../constants/menuIcons.jsx';
@@ -439,7 +440,7 @@ export function ExpertView({
     const [copied, setCopied] = React.useState(false);      // modal partage
     // Rejoindre : ouvre la salle si on est dans la fenêtre (15 min avant → 75 min après),
     // sinon affiche un message amical avec l'heure exacte.
-    const handleJoin = (s) => {
+    const handleJoin = async (s) => {
       const now = Date.now();
       // Une session non réglée n'ouvre pas de salle : le conseiller y entrait
       // et attendait seul un client qui n'avait jamais payé.
@@ -449,12 +450,16 @@ export function ExpertView({
         return;
       }
       if (!s?.startTs) {
-        openMeetingRoom(meetingUrl(s?.id, sbExpertData?.meet_link));
+        await openSessionRoom(s, { customLink: sbExpertData?.meet_link });
         return;
       }
       const openAt = s.startTs - JOIN_OPEN_BEFORE_MIN*60000, closeAt = s.startTs + JOIN_CLOSE_AFTER_MIN*60000;
       if (now >= openAt && now <= closeAt) {
-        openMeetingRoom(meetingUrl(s.id, sbExpertData?.meet_link));
+        const r = await openSessionRoom(s, { customLink: sbExpertData?.meet_link });
+        if (!r.ok) {
+          setJoinNotice({ type:"late", text: r.error || "La salle n'est pas accessible pour le moment." });
+          setTimeout(()=>setJoinNotice(null), 6000);
+        }
         return;
       }
       const hhmm = new Date(s.startTs).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
