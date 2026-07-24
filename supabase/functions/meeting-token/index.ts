@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
 
     const { data: booking } = await admin
       .from("bookings")
-      .select("id, client_id, expert_id, status, paid, date_session")
+      .select("id, client_id, expert_id, status, paid, date_session, phase_name")
       .eq("id", bookingId)
       .single();
     if (!booking) return json({ error: "Réservation introuvable" }, 404);
@@ -196,8 +196,30 @@ Deno.serve(async (req) => {
       return json({ url: `https://meet.jit.si/savvy-${roomId}`, provider: "public" });
     }
 
+    // Habillage de la salle.
+    //
+    // Sans `subject`, l'écran d'accueil affiche l'identifiant technique de la
+    // salle : « Savvy Bd 8 Df 97 F 376 F 4 F 44 ». C'est la première chose que
+    // lit un client qui vient de payer.
+    //
+    // L'écran de préparation (caméra / micro) est conservé volontairement : il
+    // se supprime en une ligne, mais c'est lui qui évite les dix premières
+    // minutes perdues en « je ne t'entends pas ».
+    const subject = booking.phase_name
+      ? `Session Savvy · ${String(booking.phase_name).slice(0, 60)}`
+      : "Session Savvy";
+
+    const hash = [
+      `config.subject="${encodeURIComponent(subject).replace(/"/g, "")}"`,
+      "interfaceConfig.SHOW_JITSI_WATERMARK=false",
+      "interfaceConfig.SHOW_BRAND_WATERMARK=false",
+      "interfaceConfig.SHOW_POWERED_BY=false",
+      "interfaceConfig.HIDE_DEEP_LINKING_LOGO=true",
+      "interfaceConfig.MOBILE_APP_PROMO=false",
+    ].join("&");
+
     return json({
-      url: `https://8x8.vc/${appId}/${room}?jwt=${token}`,
+      url: `https://8x8.vc/${appId}/${room}?jwt=${token}#${hash}`,
       provider: "jaas",
       moderator: isExpert,
     });
