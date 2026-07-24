@@ -790,7 +790,10 @@ export function ExpertView({
                         if(error || !upd) {
                           setExpRequests(prev => prev.some(x=>x.id===r.id) ? prev : [r, ...prev]);
                           if(onRequestsChange) onRequestsChange(expRequests.length);
-                          alert(`La demande de ${r.client} n'a pas pu être confirmée : ${error?.message || "erreur inconnue"}\n\nRéessaie.`);
+                          // 23505 = créneau déjà pris (index bookings_no_double_booking).
+                          alert(error?.code === "23505"
+                            ? `Ce créneau vient d'être confirmé pour quelqu'un d'autre.\n\nPropose un autre horaire à ${r.client} — sa demande reste en attente.`
+                            : `La demande de ${r.client} n'a pas pu être confirmée : ${error?.message || "erreur inconnue"}\n\nRéessaie.`);
                           return;
                         }
                         supabase.functions.invoke("notify-booking", { body: { bookingId: upd.id, type: "UPDATE" } }).catch(e => console.warn("[notify-booking]", e?.message || e));

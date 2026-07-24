@@ -709,7 +709,12 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
                   // Sans ce contrôle, un échec d'écriture retirait la demande de
                   // l'écran alors qu'elle restait « en attente » en base.
                   if(error || !upd) {
-                    alert(`La demande de ${r.client} n'a pas pu être confirmée : ${error?.message || "erreur inconnue"}\n\nRéessaie.`);
+                    // 23505 = créneau déjà pris (index bookings_no_double_booking).
+                    // Sans traduction, le conseiller lisait une erreur Postgres.
+                    const dejaPris = error?.code === "23505";
+                    alert(dejaPris
+                      ? `Ce créneau vient d'être confirmé pour quelqu'un d'autre.\n\nPropose un autre horaire à ${r.client} — sa demande reste en attente.`
+                      : `La demande de ${r.client} n'a pas pu être confirmée : ${error?.message || "erreur inconnue"}\n\nRéessaie.`);
                     return;
                   }
                   supabase.functions.invoke("notify-booking", { body: { bookingId: upd.id, type: "UPDATE" } }).catch(e => console.warn("[notify-booking]", e?.message || e));
