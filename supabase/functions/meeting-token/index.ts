@@ -125,7 +125,22 @@ Deno.serve(async (req) => {
     const pem = Deno.env.get("JAAS_PRIVATE_KEY");
     const roomId = String(booking.id).replace(/-/g, "").slice(0, 16);
 
-    if (!appId || !kid || !pem) {
+    // Présence ≠ validité. Un secret posé avec une valeur de remplissage
+    // (« tu_app_id », collée depuis un exemple) construirait une adresse
+    // 8x8.vc qui n'existe pas : chaque session s'ouvrirait sur une page morte
+    // sans que rien ne le signale. C'est arrivé. On retombe sur la salle
+    // publique, qui marche, plutôt que sur une adresse inventée.
+    //
+    // Les identifiants JaaS réels sont longs (appId ≈ 50 caractères, kid plus
+    // encore) : le seuil suffit à écarter toute valeur d'exemple.
+    const looksReal = (v?: string) => !!v && v.length >= 20 && !/\s/.test(v);
+    const configured =
+      looksReal(appId) && looksReal(kid) && !!pem && pem.includes("BEGIN PRIVATE KEY");
+
+    if (!configured) {
+      if (appId || kid || pem) {
+        console.warn("[meeting-token] configuration JaaS incomplète ou invalide — salle publique");
+      }
       return json({ url: `https://meet.jit.si/savvy-${roomId}`, provider: "public" });
     }
 
@@ -139,7 +154,9 @@ Deno.serve(async (req) => {
     // Le jeton meurt avec la session : partagé après coup, il n'ouvre rien.
     const exp = Math.floor((start ? start + JOIN_CLOSE_AFTER_MIN * 60000 : now + 3600000) / 1000);
 
-    const token = await signJwt({
+    let token;
+    try {
+      token = await signJwt({
       aud: "jitsi",
       iss: "chat",
       sub: appId,
@@ -158,7 +175,13 @@ Deno.serve(async (req) => {
         },
         features: { livestreaming: false, recording: false, transcription: false, "outbound-call": false },
       },
-    }, kid, pem);
+      }, kid, pem);
+    } catch (e) {
+      // Clé illisible (mauvais format, PEM tronqué au copier-coller) : une
+      // session en cours ne doit pas échouer pour un problème de config.
+      console.error("[meeting-token] signature impossible", e?.message || e);
+      return json({ url: `https://meet.jit.si/savvy-${roomId}`, provider: "public" });
+    }
 
     return json({
       url: `https://8x8.vc/${appId}/${room}?jwt=${token}`,
