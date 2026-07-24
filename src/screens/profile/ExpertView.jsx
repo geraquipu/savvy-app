@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../../supabase';
 import { C, SERIF, SANS } from '../../constants/colors';
-import { expertPayout, savvyCut, openMeetingRoom, dayBucket, splitRevenue, payWindow, SESSION_DONE_AFTER_MIN, JOIN_OPEN_BEFORE_MIN, JOIN_CLOSE_AFTER_MIN } from '../../constants/config';
+import { expertPayout, savvyCut, openMeetingRoom, dayBucket, splitRevenue, payWindow, meetingUrl, SESSION_DONE_AFTER_MIN, JOIN_OPEN_BEFORE_MIN, JOIN_CLOSE_AFTER_MIN } from '../../constants/config';
 import { EXPERTS, getCountdown, updateBooking } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../constants/sessionData';
 import { MENU_ICONS, FormatIcon, Ico } from '../../constants/menuIcons.jsx';
@@ -449,14 +449,12 @@ export function ExpertView({
         return;
       }
       if (!s?.startTs) {
-        const roomId = s?.id ? String(s.id).replace(/-/g,"").slice(0,16) : "savvy";
-        openMeetingRoom(`https://meet.jit.si/savvy-${roomId}`);
+        openMeetingRoom(meetingUrl(s?.id, sbExpertData?.meet_link));
         return;
       }
       const openAt = s.startTs - JOIN_OPEN_BEFORE_MIN*60000, closeAt = s.startTs + JOIN_CLOSE_AFTER_MIN*60000;
       if (now >= openAt && now <= closeAt) {
-        const roomId = String(s.id).replace(/-/g,"").slice(0,16) || "savvy";
-        openMeetingRoom(`https://meet.jit.si/savvy-${roomId}`);
+        openMeetingRoom(meetingUrl(s.id, sbExpertData?.meet_link));
         return;
       }
       const hhmm = new Date(s.startTs).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});

@@ -39,6 +39,20 @@ export function openMeetingRoom(url) {
 }
 
 /**
+ * Adresse de la salle d'une session.
+ *
+ * Elle était reconstruite à la main dans cinq endroits, et le conseiller
+ * ignorait `meet_link` : quand il renseignait sa propre salle, le client
+ * s'y rendait et le conseiller partait sur Jitsi. Chacun attendait dans
+ * une salle vide.
+ */
+export function meetingUrl(bookingId, customLink = null) {
+  if (customLink) return customLink;
+  const roomId = bookingId ? String(bookingId).replace(/-/g, "").slice(0, 16) : "savvy";
+  return `https://meet.jit.si/savvy-${roomId}`;
+}
+
+/**
  * Regroupement d'une session par jour de calendrier.
  *
  * On comparait des heures écoulées : « moins de 24 h » était affiché comme
