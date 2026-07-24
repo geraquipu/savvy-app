@@ -774,7 +774,7 @@ export function ExpertView({
                           alert(`La demande de ${r.client} n'a pas pu être confirmée : ${error?.message || "erreur inconnue"}\n\nRéessaie.`);
                           return;
                         }
-                        supabase.functions.invoke("notify-booking", { body: { bookingId: upd.id, type: "UPDATE" } }).catch(()=>{});
+                        supabase.functions.invoke("notify-booking", { body: { bookingId: upd.id, type: "UPDATE" } }).catch(e => console.warn("[notify-booking]", e?.message || e));
                       }
                       setSessionConfirmToast({name:r.client, type:"confirmed"});
                       setTimeout(()=>setSessionConfirmToast(null),3000);
@@ -794,7 +794,7 @@ export function ExpertView({
                           alert(`Le refus n'a pas pu être enregistré : ${error?.message || "erreur inconnue"}\n\nRéessaie.`);
                           return;
                         }
-                        supabase.functions.invoke("notify-booking", { body: { bookingId: upd.id, type: "UPDATE" } }).catch(()=>{});
+                        supabase.functions.invoke("notify-booking", { body: { bookingId: upd.id, type: "UPDATE" } }).catch(e => console.warn("[notify-booking]", e?.message || e));
                       }
                       setSessionConfirmToast({name:r.client, type:"refused"});
                       setTimeout(()=>setSessionConfirmToast(null),3000);

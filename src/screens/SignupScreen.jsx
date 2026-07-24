@@ -1076,7 +1076,10 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
               }
               if(saveError){ alert("Erreur sauvegarde: "+saveError.message); return; }
               // Update profile as expert
-              await supabase.from("profiles").update({is_expert:true}).eq("id",authUser.id);
+              // Échec ici = profil conseiller créé mais compte non marqué
+              // « conseiller » : l'inscrit ne verrait jamais son espace.
+              const { error: profErr } = await supabase.from("profiles").update({is_expert:true}).eq("id",authUser.id);
+              if (profErr) console.warn("[signup] is_expert non écrit:", profErr.message);
             } else if(!authUser?.real){
               alert("Tu dois être connecté pour créer un profil expert.");
               return;

@@ -142,13 +142,22 @@ function ProfileSetupModal({ authUser, onDone }) {
   const [lastName, setLastName]   = useState("");
   const [city, setCity]           = useState("");
   const [saving, setSaving]       = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   const save = async () => {
     const name = (firstName.trim()+" "+lastName.trim()).trim();
     if (!name) return;
     setSaving(true);
     const payload = { name, city: city.trim() || null };
-    await supabase.from("profiles").update(payload).eq("id", authUser.id);
+    const { error } = await supabase.from("profiles").update(payload).eq("id", authUser.id);
+    // Sans ce contrôle, un échec d'écriture marquait quand même l'installation
+    // comme terminée : le nom n'était jamais enregistré, l'utilisateur
+    // apparaissait « Client Savvy » partout, et l'écran ne revenait plus.
+    if (error) {
+      setSaving(false);
+      setSaveError("Ton profil n'a pas pu être enregistré. Vérifie ta connexion et réessaie.");
+      return;
+    }
     try { localStorage.setItem(`savvy_setup_done_${authUser.id}`, "1"); } catch {}
     onDone({ ...authUser, name, city: city.trim() || authUser.city });
   };
@@ -196,8 +205,13 @@ function ProfileSetupModal({ authUser, onDone }) {
         onChange={e=>setCity(e.target.value)}
         style={{padding:"13px 16px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:15,fontFamily:"inherit",background:C.white,color:C.ink,marginTop:8}}
       />
+      {saveError && (
+        <div style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:11,padding:"10px 13px",marginTop:8,fontSize:12.5,color:"#B91C1C",lineHeight:1.5}}>
+          {saveError}
+        </div>
+      )}
       <button
-        onClick={save}
+        onClick={()=>{ setSaveError(null); save(); }}
         disabled={saving}
         style={{marginTop:4,padding:"14px",borderRadius:14,border:"none",background:C.ink,color:C.white,fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit",opacity:saving?.6:1}}
       >{saving?"Enregistrement…":"C'est parti ✓"}</button>
@@ -496,7 +510,12 @@ export default function App() {
         }
         return { ...base, name:data.name||base.name, city:data.city, isExpert:isApprovedExpert, expertDomain:data.expert_domain, photoUrl, expertId, pendingExpert: !!exp && !exp.active };
       }
-    } catch {}
+    } catch (e) {
+      // On retombe sur le profil minimal : l'utilisateur apparaît sans nom et,
+      // s'il est conseiller, sans accès à son espace. Silencieux, c'était
+      // indiagnosticable.
+      console.warn("[loadProfile] échec, profil minimal utilisé:", e?.message || e);
+    }
     return base;
   };
   useEffect(() => {

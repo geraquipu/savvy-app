@@ -85,7 +85,7 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, bookingN
             return;
           }
           // Notifier l'expert (email + push) de la nouvelle demande
-          supabase.functions.invoke("notify-booking", { body: { bookingId: inserted?.id, type: "INSERT" } }).catch(()=>{});
+          supabase.functions.invoke("notify-booking", { body: { bookingId: inserted?.id, type: "INSERT" } }).catch(e => console.warn("[notify-booking]", e?.message || e));
           // Envoyer le message du client dans la boîte de l'expert (s'il en a écrit un)
           if (bookingNote && bookingNote.trim()) {
             let receiverId = e.user_id || null;

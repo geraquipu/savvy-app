@@ -69,7 +69,13 @@ function AdminScreen({ authUser, onBack }) {
       alert(`Impossible de valider ${exp.name} : ${data?.error || error?.message || "erreur"}`);
       return;
     }
-    if (exp.user_id) await supabase.from("profiles").update({ is_expert: true }).eq("id", exp.user_id);
+    if (exp.user_id) {
+      // Le conseiller est validé côté `experts` ; si `profiles.is_expert` reste
+      // faux, il n'a pas accès à son espace conseiller et ne comprend pas
+      // pourquoi. On le signale plutôt que de laisser l'incohérence passer.
+      const { error: profErr } = await supabase.from("profiles").update({ is_expert: true }).eq("id", exp.user_id);
+      if (profErr) alert(`${exp.name} est validé, mais son profil n'a pas été marqué « conseiller » : ${profErr.message}\n\nÀ corriger à la main.`);
+    }
     // L'e-mail de validation part depuis approve-expert (côté serveur) :
     // il ne peut donc pas être déclenché sans validation réelle.
     setPendingExperts(p => p.filter(e => e.id !== exp.id));
@@ -78,7 +84,10 @@ function AdminScreen({ authUser, onBack }) {
 
   const rejectExpert = async (exp) => {
     if (!window.confirm(`Rejeter la candidature de ${exp.name} ?`)) return;
-    await supabase.from("experts").delete().eq("id", exp.id);
+    const { error } = await supabase.from("experts").delete().eq("id", exp.id);
+    // Sans ce contrôle, la candidature disparaissait de l'écran tout en restant
+    // en base : elle serait revenue au prochain chargement, sans explication.
+    if (error) { alert(`La candidature de ${exp.name} n'a pas pu être rejetée : ${error.message}`); return; }
     setPendingExperts(p => p.filter(e => e.id !== exp.id));
   };
 
