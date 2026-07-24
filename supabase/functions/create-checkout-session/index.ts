@@ -49,7 +49,7 @@ serve(async (req) => {
     // ── 2. Prix et parties lus en base ──
     const { data: booking } = await admin
       .from("bookings")
-      .select("id, client_id, expert_id, phase_name, phase_price, status, paid")
+      .select("id, client_id, expert_id, phase_name, phase_price, status, paid, date_session, pay_deadline")
       .eq("id", bookingId)
       .single();
 
@@ -58,6 +58,21 @@ serve(async (req) => {
     if (booking.paid) return json({ error: "Cette réservation est déjà payée" }, 400);
     if (booking.status !== "confirmed") {
       return json({ error: "Le conseiller doit d'abord accepter la demande" }, 400);
+    }
+
+    // Fenêtre de paiement — même règle que la migration 011 : au plus tard 2 h
+    // avant la session. Sans ce contrôle, un client pouvait régler un créneau
+    // dont l'heure était déjà passée : l'argent partait, la session n'existait
+    // plus. L'interface le masque déjà ; ici on le refuse pour de bon.
+    const now = Date.now();
+    const start = booking.date_session ? new Date(booking.date_session).getTime() : null;
+    const tooLate = start !== null && now > start - 120 * 60000;
+    const pastDeadline = booking.pay_deadline && now > new Date(booking.pay_deadline).getTime();
+    if (tooLate || pastDeadline) {
+      return json({
+        code: "slot_expired",
+        error: "Le règlement se fait au plus tard 2 h avant la session. Ce créneau a expiré.",
+      }, 400);
     }
 
     const price = Number(booking.phase_price);

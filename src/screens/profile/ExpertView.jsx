@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../../supabase';
 import { C, SERIF, SANS } from '../../constants/colors';
-import { expertPayout, savvyCut, openMeetingRoom, dayBucket, splitRevenue, JOIN_OPEN_BEFORE_MIN, JOIN_CLOSE_AFTER_MIN } from '../../constants/config';
+import { expertPayout, savvyCut, openMeetingRoom, dayBucket, splitRevenue, payWindow, SESSION_DONE_AFTER_MIN, JOIN_OPEN_BEFORE_MIN, JOIN_CLOSE_AFTER_MIN } from '../../constants/config';
 import { EXPERTS, getCountdown, updateBooking } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../constants/sessionData';
 import { MENU_ICONS, FormatIcon, Ico } from '../../constants/menuIcons.jsx';
@@ -441,6 +441,13 @@ export function ExpertView({
     // sinon affiche un message amical avec l'heure exacte.
     const handleJoin = (s) => {
       const now = Date.now();
+      // Une session non réglée n'ouvre pas de salle : le conseiller y entrait
+      // et attendait seul un client qui n'avait jamais payé.
+      if (s && s.paid === false) {
+        setJoinNotice({ type:"late", text:`${s.client||"Ton client"} n'a pas encore réglé cette session. La salle s'ouvre dès le paiement — tu seras prévenu.` });
+        setTimeout(()=>setJoinNotice(null), 6000);
+        return;
+      }
       if (!s?.startTs) {
         const roomId = s?.id ? String(s.id).replace(/-/g,"").slice(0,16) : "savvy";
         openMeetingRoom(`https://meet.jit.si/savvy-${roomId}`);
@@ -905,9 +912,11 @@ export function ExpertView({
                           </button>
                           {s.statut==="confirmé"&&(()=>{
                             const now = Date.now();
-                            const canJoin = !s.startTs || (now >= s.startTs - 15*60000 && now <= s.startTs + 75*60000);
+                            const unpaid = s.paid === false;
+                            const canJoin = !unpaid && (!s.startTs || (now >= s.startTs - JOIN_OPEN_BEFORE_MIN*60000 && now <= s.startTs + JOIN_CLOSE_AFTER_MIN*60000));
                             const mins = s.startTs ? Math.round((s.startTs - now)/60000) : 0;
                             const label = canJoin ? "Rejoindre"
+                              : unpaid ? "En attente de paiement"
                               : now > (s.startTs||0) ? "Terminée"
                               : mins >= 1440 ? `Dans ${Math.round(mins/1440)} j`
                               : mins >= 60 ? `Dans ${Math.round(mins/60)} h`
@@ -1526,7 +1535,13 @@ export function ExpertView({
     if (section === "dashboard") {
       const hour = new Date().getHours();
       const greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
-      const nextSession = [...expConfirmed].filter(x=>!(x.startTs && Date.now() > x.startTs + 90*60000)).sort((a,b)=>(a.startTs||Infinity)-(b.startTs||Infinity))[0] || null;
+      // Un créneau confirmé mais jamais payé dont l'heure est passée n'est plus
+      // « la prochaine session » : il annonçait « Aujourd'hui · 09:00 » avec un
+      // bouton Rejoindre bien après l'heure, pour un client qui n'avait pas payé.
+      const nextSession = [...expConfirmed]
+        .filter(x => !(x.startTs && Date.now() > x.startTs + SESSION_DONE_AFTER_MIN*60000))
+        .filter(x => !(x.paid === false && !payWindow(x).canPay))
+        .sort((a,b)=>(a.startTs||Infinity)-(b.startTs||Infinity))[0] || null;
       const pendingCount = expRequests.length;
       const sessionsThisWeek = expConfirmed.filter(s => (s.hoursUntil||0) <= 168).length;
       const revenuMois = isNewExpert ? 0 : calcRevenu("mes");

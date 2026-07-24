@@ -5,7 +5,7 @@ import { EXPERTS, getBookings, updateBooking, addBooking, getCountdown } from '.
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../constants/sessionData';
 import { LoginGate } from '../components/ui';
 import { DOMAIN } from '../constants/company';
-import { openMeetingRoom, dayBucket, JOIN_OPEN_BEFORE_MIN, JOIN_CLOSE_AFTER_MIN } from '../constants/config';
+import { openMeetingRoom, dayBucket, payWindow, SESSION_DONE_AFTER_MIN, JOIN_OPEN_BEFORE_MIN, JOIN_CLOSE_AFTER_MIN } from '../constants/config';
 import { MENU_ICONS, FormatIcon } from '../constants/menuIcons.jsx';
 
 function CalendarPicker({ expert, onDone, onSelect }) {
@@ -697,6 +697,9 @@ function PaymentModal({ session, expert, onClose }) {
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
         body: { bookingId: session.id },
       });
+      if (data?.code === "slot_expired") {
+        throw new Error("Ce créneau vient d'expirer — le règlement se fait au plus tard 2 h avant la session. Rien n'a été débité.");
+      }
       if (data?.code === "expert_not_onboarded") {
         throw new Error(`${expert.name.split(" ")[0]} finalise encore sa configuration de paiement. On te prévient dès que c'est bon — rien n'est perdu.`);
       }
@@ -758,7 +761,14 @@ export function joinState(startTs) {
 export function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondReschedule, onReport }) {
   const expert = s.expertData || EXPERTS[s.eid] || EXPERTS.find(x=>x.initials===s.expertInitials);
   if (!expert) return null;
-  const countdown = getCountdown(s.hoursUntil, s.startTs);
+  // Une session confirmée dont l'heure est passée sans paiement n'est ni
+  // « En cours » ni « Aujourd'hui » : elle est expirée. Le badge annonçait
+  // « En cours ● » sur un créneau perdu.
+  const payable = s.status === "confirmed" && !s.paid ? payWindow(s) : null;
+  const expired = payable ? !payable.canPay : false;
+  const countdown = expired
+    ? { label:"Expirée", color:"#B91C1C", pulse:false }
+    : getCountdown(s.hoursUntil, s.startTs);
   // Par jour de calendrier : « moins de 24 h » n'est pas « aujourd'hui ».
   const bucket = dayBucket(s.startTs);
   const isToday   = bucket === "today";
@@ -805,11 +815,13 @@ export function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondResc
           </div>
           {(()=>{
             const unpaidConfirmed = s.status==="confirmed" && !s.paid;
-            const bg = s.status==="confirmed" ? (unpaidConfirmed?"#FEF3C7":C.sageL) : s.status==="pending"?"#FEF3C7":C.cream2;
-            const col = s.status==="confirmed" ? (unpaidConfirmed?"#B45309":C.sage) : s.status==="pending"?"#B45309":"#92400E";
-            const label = unpaidConfirmed ? "À payer" : s.statusLabel;
+            // « À payer » sur un créneau dont l'heure est passée invitait à
+            // régler une session qui n'aura pas lieu.
+            const bg = expired ? "#FEE2E2" : s.status==="confirmed" ? (unpaidConfirmed?"#FEF3C7":C.sageL) : s.status==="pending"?"#FEF3C7":C.cream2;
+            const col = expired ? "#991B1B" : s.status==="confirmed" ? (unpaidConfirmed?"#B45309":C.sage) : s.status==="pending"?"#B45309":"#92400E";
+            const label = expired ? "Expirée" : unpaidConfirmed ? "À payer" : s.statusLabel;
             return (
-            <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:bg, color:col, fontWeight:700, border:(s.status==="pending"||unpaidConfirmed)?"1.5px solid #FCD34D":"none" }}>
+            <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:bg, color:col, fontWeight:700, border:expired?"1.5px solid #FECACA":(s.status==="pending"||unpaidConfirmed)?"1.5px solid #FCD34D":"none" }}>
               {label}
             </span>
             );
@@ -895,7 +907,21 @@ export function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondResc
           );
         })()}
         {/* Payment CTA for confirmed unpaid sessions */}
-        {s.status==="confirmed" && !s.paid && (
+        {expired && (
+          <div style={{background:"#FEF2F2",border:"1.5px solid #FECACA",borderRadius:12,padding:"11px 13px",marginBottom:10,display:"flex",alignItems:"flex-start",gap:10}}>
+            <div style={{width:36,height:36,borderRadius:10,background:"#FEE2E2",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,color:"#B91C1C"}}>
+              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={10}/><line x1={12} y1={8} x2={12} y2={12}/><line x1={12} y1={16} x2={12.01} y2={16}/></svg>
+            </div>
+            <div style={{flex:1}}>
+              <div style={{fontSize:12,fontWeight:700,color:"#991B1B"}}>Créneau expiré — paiement fermé</div>
+              <div style={{fontSize:11,color:"#B91C1C",marginTop:2,lineHeight:1.5}}>
+                Le règlement se fait au plus tard 2 h avant la session. Ce créneau est libéré et rien n'a été débité.
+                Écrivez à {expert.name.split(" ")[0]} pour convenir d'un nouvel horaire.
+              </div>
+            </div>
+          </div>
+        )}
+        {s.status==="confirmed" && !s.paid && !expired && (
           <div style={{background:"linear-gradient(135deg,#FEF3C7,#FFFBEB)",border:"1.5px solid #FDE68A",borderRadius:12,padding:"11px 13px",marginBottom:10,display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}
             onClick={()=>onPay&&onPay(s)}>
             <div style={{width:36,height:36,borderRadius:10,background:"#F59E0B",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
@@ -1099,7 +1125,10 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           payDeadline: b.pay_deadline || null,
           date: b.date_session ? new Date(b.date_session).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}) : "À confirmer",
           time: b.date_session ? new Date(b.date_session).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "À confirmer",
-          hoursUntil: b.date_session ? Math.max(1, Math.round((new Date(b.date_session) - new Date()) / 3600000)) : 48,
+          // Le `Math.max(1, …)` remontait toute session passée à « 1 h » :
+          // un créneau d'il y a une heure s'affichait « Dans 1h ». Les valeurs
+          // négatives sont justement ce qui distingue le passé du futur.
+          hoursUntil: b.date_session ? Math.round((new Date(b.date_session) - new Date()) / 3600000) : 48,
           duration: b.session_duration || "1h",
           format: b.session_format || "Vidéo",
           price: b.phase_price || 0,
@@ -1111,7 +1140,7 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           rescheduleFrom: b.reschedule_from || null,
           rescheduleBy: b.reschedule_by || null,
           startTs: b.date_session ? new Date(b.date_session).getTime() : null,
-          isPast: b.date_session ? (Date.now() > new Date(b.date_session).getTime() + 90*60000) : false,
+          isPast: b.date_session ? (Date.now() > new Date(b.date_session).getTime() + SESSION_DONE_AFTER_MIN*60000) : false,
           motif: b.cancel_reason || null,
           annuledBy: b.cancelled_by || null,
           _fromSB: true,

@@ -83,6 +83,31 @@ export function sessionHeld(booking, now = Date.now()) {
   return now > start + SESSION_DONE_AFTER_MIN * 60000;
 }
 
+/**
+ * Fenêtre de paiement — la même règle que le serveur (migration 011) :
+ * 24 h pour régler, et de toute façon jusqu'à 2 h avant la session.
+ *
+ * L'écran affichait « Payer → » sans jamais consulter cette règle. Un client
+ * pouvait donc payer une session dont l'heure était déjà passée : l'argent
+ * partait, le créneau n'existait plus, et personne ne se présentait.
+ * `payWindow` est la source unique côté interface.
+ */
+export const PAY_CLOSES_BEFORE_MIN = 120;
+
+export function payWindow(booking, now = Date.now()) {
+  const start = booking?.startTs
+    ?? (booking?.date_session ? new Date(booking.date_session).getTime() : null);
+  const deadline = booking?.payDeadline || booking?.pay_deadline || null;
+
+  if (start && now > start - PAY_CLOSES_BEFORE_MIN * 60000) {
+    return { canPay: false, reason: now > start ? "passed" : "tooLate" };
+  }
+  if (deadline && now > new Date(deadline).getTime()) {
+    return { canPay: false, reason: "deadline" };
+  }
+  return { canPay: true, reason: "open" };
+}
+
 /** Le délai de réclamation est-il écoulé ? Au-delà, le revenu est acquis. */
 export function revenueSettled(booking, now = Date.now()) {
   if (!sessionHeld(booking, now)) return false;
