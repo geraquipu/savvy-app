@@ -959,8 +959,10 @@ export function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondResc
             // Fenêtre d'accès : 15 min avant → 75 min après le début
             const { canJoin, label } = joinState(s.startTs);
             return (
-            <button disabled={!canJoin} onClick={async ()=>{
-              if (!canJoin) return;
+            <button disabled={!canJoin || joining} onClick={async ()=>{
+              // Un second clic pendant l'ouverture ouvrirait un deuxième
+              // onglet, dont un resterait vide.
+              if (!canJoin || joining) return;
               setJoinErr(null); setJoining(true);
               try {
                 const r = await openSessionRoom(s, { customLink: s.expertData?.meet_link });

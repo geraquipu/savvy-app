@@ -443,6 +443,9 @@ export function ExpertView({
     // Rejoindre : ouvre la salle si on est dans la fenêtre (15 min avant → 75 min après),
     // sinon affiche un message amical avec l'heure exacte.
     const handleJoin = async (s) => {
+      // Un second clic pendant l'ouverture ouvrirait un deuxième onglet,
+      // dont un resterait vide.
+      if (joining) return;
       const now = Date.now();
       // Une session non réglée n'ouvre pas de salle : le conseiller y entrait
       // et attendait seul un client qui n'avait jamais payé.
