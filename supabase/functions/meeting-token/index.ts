@@ -138,8 +138,21 @@ Deno.serve(async (req) => {
       looksReal(appId) && looksReal(kid) && !!pem && pem.includes("BEGIN PRIVATE KEY");
 
     if (!configured) {
-      if (appId || kid || pem) {
-        console.warn("[meeting-token] configuration JaaS incomplète ou invalide — salle publique");
+      // Un diagnostic précis vaut des heures : « ça ne marche pas » n'aide
+      // personne à savoir lequel des trois secrets est en cause.
+      if (pem?.includes("BEGIN RSA PRIVATE KEY")) {
+        console.error(
+          "[meeting-token] JAAS_PRIVATE_KEY est au format PKCS#1 (BEGIN RSA PRIVATE KEY), " +
+          "illisible ici. Convertir en PKCS#8 : " +
+          "openssl pkcs8 -topk8 -nocrypt -in cle.pem -out cle-pkcs8.pem — puis recoller le contenu de cle-pkcs8.pem.",
+        );
+      } else if (appId || kid || pem) {
+        console.warn(
+          "[meeting-token] configuration JaaS incomplète — salle publique. " +
+          `appId:${looksReal(appId) ? "ok" : appId ? "trop court / valeur d'exemple" : "absent"} ` +
+          `kid:${looksReal(kid) ? "ok" : kid ? "trop court / valeur d'exemple" : "absent"} ` +
+          `pem:${pem ? (pem.includes("BEGIN PRIVATE KEY") ? "ok" : "pas un PEM") : "absent"}`,
+        );
       }
       return json({ url: `https://meet.jit.si/savvy-${roomId}`, provider: "public" });
     }
