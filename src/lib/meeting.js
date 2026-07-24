@@ -9,6 +9,11 @@ import { openMeetingRoom, meetingUrl } from "../constants/config";
  * y entre en modérateur. Avant, le premier arrivé — souvent le client, qui
  * venait de payer — tombait sur « aucun modérateur n'est encore arrivé ».
  *
+ * Le navigateur n'autorise `window.open` que pendant le clic lui-même. Comme
+ * il faut d'abord demander le jeton au serveur, l'ouverture arriverait trop
+ * tard et serait bloquée. On ouvre donc l'onglet tout de suite, vide, et on
+ * y charge la salle dès que le jeton arrive.
+ *
  * Si le serveur ne répond pas, on ouvre la salle publique plutôt que de
  * laisser le bouton sans effet : une salle imparfaite vaut mieux qu'un
  * rendez-vous manqué.
@@ -21,11 +26,23 @@ export async function openSessionRoom(booking, { customLink = null } = {}) {
     return { ok: true };
   }
 
-  // Comptes de démonstration : aucune réservation réelle derrière.
-  if (!booking?._fromSB && !booking?.id) {
+  // Comptes de démonstration : aucune réservation réelle derrière, le
+  // serveur n'a rien à signer. `id` seul ne suffit pas à distinguer les deux
+  // (les sessions de démo en ont un, qui n'existe pas en base).
+  if (!booking?._fromSB) {
     openMeetingRoom(meetingUrl(booking?.id));
     return { ok: true };
   }
+
+  // Ouvert pendant le clic — sinon le navigateur le bloque.
+  let win = null;
+  try { win = window.open("", "_blank", "noopener"); } catch { win = null; }
+
+  const go = (url) => {
+    if (win && !win.closed) win.location.replace(url);
+    else window.location.href = url;   // popup refusée : on navigue sur place
+  };
+  const giveUp = () => { try { if (win && !win.closed) win.close(); } catch { /* déjà fermée */ } };
 
   try {
     const { data, error } = await supabase.functions.invoke("meeting-token", {
@@ -33,7 +50,7 @@ export async function openSessionRoom(booking, { customLink = null } = {}) {
     });
 
     if (data?.url) {
-      openMeetingRoom(data.url);
+      go(data.url);
       return { ok: true };
     }
 
@@ -41,6 +58,7 @@ export async function openSessionRoom(booking, { customLink = null } = {}) {
     // pas la règle en ouvrant quand même la salle publique.
     const code = data?.code || null;
     if (code && ["unpaid", "not_confirmed", "too_early", "too_late"].includes(code)) {
+      giveUp();
       return { ok: false, code, error: data?.error || null };
     }
 
@@ -49,6 +67,6 @@ export async function openSessionRoom(booking, { customLink = null } = {}) {
     console.warn("[meeting-token] exception", e?.message || e);
   }
 
-  openMeetingRoom(meetingUrl(booking.id));
+  go(meetingUrl(booking.id));
   return { ok: true, code: "fallback" };
 }

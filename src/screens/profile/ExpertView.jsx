@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../../supabase';
 import { C, SERIF, SANS } from '../../constants/colors';
 import { openSessionRoom } from '../../lib/meeting';
+import JoiningOverlay from '../../components/JoiningOverlay';
 import { expertPayout, savvyCut, dayBucket, splitRevenue, payWindow, SESSION_DONE_AFTER_MIN, JOIN_OPEN_BEFORE_MIN, JOIN_CLOSE_AFTER_MIN } from '../../constants/config';
 import { EXPERTS, getCountdown, updateBooking } from '../../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../constants/sessionData';
@@ -384,6 +385,7 @@ export function ExpertView({
     const section = expSection; const setSection = setExpSection;
     const subSection = expSubSection; const setSubSection = setExpSubSection;
     const [joinNotice, setJoinNotice] = React.useState(null);
+    const [joining, setJoining] = React.useState(false);
     // Rafraîchit les compte à rebours ("Dans 3 h") sans recharger la page
     const [, setTick] = React.useState(0);
     React.useEffect(() => {
@@ -455,7 +457,10 @@ export function ExpertView({
       }
       const openAt = s.startTs - JOIN_OPEN_BEFORE_MIN*60000, closeAt = s.startTs + JOIN_CLOSE_AFTER_MIN*60000;
       if (now >= openAt && now <= closeAt) {
-        const r = await openSessionRoom(s, { customLink: sbExpertData?.meet_link });
+        setJoining(true);
+        let r;
+        try { r = await openSessionRoom(s, { customLink: sbExpertData?.meet_link }); }
+        finally { setJoining(false); }
         if (!r.ok) {
           setJoinNotice({ type:"late", text: r.error || "La salle n'est pas accessible pour le moment." });
           setTimeout(()=>setJoinNotice(null), 6000);
@@ -586,6 +591,7 @@ export function ExpertView({
       const visible = EXP_SESSIONS.filter(s => s.hoursUntil <= (FILTERS_EXP.find(f=>f.id===sessionFilter)||FILTERS_EXP[3]).max);
       return (
         <div>
+          {joining && <JoiningOverlay/>}
           <BackHeaderExp title="Mes sessions" sub="Tes rendez-vous à venir" onBack={()=>setSection(null)}/>
 
           {/* Toast confirm/refuse */}
@@ -1564,6 +1570,7 @@ export function ExpertView({
 
       return (
         <div>
+          {joining && <JoiningOverlay withName={nextSession?.client}/>}
           {/* ── Greeting ── */}
           <div style={{background:`linear-gradient(135deg,${C.ink},#2C2825)`,borderRadius:18,padding:"22px 20px",marginBottom:14,position:"relative",overflow:"hidden"}}>
             <div style={{position:"absolute",top:-40,right:-40,width:160,height:160,borderRadius:"50%",background:"rgba(185,134,74,.07)"}}/>

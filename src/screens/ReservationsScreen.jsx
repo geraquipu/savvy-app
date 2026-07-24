@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
 import { openSessionRoom } from '../lib/meeting';
+import JoiningOverlay from '../components/JoiningOverlay';
 import { C, SERIF } from '../constants/colors';
 import { EXPERTS, getBookings, updateBooking, addBooking, getCountdown } from '../constants/data';
 import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../constants/sessionData';
@@ -761,6 +762,7 @@ export function joinState(startTs) {
 
 export function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondReschedule, onReport }) {
   const [joinErr, setJoinErr] = React.useState(null);
+  const [joining, setJoining] = React.useState(false);
   const expert = s.expertData || EXPERTS[s.eid] || EXPERTS.find(x=>x.initials===s.expertInitials);
   if (!expert) return null;
   // Une session confirmée dont l'heure est passée sans paiement n'est ni
@@ -959,8 +961,11 @@ export function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondResc
             return (
             <button disabled={!canJoin} onClick={async ()=>{
               if (!canJoin) return;
-              const r = await openSessionRoom(s, { customLink: s.expertData?.meet_link });
-              if (!r.ok) setJoinErr(r.error || "La salle n'est pas accessible pour le moment.");
+              setJoinErr(null); setJoining(true);
+              try {
+                const r = await openSessionRoom(s, { customLink: s.expertData?.meet_link });
+                if (!r.ok) setJoinErr(r.error || "La salle n'est pas accessible pour le moment.");
+              } finally { setJoining(false); }
             }} style={{ flex:2, padding:"10px", borderRadius:11, border:"none", cursor:canJoin?"pointer":"default", fontWeight:700, fontSize:12, background:canJoin?C.sage:C.cream3, color:canJoin?C.white:C.muted, fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
               <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polygon points="23 7 16 12 23 17 23 7"/><rect x={1} y={5} width={15} height={14} rx={2}/></svg>
               {label}
@@ -974,6 +979,7 @@ export function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondResc
             <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={3}/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Gérer
           </button>
         </div>
+        {joining && <JoiningOverlay withName={expert.name.split(" ")[0]}/>}
         {joinErr && (
           <div style={{marginTop:9,background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:11,padding:"9px 12px",fontSize:11.5,color:"#B91C1C",lineHeight:1.5}}>
             {joinErr}
