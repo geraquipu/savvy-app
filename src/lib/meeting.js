@@ -35,8 +35,17 @@ export async function openSessionRoom(booking, { customLink = null } = {}) {
   }
 
   // Ouvert pendant le clic — sinon le navigateur le bloque.
+  //
+  // Sans l'option `noopener` : avec elle, window.open ouvre bien l'onglet mais
+  // renvoie toujours `null`. On n'avait donc aucune prise dessus, et l'onglet
+  // restait sur about:blank pendant que la salle se chargeait par-dessus
+  // Savvy dans l'onglet d'origine. On coupe `opener` à la main juste après,
+  // ce qui donne la même protection.
   let win = null;
-  try { win = window.open("", "_blank", "noopener"); } catch { win = null; }
+  try {
+    win = window.open("", "_blank");
+    if (win) win.opener = null;
+  } catch { win = null; }
 
   const go = (url) => {
     if (win && !win.closed) win.location.replace(url);
@@ -50,6 +59,9 @@ export async function openSessionRoom(booking, { customLink = null } = {}) {
     });
 
     if (data?.url) {
+      // Trace de diagnostic : « jaas » = salle privée Savvy, « public » =
+      // repli sur meet.jit.si (il manque un secret côté serveur).
+      console.info(`[salle] ${data.provider || "?"}${data.moderator ? " · modérateur" : ""}`);
       go(data.url);
       return { ok: true };
     }
