@@ -9,7 +9,7 @@ import { SESSIONS_AVENIR, SESSIONS_PASSEES, SESSIONS_ANNULEES } from '../../cons
 import { MENU_ICONS, FormatIcon, Ico } from '../../constants/menuIcons.jsx';
 import { isAdmin } from '../../constants/admin';
 import { generateReleve } from '../../lib/releve';
-import { normalizeOffer, durationCeiling, formatDuration } from '../../constants/offers';
+import { normalizeOffer, durationCeiling, formatDuration, normalizeKind, OFFER_KINDS, OFFER_KIND_IDS, PARCOURS_WEEKS } from '../../constants/offers';
 import { legalLine, EMAIL_CONTACT, DOMAIN } from '../../constants/company';
 
 /** Logos des réseaux pour le partage de profil — SVG de marque, pas d'emoji. */
@@ -48,9 +48,39 @@ function OfferEditForm({ initial, onSave, onCancel }) {
   const [duree, setDuree] = useState(initial.duree||"30 min");
   const [formats, setFormats] = useState(initial.formats||["video"]);
   const [showExamples, setShowExamples] = useState(!initial.name);
+  // Type d'offre : une session vend un rendez-vous, un parcours vend un
+  // résultat. Le second se facture à la hauteur de la décision qu'il évite
+  // de rater — c'est là qu'est la marge.
+  const [kind, setKind] = useState(normalizeKind(initial.kind));
+  const [outcome, setOutcome] = useState(initial.outcome||"");
+  const [sessionsIncluded, setSessionsIncluded] = useState(String(initial.sessionsIncluded||3));
+  const [deliverables, setDeliverables] = useState(initial.deliverables||"");
+  const [durationWeeks, setDurationWeeks] = useState(Number(initial.durationWeeks)||4);
+  const isParcours = kind === "parcours";
   const toggleFmt = (v) => setFormats(f => f.includes(v) ? f.filter(x=>x!==v) : [...f,v]);
+  const LBL = {fontSize:10,fontWeight:700,color:C.muted,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.4};
+  const FIELD = (filled) => ({width:"100%",padding:"10px 12px",borderRadius:10,border:`1.5px solid ${filled?C.sage:C.border}`,fontSize:13,fontFamily:"inherit",color:C.ink,outline:"none",boxSizing:"border-box",background:C.white});
+
   return (
     <div>
+      {/* Type d'offre */}
+      <div style={{marginBottom:12}}>
+        <label style={LBL}>Type d'offre</label>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+          {OFFER_KIND_IDS.map(k=>{
+            const meta = OFFER_KINDS[k], on = kind===k;
+            return (
+              <div key={k} onClick={()=>setKind(k)}
+                style={{padding:"10px 12px",borderRadius:10,border:`1.5px solid ${on?C.gold:C.border}`,background:on?C.goldL:C.white,cursor:"pointer",transition:"all .15s"}}>
+                <div style={{fontSize:12.5,fontWeight:on?700:600,color:on?C.gold:C.ink}}>{meta.label}</div>
+                <div style={{fontSize:10,color:C.muted,marginTop:2,lineHeight:1.4}}>{meta.sub}</div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{fontSize:10.5,color:C.muted,marginTop:6,lineHeight:1.5}}>{OFFER_KINDS[kind].hint}</div>
+      </div>
+
       {/* Nom */}
       <div style={{marginBottom:10}}>
         <label style={{fontSize:10,fontWeight:700,color:C.muted,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.4}}>Titre de l'offre</label>
@@ -86,6 +116,56 @@ function OfferEditForm({ initial, onSave, onCancel }) {
         />
       </div>
 
+      {/* Résultat promis */}
+      <div style={{marginBottom:10}}>
+        <label style={LBL}>Ce que le client obtient à la fin {isParcours && <span style={{color:C.gold}}>·  obligatoire</span>}</label>
+        <textarea
+          value={outcome}
+          onChange={e=>setOutcome(e.target.value)}
+          placeholder="Ex : tu sauras exactement quelle machine acheter, chez qui, et à quel prix négocié"
+          rows={2}
+          style={{...FIELD(outcome), resize:"none", lineHeight:1.5}}
+        />
+        <div style={{fontSize:10.5,color:C.muted,marginTop:5,lineHeight:1.5}}>
+          Une promesse concrète, pas une description. C'est elle qui justifie ton prix — et c'est elle qui te protège si un client conteste.
+        </div>
+      </div>
+
+      {/* Contenu du parcours */}
+      {isParcours && (
+        <div style={{background:C.cream2,borderRadius:12,border:`1px solid ${C.border}`,padding:"12px 13px",marginBottom:12}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.4,marginBottom:9}}>Contenu du parcours</div>
+
+          <div style={{display:"flex",gap:8,marginBottom:10}}>
+            <div style={{flex:1}}>
+              <label style={LBL}>Rendez-vous inclus</label>
+              <input value={sessionsIncluded} onChange={e=>setSessionsIncluded(e.target.value)} type="number" min="1" max="20"
+                style={FIELD(sessionsIncluded)}/>
+            </div>
+            <div style={{flex:1.6}}>
+              <label style={LBL}>Sur combien de temps</label>
+              <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                {PARCOURS_WEEKS.map(w=>(
+                  <button key={w} onClick={()=>setDurationWeeks(w)}
+                    style={{padding:"6px 10px",borderRadius:20,border:`1.5px solid ${durationWeeks===w?C.sage:C.border}`,background:durationWeeks===w?(C.sageL||"#f0f4ef"):C.white,color:durationWeeks===w?C.sage:C.muted,fontSize:11,fontWeight:durationWeeks===w?700:400,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>
+                    {w} sem.
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <label style={LBL}>Ce que tu livres</label>
+          <textarea value={deliverables} onChange={e=>setDeliverables(e.target.value)}
+            placeholder="Ex : liste de fournisseurs contactés, comparatif écrit de 3 machines"
+            rows={2}
+            style={{...FIELD(deliverables), resize:"none", lineHeight:1.5}}/>
+          <div style={{fontSize:10.5,color:C.muted,marginTop:5,lineHeight:1.5}}>
+            Sois précis sur ce qui est inclus — et donc sur ce qui ne l'est pas.
+          </div>
+        </div>
+      )}
+
       {/* Prix + Durée */}
       <div style={{display:"flex",gap:8,marginBottom:12}}>
         <div style={{flex:1}}>
@@ -94,7 +174,7 @@ function OfferEditForm({ initial, onSave, onCancel }) {
             style={{width:"100%",padding:"10px 12px",borderRadius:10,border:`1.5px solid ${price?C.sage:C.border}`,fontSize:13,fontFamily:"inherit",color:C.ink,outline:"none",boxSizing:"border-box",background:C.white}}/>
         </div>
         <div style={{flex:1.5}}>
-          <label style={{fontSize:10,fontWeight:700,color:C.muted,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.4}}>Durée</label>
+          <label style={LBL}>{isParcours ? "Durée d'un rendez-vous" : "Durée"}</label>
           <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
             {OFFER_DUREES.map(d=>(
               <button key={d} onClick={()=>setDuree(d)}
@@ -131,7 +211,7 @@ function OfferEditForm({ initial, onSave, onCancel }) {
       {price && (
         <div style={{background:C.cream3,borderRadius:9,padding:"8px 12px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <span style={{fontSize:11,color:C.muted}}>Tu gardes</span>
-          <span style={{fontSize:14,fontWeight:700,color:C.sage||C.ink}}>{expertPayout(price)}€ <span style={{fontSize:10,fontWeight:400,color:C.muted}}>/ session (80%)</span></span>
+          <span style={{fontSize:14,fontWeight:700,color:C.sage||C.ink}}>{expertPayout(price)}€ <span style={{fontSize:10,fontWeight:400,color:C.muted}}>/ {isParcours ? "parcours" : "session"} (80%)</span></span>
         </div>
       )}
 
@@ -140,7 +220,19 @@ function OfferEditForm({ initial, onSave, onCancel }) {
         <button onClick={()=>{
           if(!name.trim()||!price){alert("Remplis le titre et le prix.");return;}
           if(formats.length===0){alert("Sélectionne au moins un format.");return;}
-          onSave({name:name.trim(),what:what.trim(),desc:what.trim(),price:Number(price),duree,formats});
+          // Un parcours sans résultat annoncé, c'est « payez 400 € et on verra » :
+          // impossible à vendre, et indéfendable si le client conteste.
+          if(isParcours && !outcome.trim()){alert("Décris ce que le client obtient à la fin.\n\nC'est ce qui justifie le prix d'un parcours.");return;}
+          onSave({
+            name:name.trim(), what:what.trim(), desc:what.trim(),
+            price:Number(price), duree, formats,
+            kind, outcome:outcome.trim(),
+            ...(isParcours ? {
+              sessionsIncluded: Math.max(1, Number(sessionsIncluded)||3),
+              deliverables: deliverables.trim(),
+              durationWeeks,
+            } : { sessionsIncluded:null, deliverables:"", durationWeeks:null }),
+          });
         }} style={{flex:2,padding:"10px",borderRadius:10,border:"none",background:C.ink,color:C.white,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:SERIF}}>Enregistrer ✓</button>
       </div>
     </div>
@@ -2059,6 +2151,11 @@ export function ExpertView({
                                 </span>
                               ))}
                               <span style={{fontSize:10,color:C.muted}}>· {durationCeiling(normalizeOffer(o).durationMin)}</span>
+                              {normalizeOffer(o).kind === "parcours" && (
+                                <span style={{fontSize:9.5,padding:"2px 8px",borderRadius:20,background:C.goldL,color:C.gold,fontWeight:700,letterSpacing:.3}}>
+                                  PARCOURS · {normalizeOffer(o).sessionsIncluded} RDV
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -2067,7 +2164,7 @@ export function ExpertView({
                         </div>
                       </div>
                       <div style={{display:"flex",justifyContent:"flex-end"}}>
-                        <button onClick={()=>{setEditingOffer(i);setEditOfferData({name:o.name,price:String(o.price),duree:formatDuration(normalizeOffer(o).durationMin),formats:o.formats||(o.format?.toLowerCase().includes("vid")?["video"]:o.format?.toLowerCase().includes("doc")?["doc"]:["chat"])});}} style={{fontSize:11,color:C.gold,fontWeight:700,background:C.white,border:`1px solid ${C.goldB}`,borderRadius:20,padding:"4px 12px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}><svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Modifier</button>
+                        <button onClick={()=>{const n=normalizeOffer(o);setEditingOffer(i);setEditOfferData({name:o.name,price:String(o.price),duree:formatDuration(n.durationMin),kind:n.kind,outcome:n.outcome,sessionsIncluded:n.sessionsIncluded,deliverables:n.deliverables,durationWeeks:n.durationWeeks,what:n.desc,formats:o.formats||(o.format?.toLowerCase().includes("vid")?["video"]:o.format?.toLowerCase().includes("doc")?["doc"]:["chat"])});}} style={{fontSize:11,color:C.gold,fontWeight:700,background:C.white,border:`1px solid ${C.goldB}`,borderRadius:20,padding:"4px 12px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}><svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Modifier</button>
                       </div>
                     </div>
                   )}

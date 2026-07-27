@@ -7,7 +7,9 @@
    Chaque écran devinait la durée dans un champ différent → bugs à répétition.
 
    Forme canonique :
-     { id, name, desc, price, durationMin: 30, formats: ["chat"] }
+     { id, name, desc, price, durationMin: 30, formats: ["chat"],
+       kind: "session" | "parcours",
+       outcome, sessionsIncluded, deliverables, durationWeeks }
 
    normalizeOffer() accepte les trois formes : aucune migration de données
    nécessaire. Tout écran qui lit une offre doit passer par ici.
@@ -21,6 +23,44 @@ export const FORMAT_META = {
 };
 
 export const FORMAT_IDS = Object.keys(FORMAT_META);
+
+/**
+ * Type d'offre.
+ *
+ * Une plateforme qui ne vend que des sessions à 20 € laisse 4 € de commission :
+ * il faudrait 500 ventes par mois pour en vivre. Le « parcours » vend un
+ * résultat, pas du temps — et se facture à la hauteur de la décision qu'il
+ * évite de rater. Une session reste utile : c'est la porte d'entrée.
+ *
+ * Nommé « parcours » et non « accompagnement » : ce dernier mot désigne déjà
+ * le format `chat` à l'écran, et deux choses différentes sous le même nom se
+ * confondent toujours au pire moment.
+ */
+export const OFFER_KINDS = {
+  session: {
+    id: "session",
+    label: "Session",
+    sub: "Une question précise, un rendez-vous",
+    hint: "Le client repart avec une réponse claire.",
+  },
+  parcours: {
+    id: "parcours",
+    label: "Parcours",
+    sub: "Plusieurs rendez-vous, un résultat livré",
+    hint: "Tu accompagnes le client jusqu'au bout d'une décision.",
+  },
+};
+
+export const OFFER_KIND_IDS = Object.keys(OFFER_KINDS);
+
+/** Ramène n'importe quelle valeur sur un type connu. Défaut : session. */
+export function normalizeKind(value) {
+  const v = String(value || "").toLowerCase();
+  return OFFER_KINDS[v] ? v : "session";
+}
+
+/** Semaines proposées pour un parcours. */
+export const PARCOURS_WEEKS = [1, 2, 4, 6, 8, 12];
 
 /** Durées proposées à l'expert quand il crée une offre. */
 export const OFFER_DURATIONS = [15, 30, 45, 60, 90, 120];
@@ -88,6 +128,11 @@ export function normalizeOffer(raw, index = 0) {
   }
   if (!formats.length) formats = ["video"];
 
+  // Les offres créées avant l'existence du type sont des sessions : aucune
+  // migration de données, elles se normalisent à la lecture comme le reste.
+  const kind = normalizeKind(o.kind);
+  const isParcours = kind === "parcours";
+
   return {
     id: o.id ?? index + 1,
     name: (o.name || "Session conseil").trim(),
@@ -95,6 +140,16 @@ export function normalizeOffer(raw, index = 0) {
     price: Number(o.price) || 0,
     durationMin,
     formats,
+    kind,
+    // La promesse concrète : « à la fin, tu sauras quelle machine acheter ».
+    // C'est elle qui justifie un prix à trois chiffres, et c'est elle qu'on
+    // oppose à une réclamation.
+    outcome: (o.outcome || "").trim(),
+    // Renseignés seulement pour un parcours — un client doit savoir ce qu'il
+    // achète avant de payer 400 €, pas après.
+    sessionsIncluded: isParcours ? Math.max(1, Number(o.sessionsIncluded) || 3) : null,
+    deliverables: isParcours ? (o.deliverables || "").trim() : "",
+    durationWeeks: isParcours ? Math.max(1, Number(o.durationWeeks) || 4) : null,
     // conservé pour l'affichage éventuel d'un badge
     tag: o.tag || null,
   };
