@@ -119,8 +119,11 @@ function AuthModal({ onClose, onSuccess, initialRegister, isAdmin }) {
             <button onClick={()=>{ setEmail(""); setPassword(""); setConfirmPassword(""); setFirstName(""); setLastName(""); setStep("register_method"); }} style={{background:"none",border:"none",cursor:"pointer",color:C.gold,fontWeight:700,fontFamily:"inherit",fontSize:12}}>S'inscrire gratuitement</button>
           </div>
 
-          {/* ── Mode démo — solo admin ────────────────────────────────── */}
-          {isAdmin && <div style={{borderTop:`1px solid ${C.border}`,paddingTop:16}}>
+          {/* ── Mode démo ─────────────────────────────────────────────────
+              Réservé à l'admin en production. Ouvert aussi sur localhost pour
+              pouvoir tester les écrans conseiller sans vraie inscription — la
+              condition d'hôte garantit qu'il n'apparaît jamais en ligne. */}
+          {(isAdmin || (typeof window !== "undefined" && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname))) && <div style={{borderTop:`1px solid ${C.border}`,paddingTop:16}}>
             <div style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.6,textAlign:"center",marginBottom:12}}>
               ✦ Mode démo — tester l'app
             </div>

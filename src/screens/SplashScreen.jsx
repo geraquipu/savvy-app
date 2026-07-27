@@ -159,8 +159,10 @@ function SplashScreen({ onSkip, onSuccess, onRegister, isAdmin }) {
           Explorer sans compte →
         </button>
 
-        {/* Mode démo — solo visible para admin */}
-        {isAdmin && <div style={{width:"100%",maxWidth:320,borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:16,marginBottom:8}}>
+        {/* Mode démo — admin en prod, et localhost pour tester les écrans
+            conseiller sans vraie inscription. La condition d'hôte garantit
+            qu'il n'apparaît jamais en ligne. */}
+        {(isAdmin || (typeof window !== "undefined" && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname))) && <div style={{width:"100%",maxWidth:320,borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:16,marginBottom:8}}>
           <div style={{fontSize:11,fontWeight:700,color:"rgba(253,252,248,.4)",textTransform:"uppercase",letterSpacing:.8,textAlign:"center",marginBottom:12}}>
             ✦ Mode démo — tester l'app
           </div>
