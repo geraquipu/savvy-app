@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { C, SERIF } from '../constants/colors';
-import { offerSubtitle } from '../constants/offers';
+import { offerSubtitle, normalizeOffer } from '../constants/offers';
 import { EXPERT_EXTRAS, EXPERT_STYLE_TAGS, EXPERT_FIRST_SESSION } from '../constants/expertExtras';
 import { supabase } from '../supabase';
 import { Ico } from '../constants/menuIcons.jsx';
@@ -212,26 +212,44 @@ function ExpertScreen({ e: eProp, onBack, onBook, onMsg }) {
           <div style={{ fontSize:22, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:14 }}>Mes offres</div>
           {phases.slice(0,3).map(ph => {
             const isOpen = openPhase === ph.id;
+            const n = normalizeOffer(ph);
+            const isParcours = n.kind === "parcours";
             return (
               <div key={ph.id} onClick={() => setOpenPhase(isOpen?null:ph.id)}
-                style={{ background:isOpen?e.bg:C.cream, border:`1.5px solid ${isOpen?e.color:C.border}`, borderRadius:14, padding:"14px 16px", marginBottom:10, cursor:"pointer", transition:"all .2s" }}>
+                style={{ background:isOpen?e.bg:C.cream, border:`1.5px solid ${isOpen?e.color:(isParcours?C.goldB:C.border)}`, borderRadius:14, padding:"14px 16px", marginBottom:10, cursor:"pointer", transition:"all .2s" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10 }}>
                   <div style={{ flex:1 }}>
-                    <div style={{ fontSize:14, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:4 }}>{ph.name}</div>
+                    {isParcours && (
+                      <span style={{ display:"inline-block", fontSize:9.5, fontWeight:800, letterSpacing:.4, color:C.gold, background:C.goldL, borderRadius:20, padding:"2px 9px", marginBottom:5 }}>
+                        PARCOURS · {n.sessionsIncluded} RDV{n.durationWeeks?` · ${n.durationWeeks} sem.`:""}
+                      </span>
+                    )}
+                    <div style={{ fontSize:14, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:4 }}>{n.name}</div>
                     {/* `what` contient le libellé brut enregistré (« Appel audio
                         15min ») : il court-circuitait l'unité minimale et la
                         durée-plafond. On passe par l'offre normalisée. */}
-                    <div style={{ fontSize:12, color:C.soft, lineHeight:1.4, marginBottom:6 }}>{offerSubtitle(ph)}</div>
-                    <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:isOpen?C.white:C.cream3, color:C.soft, fontWeight:600 }}>{ph.tag}</span>
+                    <div style={{ fontSize:12, color:C.soft, lineHeight:1.4, marginBottom:6 }}>{offerSubtitle(ph)}{isParcours?" / rendez-vous":""}</div>
+                    {ph.tag && <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:isOpen?C.white:C.cream3, color:C.soft, fontWeight:600 }}>{ph.tag}</span>}
                   </div>
                   <div style={{ textAlign:"right", flexShrink:0 }}>
-                    <div style={{ fontSize:22, fontWeight:700, color:C.ink, fontFamily:SERIF }}>{ph.price?`${ph.price}€`:"Devis"}</div>
+                    <div style={{ fontSize:22, fontWeight:700, color:C.ink, fontFamily:SERIF }}>{n.price?`${n.price}€`:"Devis"}</div>
+                    <div style={{ fontSize:9.5, color:C.muted, marginBottom:2 }}>/ {isParcours?"parcours":"session"}</div>
                     <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth={2} style={{ transform:isOpen?"rotate(180deg)":"none", transition:".2s" }}><polyline points="6 9 12 15 18 9"/></svg>
                   </div>
                 </div>
+                {/* La promesse : ce que le client paie, surtout à 3 chiffres.
+                    Visible sans dérouler, car c'est ce qui décide l'achat. */}
+                {n.outcome && (
+                  <div style={{ fontSize:12, color:C.ink, lineHeight:1.5, marginTop:8, paddingLeft:9, borderLeft:`3px solid ${isParcours?C.gold:C.border}` }}>
+                    <span style={{ fontWeight:700 }}>À la fin : </span>{n.outcome}
+                  </div>
+                )}
                 {isOpen && (
                   <div style={{ marginTop:14, paddingTop:14, borderTop:`1px solid ${C.border}` }}>
-                    {ph.inc.map((inc,i) => (
+                    {isParcours && n.deliverables && (
+                      <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:.4, marginBottom:8 }}>Ce que tu reçois : <span style={{ fontWeight:400, textTransform:"none", color:C.soft }}>{n.deliverables}</span></div>
+                    )}
+                    {(ph.inc||[]).map((inc,i) => (
                       <div key={i} style={{ display:"flex", gap:8, alignItems:"flex-start", marginBottom:7 }}>
                         <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={C.sage} strokeWidth={2.5} style={{ flexShrink:0, marginTop:1 }}><polyline points="20 6 9 17 4 12"/></svg>
                         <span style={{ fontSize:12, color:C.soft }}>{inc}</span>
@@ -239,7 +257,7 @@ function ExpertScreen({ e: eProp, onBack, onBook, onMsg }) {
                     ))}
                     <button onClick={ev=>{ev.stopPropagation();onBook(e,ph);}}
                       style={{ width:"100%", padding:"13px", borderRadius:12, border:"none", cursor:"pointer", fontWeight:700, fontSize:14, background:C.ink, color:C.white, marginTop:12, fontFamily:SERIF }}>
-                      Réserver — {ph.price?`${ph.price}€`:"devis"}
+                      {isParcours?"Démarrer ce parcours":"Réserver"} — {n.price?`${n.price}€`:"devis"}
                     </button>
                   </div>
                 )}
