@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { C, SERIF } from '../constants/colors';
-import { CATS, SUBCATS } from '../constants/data';
+import { CATS, ACTIVE_CATS, SUBCATS } from '../constants/data';
 import { MENU_ICONS } from '../constants/menuIcons.jsx';
 import { ExpertCard } from '../components/ui';
 
@@ -106,7 +106,7 @@ function SearchScreen({ initQ="", initCat=null, onExpert, onBack, experts=[], ex
           <button onClick={()=>{setActiveCat(null);setActiveSubcat(null);}} style={{ flexShrink:0, padding:"8px 16px", borderRadius:20, border:`1.5px solid ${!activeCat?C.ink:C.border}`, background:!activeCat?C.ink:"transparent", color:!activeCat?C.white:C.muted, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit", transition:"all .2s", whiteSpace:"nowrap" }}>
             Tous
           </button>
-          {CATS.map(cat => {
+          {ACTIVE_CATS.map(cat => {
             const isActive = activeCat===cat.id;
             return (
               <button key={cat.id} onClick={()=>{ setActiveCat(isActive?null:cat.id); setActiveSubcat(null); }}
@@ -220,7 +220,7 @@ function SearchScreen({ initQ="", initCat=null, onExpert, onBack, experts=[], ex
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:13, fontWeight:700, color:C.ink, fontFamily:SERIF, marginBottom:12 }}>Top catégories</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                {CATS.map(cat=>(
+                {ACTIVE_CATS.map(cat=>(
                   <button key={cat.id} onClick={()=>setActiveCat(cat.id)} style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 15px", borderRadius:16, border:`1px solid ${C.border}`, background:C.white, cursor:"pointer", textAlign:"left", fontFamily:"inherit", boxShadow:`0 2px 8px ${C.sh}`, transition:"all .2s" }}>
                     <div style={{ width:46, height:46, borderRadius:13, background:cat.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, border:`1px solid ${cat.color}20`, color:cat.color }}>{MENU_ICONS[cat.icon]}</div>
                     <div>

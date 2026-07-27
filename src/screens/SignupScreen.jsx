@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../supabase';
 import { MENU_ICONS, Ico } from '../constants/menuIcons.jsx';
 import { C, SERIF } from '../constants/colors';
-import { CATS, SUBCATS } from '../constants/data';
+import { CATS, ACTIVE_CATS, SUBCATS } from '../constants/data';
 
 const SIGNUP_T = {
   fr: {
@@ -533,7 +533,7 @@ function SignupScreen({ onBack, onDone, authUser, uploadPhoto }) {
         {/* Catégorie */}
         <div style={{fontSize:10,fontWeight:700,color:C.muted,marginBottom:10,textTransform:"uppercase",letterSpacing:.5}}>{T.domainLabel}</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:20}}>
-          {CATS.map(cat=>(
+          {ACTIVE_CATS.map(cat=>(
             <button key={cat.id} onClick={()=>patch({category:cat.id,subcats:[]})}
               style={{padding:"13px 11px",borderRadius:13,cursor:"pointer",textAlign:"center",fontFamily:"inherit",
                 border:form.category===cat.id?`2px solid ${cat.color}`:`1px solid ${C.border}`,

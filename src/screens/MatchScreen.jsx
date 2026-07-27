@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { C, SERIF } from '../constants/colors';
 import { Ico } from '../constants/menuIcons.jsx';
-import { CATS, CAT_MAP } from '../constants/data';
+import { ACTIVE_CATS, CAT_MAP } from '../constants/data';
 import { Av } from '../components/ui';
 
 function MatchScreen({ onExpert, onBrowseAll, experts=[] }) {
@@ -15,7 +15,7 @@ function MatchScreen({ onExpert, onBrowseAll, experts=[] }) {
   const back = ()  => { setAnimDir("back");    setTimeout(()=>setStep(s=>s-1),0); };
 
   // ── Step 0 — Situation ──────────────────────────────────────────
-  const situations = CATS.map(c => ({ id:c.id, icon:c.icon, label:c.label, color:c.color, bg:c.bg||C.cream2 }));
+  const situations = ACTIVE_CATS.map(c => ({ id:c.id, icon:c.icon, label:c.label, color:c.color, bg:c.bg||C.cream2 }));
 
   // ── Step 1 — Ce que tu cherches ─────────────────────────────────
   const besoins = [

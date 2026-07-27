@@ -26,6 +26,28 @@ export const CATS = [
   {id:"finances",   icon:"💶", label:"Finances",        sub:"Investissements · Fiscalité",        color:"#92400E", bg:"#FEF3C7"},
 ];
 
+/**
+ * Catégories ouvertes au lancement — un seul endroit à changer.
+ *
+ * On lance sur un seul segment : les personnes qui montent ou font grandir
+ * une activité en France (fournisseurs, douanes, création d'entreprise,
+ * équipement). Un marketplace se gagne catégorie par catégorie : dix
+ * conseillers dispersés sur six thèmes = zéro liquidité partout ; les mêmes
+ * dix sur un thème = un thème qui marche. Amazon a commencé par les livres.
+ *
+ * Les autres catégories restent dans le code, prêtes : pour en rouvrir une,
+ * ajouter son id ici. Pour tout rouvrir, remplacer par CATS.map(c => c.id).
+ */
+export const ACTIVE_CAT_IDS = ["business", "industrie"];
+
+/** Catégories réellement affichées. L'ordre suit ACTIVE_CAT_IDS. */
+export const ACTIVE_CATS = ACTIVE_CAT_IDS
+  .map(id => CATS.find(c => c.id === id))
+  .filter(Boolean);
+
+/** Une catégorie est-elle ouverte au lancement ? */
+export const isCatActive = (id) => ACTIVE_CAT_IDS.includes(id);
+
 export const SUBCATS = {
   vie: [
     {id:"logement",    icon:"🏠", label:"Logement"},
@@ -202,6 +224,7 @@ export const EXPERTS = [
       {id:2, name:"Étape 2 — Transport",    what:"Maritime ou terrestre ? Quels agents sont fiables ? Vrais délais. Mes contacts et mes erreurs passées.", format:"🎥 Vidéo",    price:30,  tag:"🚢 Concret & précis",       inc:["Comparatif maritime/terrestre","Agents fiables recommandés","Délais réels"]},
       {id:3, name:"Étape 3 — Aduanas",      what:"C\'est là où les gens perdent de l\'argent. Documentation complète, erreurs courantes, coûts inattendus.", format:"📄 Document", price:45,  tag:"📋 Le plus important",      inc:["Documentation complète","Erreurs courantes à éviter","Coûts cachés douane"]},
       {id:4, name:"Étape 4 — Vente finale", what:"Matricule, revente, légalisation. Comment sortir ton argent proprement et légalement.",                   format:"🎥 Vidéo",    price:60,  tag:"🏁 Jusqu\'au bout",         inc:["Processus matricule complet","Stratégie revente","Légalisation étape par étape"]},
+      {id:5, name:"J\'importe avec toi, de A à Z", kind:"parcours", price:350, formats:["video"], durationMin:60, sessionsIncluded:4, durationWeeks:6, outcome:"Ta première importation menée jusqu\'au bout — fournisseur choisi, transport réservé, douane passée, marchandise vendue — sans les erreurs qui coûtent des milliers d\'euros.", deliverables:"Comparatif de transporteurs, checklist douane, modèles de documents, mes contacts d\'agents fiables"},
     ],
     creds:["12+ voitures importées de Colombie vers l\'Europe","Maîtrise douanes France-Colombie","Réseau d\'agents et transitaires fiables"],
     bio:"6 ans d\'expérience dans l\'importation de voitures depuis la Colombie. 12+ véhicules importés, erreurs comprises.",
