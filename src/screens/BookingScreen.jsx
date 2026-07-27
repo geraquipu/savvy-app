@@ -397,16 +397,23 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
           )}
           {(e.phases || []).map(p => {
             const isSel = selectedPhase?.id === p.id;
+            const nb = normalizeOffer(p);
+            const isParcours = nb.kind === "parcours";
             return (
               <div key={p.id} onClick={()=>setSelectedPhase(p)}
-                style={{ background:isSel?C.ink:C.white, borderRadius:14, border:`2px solid ${isSel?C.ink:C.border}`, padding:"14px 16px", cursor:"pointer", transition:"all .2s" }}>
+                style={{ background:isSel?C.ink:C.white, borderRadius:14, border:`2px solid ${isSel?C.ink:(isParcours?C.goldB:C.border)}`, padding:"14px 16px", cursor:"pointer", transition:"all .2s" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
                   <div style={{ flex:1 }}>
-                    <div style={{ fontSize:14, fontWeight:700, color:isSel?C.white:C.ink, fontFamily:SERIF }}>{p.name}</div>
+                    {isParcours && (
+                      <span style={{ fontSize:9.5, fontWeight:800, letterSpacing:.4, padding:"2px 8px", borderRadius:20, background:isSel?"rgba(255,255,255,.15)":C.goldL, color:isSel?C.white:C.gold, marginBottom:5, display:"inline-block" }}>
+                        PARCOURS · {nb.sessionsIncluded} RDV{nb.durationWeeks?` · ${nb.durationWeeks} sem.`:""}
+                      </span>
+                    )}
+                    <div style={{ fontSize:14, fontWeight:700, color:isSel?C.white:C.ink, fontFamily:SERIF }}>{nb.name}</div>
                     {p.tag && <span style={{ fontSize:10, padding:"2px 8px", borderRadius:20, background:isSel?"rgba(255,255,255,.15)":C.goldL, color:isSel?C.white:C.gold, fontWeight:700, marginTop:4, display:"inline-block" }}>{p.tag}</span>}
                   </div>
                   <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-                    <span style={{ fontSize:20, fontWeight:700, color:isSel?C.white:C.ink, fontFamily:SERIF }}>{p.price}€</span>
+                    <span style={{ fontSize:20, fontWeight:700, color:isSel?C.white:C.ink, fontFamily:SERIF }}>{nb.price}€</span>
                     <div style={{ width:22, height:22, borderRadius:"50%", border:`2px solid ${isSel?"transparent":C.border}`, background:isSel?C.white:"transparent", display:"flex", alignItems:"center", justifyContent:"center" }}>
                       {isSel && <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.ink} strokeWidth={3}><polyline points="20 6 9 17 4 12"/></svg>}
                     </div>
@@ -416,8 +423,19 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
                     s'affiche comme un plafond ("jusqu'à 30 min"), pas comme un
                     temps dû. La description libre de l'expert vient dessous. */}
                 <div style={{ fontSize:12, color:isSel?"rgba(253,252,248,.7)":C.muted, lineHeight:1.5 }}>
-                  {offerSubtitle(p)}
+                  {offerSubtitle(p)}{isParcours?" / rendez-vous":""}
                 </div>
+                {/* La promesse : c'est ce que le client paie, surtout à 3 chiffres. */}
+                {nb.outcome && (
+                  <div style={{ fontSize:12, color:isSel?"rgba(253,252,248,.85)":C.ink, lineHeight:1.5, marginTop:7, paddingLeft:9, borderLeft:`3px solid ${isSel?"rgba(255,255,255,.3)":C.gold}` }}>
+                    <span style={{ fontWeight:700 }}>À la fin : </span>{nb.outcome}
+                  </div>
+                )}
+                {isParcours && nb.deliverables && (
+                  <div style={{ fontSize:11.5, color:isSel?"rgba(253,252,248,.6)":C.soft, lineHeight:1.5, marginTop:5 }}>
+                    {nb.deliverables}
+                  </div>
+                )}
                 {(() => {
                   const free = (p.what || p.desc || "").trim();
                   const auto = /^(vidéocall|appel audio|document|chat|accompagnement)\s*\d/i.test(free);

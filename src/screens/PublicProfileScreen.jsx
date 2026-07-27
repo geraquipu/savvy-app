@@ -76,32 +76,52 @@ function PublicProfileScreen({ onBack, onBook, onMsg, expertId, realExpertId }) 
         {/* ── Offres ── */}
         <div style={{ marginBottom:24 }}>
           <div style={{ fontSize:16,fontWeight:700,color:C.ink,fontFamily:SERIF,marginBottom:4 }}>Mes offres</div>
-          <div style={{ fontSize:12,color:C.muted,marginBottom:14 }}>Choisis la session qui te correspond</div>
+          <div style={{ fontSize:12,color:C.muted,marginBottom:14 }}>Choisis l'offre qui te correspond</div>
           {phases.map((p,i)=>{
             const fmtIcons = { video:"🎥", audio:"📞", doc:"📄", chat:"💬" }; // clés MENU_ICONS, jamais rendues telles quelles
-            const fmts = p.formats||[p.format||"video"];
+            const n = normalizeOffer(p);
+            const fmts = n.formats;
+            const isParcours = n.kind === "parcours";
             return (
-              <div key={i} style={{ background:C.white,borderRadius:16,border:`1px solid ${C.border}`,padding:"16px",marginBottom:10,boxShadow:`0 2px 8px ${C.sh}` }}>
-                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10,marginBottom:10 }}>
+              <div key={i} style={{ background:C.white,borderRadius:16,border:`1px solid ${isParcours?C.goldB:C.border}`,padding:"16px",marginBottom:10,boxShadow:`0 2px 8px ${C.sh}` }}>
+                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10,marginBottom:isParcours?8:10 }}>
                   <div style={{ flex:1,minWidth:0 }}>
-                    <div style={{ fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF,lineHeight:1.35,marginBottom:5 }}>{p.name}</div>
+                    {isParcours && (
+                      <span style={{ display:"inline-block",fontSize:9.5,fontWeight:800,letterSpacing:.4,color:C.gold,background:C.goldL,borderRadius:20,padding:"2px 9px",marginBottom:6 }}>
+                        PARCOURS · {n.sessionsIncluded} RDV{n.durationWeeks?` · ${n.durationWeeks} sem.`:""}
+                      </span>
+                    )}
+                    <div style={{ fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF,lineHeight:1.35,marginBottom:5 }}>{n.name}</div>
                     <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>
                       {fmts.map(f=>(
                         <span key={f} style={{ fontSize:11,padding:"3px 9px",borderRadius:20,background:C.cream3,color:C.muted,fontWeight:500 }}>
                           <Ico k={fmtIcons[f]||"📞"} size={12}/> {f==="video"?"Vidéo":f==="audio"?"Audio":f==="doc"?"Document":"Chat"}
                         </span>
                       ))}
-                      <span style={{ fontSize:11,color:C.muted,padding:"3px 0" }}>· {durationCeiling(normalizeOffer(p).durationMin)}</span>
+                      <span style={{ fontSize:11,color:C.muted,padding:"3px 0" }}>· {durationCeiling(n.durationMin)}{isParcours?" / RDV":""}</span>
                     </div>
                   </div>
                   <div style={{ flexShrink:0,textAlign:"right" }}>
-                    <div style={{ fontSize:22,fontWeight:800,color:C.ink,fontFamily:SERIF,lineHeight:1 }}>{p.price}€</div>
-                    <div style={{ fontSize:10,color:C.muted,marginTop:2 }}>/ session</div>
+                    <div style={{ fontSize:22,fontWeight:800,color:C.ink,fontFamily:SERIF,lineHeight:1 }}>{n.price}€</div>
+                    <div style={{ fontSize:10,color:C.muted,marginTop:2 }}>/ {isParcours?"parcours":"session"}</div>
                   </div>
                 </div>
+                {/* La promesse : c'est elle que le client paie, pas le temps. */}
+                {n.outcome && (
+                  <div style={{ background:isParcours?C.goldL:C.cream2,borderRadius:10,padding:"9px 11px",marginBottom:10,borderLeft:`3px solid ${isParcours?C.gold:C.border}` }}>
+                    <div style={{ fontSize:9.5,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.4,marginBottom:3 }}>À la fin</div>
+                    <div style={{ fontSize:12.5,color:C.ink,lineHeight:1.5 }}>{n.outcome}</div>
+                  </div>
+                )}
+                {isParcours && n.deliverables && (
+                  <div style={{ fontSize:11.5,color:C.muted,lineHeight:1.5,marginBottom:10,display:"flex",gap:6,alignItems:"flex-start" }}>
+                    <span style={{ color:C.gold,flexShrink:0,marginTop:1 }}><Ico k="✓" size={11}/></span>
+                    <span>{n.deliverables}</span>
+                  </div>
+                )}
                 <button onClick={()=>onBook&&onBook(e,p)}
                   style={{ width:"100%",padding:"11px",borderRadius:11,border:"none",cursor:"pointer",fontWeight:700,fontSize:13,background:C.ink,color:C.white,fontFamily:SERIF }}>
-                  Réserver · {p.price}€ →
+                  {isParcours?"Démarrer ce parcours":"Réserver"} · {n.price}€ →
                 </button>
               </div>
             );
