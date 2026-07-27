@@ -821,7 +821,17 @@ export function ExpertView({
                   {/* Sujet (une seule fois) */}
                   <div style={{marginBottom:11}}>
                     <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:.5,marginBottom:4,display:"flex",alignItems:"center",gap:5}}><svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx={12} cy={12} r={10}/><circle cx={12} cy={12} r={6}/><circle cx={12} cy={12} r={2}/></svg>Demande</div>
+                    {r.kind === "parcours" && (
+                      <span style={{display:"inline-block",fontSize:9.5,fontWeight:800,letterSpacing:.4,color:C.gold,background:C.goldL,borderRadius:20,padding:"2px 9px",marginBottom:5}}>
+                        PARCOURS · {r.parcoursSessions||"?"} RDV{r.parcoursWeeks?` · ${r.parcoursWeeks} sem.`:""}
+                      </span>
+                    )}
                     <div style={{fontSize:14,fontWeight:700,color:C.ink,fontFamily:SERIF,lineHeight:1.35}}>{r.domaine}</div>
+                    {r.kind === "parcours" && r.outcome && (
+                      <div style={{fontSize:12,color:C.soft,lineHeight:1.5,marginTop:5}}>
+                        <span style={{fontWeight:700,color:C.ink}}>Tu t'engages à : </span>{r.outcome}
+                      </div>
+                    )}
                   </div>
 
                   {/* Message du client — protagoniste */}

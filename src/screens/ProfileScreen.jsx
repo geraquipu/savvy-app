@@ -222,6 +222,12 @@ function ProfileScreen({ onSignup, onViewPublic, isExpert, onBecomeExpert, onLog
           statut: b.status==="confirmed" ? "confirmé" : b.status==="cancelled" ? "annulé" : "en attente",
           hoursUntil: b.date_session ? Math.round((new Date(b.date_session) - Date.now()) / 3600000) : 999,
           startTs: b.date_session ? new Date(b.date_session).getTime() : null,
+          // Un parcours engage le conseiller sur plusieurs rendez-vous : il doit
+          // le voir avant d'accepter, pas le découvrir après.
+          kind: b.phase_kind || "session",
+          parcoursSessions: b.phase_sessions || null,
+          parcoursWeeks: b.phase_weeks || null,
+          outcome: b.phase_outcome || null,
         };
       };
       // Store paid bookings with client names

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
 import { C, SERIF } from '../constants/colors';
 import { addBooking, addThread } from '../constants/data';
+import { normalizeOffer } from '../constants/offers';
 import { Ico } from '../constants/menuIcons.jsx';
 
 const ICN = {
@@ -59,6 +60,16 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, bookingN
       const expertId = typeof e.id === "string" && e.id.includes("-") ? e.id : null;
       if (expertId) {
         (async () => {
+          // Nature de l'offre : sans ça, un parcours à 350 € arrivait chez le
+          // conseiller comme une session ordinaire — il ne savait pas qu'il
+          // s'engageait sur 4 rendez-vous. On la conserve dès la demande.
+          const n = normalizeOffer(ph || {});
+          const parcoursCols = n.kind === "parcours" ? {
+            phase_kind: "parcours",
+            phase_sessions: n.sessionsIncluded,
+            phase_weeks: n.durationWeeks,
+            phase_outcome: n.outcome || null,
+          } : { phase_kind: "session" };
           let { data: inserted, error } = await supabase.from("bookings").insert({
             client_id: authUser.id,
             expert_id: expertId,
@@ -69,9 +80,21 @@ function SuccessScreen({e, ph, onHome, onMsg, bookingDate, bookingSlot, bookingN
             notes: bookingData.topic,
             session_format: bookingData.format,
             session_duration: bookingData.duration,
+            ...parcoursCols,
           }).select().single();
+          if (error && /phase_kind|phase_sessions|phase_weeks|phase_outcome|column/.test(error.message||"")) {
+            // Colonnes parcours pas encore créées → retente sans elles, mais en
+            // gardant format/durée (déjà en place).
+            ({ data: inserted, error } = await supabase.from("bookings").insert({
+              client_id: authUser.id, expert_id: expertId,
+              phase_name: bookingData.phase, phase_price: bookingData.price,
+              status: "pending", date_session: bookingDateTime ? bookingDateTime.toISOString() : null,
+              notes: bookingData.topic,
+              session_format: bookingData.format, session_duration: bookingData.duration,
+            }).select().single());
+          }
           if (error && /session_format|session_duration|column/.test(error.message||"")) {
-            // Colonnes pas encore créées → retente sans elles
+            // Ni les colonnes parcours ni format/durée → insert minimal.
             ({ data: inserted, error } = await supabase.from("bookings").insert({
               client_id: authUser.id, expert_id: expertId,
               phase_name: bookingData.phase, phase_price: bookingData.price,
