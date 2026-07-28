@@ -1,0 +1,1174 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for data.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="prettify.css" />
+    <link rel="stylesheet" href="base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="index.html">All files</a> data.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">53.84% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>35/65</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">41.93% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>13/31</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">18.75% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>3/16</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">84.84% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>28/33</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line medium'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a>
+<a name='L259'></a><a href='#L259'>259</a>
+<a name='L260'></a><a href='#L260'>260</a>
+<a name='L261'></a><a href='#L261'>261</a>
+<a name='L262'></a><a href='#L262'>262</a>
+<a name='L263'></a><a href='#L263'>263</a>
+<a name='L264'></a><a href='#L264'>264</a>
+<a name='L265'></a><a href='#L265'>265</a>
+<a name='L266'></a><a href='#L266'>266</a>
+<a name='L267'></a><a href='#L267'>267</a>
+<a name='L268'></a><a href='#L268'>268</a>
+<a name='L269'></a><a href='#L269'>269</a>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a>
+<a name='L274'></a><a href='#L274'>274</a>
+<a name='L275'></a><a href='#L275'>275</a>
+<a name='L276'></a><a href='#L276'>276</a>
+<a name='L277'></a><a href='#L277'>277</a>
+<a name='L278'></a><a href='#L278'>278</a>
+<a name='L279'></a><a href='#L279'>279</a>
+<a name='L280'></a><a href='#L280'>280</a>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a>
+<a name='L317'></a><a href='#L317'>317</a>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a>
+<a name='L333'></a><a href='#L333'>333</a>
+<a name='L334'></a><a href='#L334'>334</a>
+<a name='L335'></a><a href='#L335'>335</a>
+<a name='L336'></a><a href='#L336'>336</a>
+<a name='L337'></a><a href='#L337'>337</a>
+<a name='L338'></a><a href='#L338'>338</a>
+<a name='L339'></a><a href='#L339'>339</a>
+<a name='L340'></a><a href='#L340'>340</a>
+<a name='L341'></a><a href='#L341'>341</a>
+<a name='L342'></a><a href='#L342'>342</a>
+<a name='L343'></a><a href='#L343'>343</a>
+<a name='L344'></a><a href='#L344'>344</a>
+<a name='L345'></a><a href='#L345'>345</a>
+<a name='L346'></a><a href='#L346'>346</a>
+<a name='L347'></a><a href='#L347'>347</a>
+<a name='L348'></a><a href='#L348'>348</a>
+<a name='L349'></a><a href='#L349'>349</a>
+<a name='L350'></a><a href='#L350'>350</a>
+<a name='L351'></a><a href='#L351'>351</a>
+<a name='L352'></a><a href='#L352'>352</a>
+<a name='L353'></a><a href='#L353'>353</a>
+<a name='L354'></a><a href='#L354'>354</a>
+<a name='L355'></a><a href='#L355'>355</a>
+<a name='L356'></a><a href='#L356'>356</a>
+<a name='L357'></a><a href='#L357'>357</a>
+<a name='L358'></a><a href='#L358'>358</a>
+<a name='L359'></a><a href='#L359'>359</a>
+<a name='L360'></a><a href='#L360'>360</a>
+<a name='L361'></a><a href='#L361'>361</a>
+<a name='L362'></a><a href='#L362'>362</a>
+<a name='L363'></a><a href='#L363'>363</a>
+<a name='L364'></a><a href='#L364'>364</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
+ * Personas de démonstration (mode "Explorer sans compte").
+ * ATTENTION : ces comptes s'obtiennent sans authentification réelle — n'importe
+ * quel code à 6 chiffres suffit. Ne jamais leur accorder de privilège : leur
+ * email ne doit apparaître dans aucune liste d'autorisation (voir constants/admin.js).
+ */
+export const DEMO_USERS = {
+  expert: {
+    name:"German Quintana", initials:"GQ", email:"german@getsavvy.fr",
+    role:"Expert · Inventaires &amp; KPIs Excel", isExpert:true,
+    avatar_bg:"#E0F2FE", avatar_color:"#0369A1",
+  },
+  client: {
+    name:"Sophie Martin", initials:"SM", email:"sophie@getsavvy.fr",
+    role:"Cliente · Membre depuis Jan 2025", isExpert:false,
+    avatar_bg:"#DBEAFE", avatar_color:"#0F2744",
+  },
+};
+&nbsp;
+export const CATS = [
+  {id:"vie",        icon:"🏠", label:"Vie en France",  sub:"Logement · Travail · Études",        color:"#8B6330", bg:"#F5EDD8"},
+  {id:"tourisme",   icon:"✈️", label:"Tourisme",        sub:"Voyages · Gastronomie · Loisirs",    color:"#0369A1", bg:"#E0F2FE"},
+  {id:"business",   icon:"💼", label:"Business",        sub:"Import · Export · Création",         color:"#0F2744", bg:"#DBEAFE"},
+  {id:"industrie",  icon:"🏗️", label:"Industrie",       sub:"Production · Machines · Logistique", color:"#065F46", bg:"#D1FAE5"},
+  {id:"techno",     icon:"💻", label:"Technologie",     sub:"Dev · IA · Automatisation",          color:"#6D28D9", bg:"#EDE9FE"},
+  {id:"finances",   icon:"💶", label:"Finances",        sub:"Investissements · Fiscalité",        color:"#92400E", bg:"#FEF3C7"},
+];
+&nbsp;
+/**
+ * Catégories ouvertes au lancement — un seul endroit à changer.
+ *
+ * On lance sur un seul segment : les personnes qui montent ou font grandir
+ * une activité en France (fournisseurs, douanes, création d'entreprise,
+ * équipement). Un marketplace se gagne catégorie par catégorie : dix
+ * conseillers dispersés sur six thèmes = zéro liquidité partout ; les mêmes
+ * dix sur un thème = un thème qui marche. Amazon a commencé par les livres.
+ *
+ * Les autres catégories restent dans le code, prêtes : pour en rouvrir une,
+ * ajouter son id ici. Pour tout rouvrir, remplacer par CATS.map(c =&gt; c.id).
+ */
+export const ACTIVE_CAT_IDS = ["business", "industrie"];
+&nbsp;
+/** Catégories réellement affichées. L'ordre suit ACTIVE_CAT_IDS. */
+export const ACTIVE_CATS = ACTIVE_CAT_IDS
+  .map(id =&gt; CATS.find(c =&gt; c.id === id))
+  .filter(Boolean);
+&nbsp;
+/** Une catégorie est-elle ouverte au lancement ? */
+export const <span class="fstat-no" title="function not covered" >isCatActive = (i</span>d) =&gt; <span class="cstat-no" title="statement not covered" >ACTIVE_CAT_IDS.includes(id);</span>
+&nbsp;
+export const SUBCATS = {
+  vie: [
+    {id:"logement",    icon:"🏠", label:"Logement"},
+    {id:"travail",     icon:"💼", label:"Travail &amp; Emploi"},
+    {id:"etudes",      icon:"🎓", label:"Études"},
+    {id:"admin",       icon:"📋", label:"Démarches admin"},
+    {id:"sante",       icon:"🏥", label:"Santé"},
+    {id:"expatriation",icon:"🌍", label:"Expatriation"},
+  ],
+  tourisme: [
+    {id:"voyages",     icon:"✈️", label:"Voyages"},
+    {id:"hotels",      icon:"🏨", label:"Hôtels &amp; séjours"},
+    {id:"gastronomie", icon:"🍽️", label:"Gastronomie"},
+    {id:"loisirs",     icon:"🎭", label:"Loisirs &amp; culture"},
+    {id:"transport",   icon:"🚆", label:"Transport"},
+    {id:"budget",      icon:"💶", label:"Voyager moins cher"},
+  ],
+  business: [
+    {id:"import",      icon:"📦", label:"Importation"},
+    {id:"export",      icon:"🌍", label:"Exportation"},
+    {id:"creation",    icon:"🏢", label:"Créer une entreprise"},
+    {id:"negociation", icon:"🤝", label:"Négociation"},
+    {id:"marketing",   icon:"📈", label:"Marketing"},
+    {id:"juridique",   icon:"⚖️", label:"Juridique &amp; contrats"},
+  ],
+  industrie: [
+    {id:"production",  icon:"🏭", label:"Production"},
+    {id:"machines",    icon:"⚙️", label:"Machinerie"},
+    {id:"logistique",  icon:"🚚", label:"Logistique"},
+    {id:"qualite",     icon:"✅", label:"Qualité &amp; QSE"},
+    {id:"energie",     icon:"⚡", label:"Énergie"},
+    {id:"maintenance", icon:"🔧", label:"Maintenance"},
+  ],
+  techno: [
+    {id:"dev",         icon:"💻", label:"Développement"},
+    {id:"ia",          icon:"🤖", label:"Intelligence artificielle"},
+    {id:"auto",        icon:"⚡", label:"Automatisation"},
+    {id:"data",        icon:"📊", label:"Data &amp; Analytics"},
+    {id:"cloud",       icon:"☁️", label:"Cloud &amp; DevOps"},
+    {id:"cyber",       icon:"🔒", label:"Cybersécurité"},
+  ],
+  finances: [
+    {id:"invest",      icon:"📈", label:"Investissements"},
+    {id:"fiscalite",   icon:"🧾", label:"Fiscalité"},
+    {id:"gestion",     icon:"💼", label:"Gestion d\'entreprise"},
+    {id:"crypto",      icon:"₿",  label:"Crypto &amp; DeFi"},
+    {id:"epargne",     icon:"🏦", label:"Épargne"},
+    {id:"comptabilite",icon:"📒", label:"Comptabilité"},
+  ],
+};
+&nbsp;
+// ─── Trust Score System ────────────────────────────────────────────────────────
+export const TRUST_LEVELS = [
+  { id:"explorador",      min:0,  max:30,  icon:"",  label:"Explorador",      color:"#059669", bg:"#E8F5EE", border:"rgba(15,157,88,.2)"   },
+  { id:"practicant",      min:30, max:60,  icon:"",  label:"Praticant",       color:"#92400E", bg:"#FEF3C7", border:"rgba(146,64,14,.2)"   },
+  { id:"expert",          min:60, max:80,  icon:"",  label:"Expert",          color:"#1E3A5F", bg:"#E8EFF8", border:"rgba(30,58,95,.2)"    },
+  { id:"expert_verifie",  min:80, max:95,  icon:"",  label:"Expert vérifié",  color:"#5B3E99", bg:"#F0EAFF", border:"rgba(91,62,153,.2)"   },
+  { id:"referent",        min:95, max:100, icon:"",  label:"Référent Savvy",  color:"#92400E", bg:"#FEF3C7", border:"rgba(146,64,14,.2)"   },
+];
+&nbsp;
+export const <span class="fstat-no" title="function not covered" >getTrustLevel = (s</span>core) =&gt; <span class="cstat-no" title="statement not covered" >TRUST_LEVELS.<span class="fstat-no" title="function not covered" >find(l</span> =&gt; <span class="cstat-no" title="statement not covered" >score &gt;= l.min &amp;&amp; score &lt; l.max)</span> || TRUST_LEVELS[TRUST_LEVELS.length-1];</span>
+&nbsp;
+// ─── Shared booking bus (localStorage) ────────────────────────────────────────
+export const BOOKINGS_KEY = "savvy_bookings";
+export const THREADS_KEY  = "savvy_threads";
+export const <span class="fstat-no" title="function not covered" >getBookings  = () =&gt; {</span> <span class="cstat-no" title="statement not covered" >try { <span class="cstat-no" title="statement not covered" >return JSON.parse(localStorage.getItem(BOOKINGS_KEY)||"[]"); }</span> catch { <span class="cstat-no" title="statement not covered" >return []; }</span> }</span>;
+export const <span class="fstat-no" title="function not covered" >saveBookings = (a</span>rr) =&gt; { <span class="cstat-no" title="statement not covered" >try { <span class="cstat-no" title="statement not covered" >localStorage.setItem(BOOKINGS_KEY, JSON.stringify(arr)); }</span> catch {} }</span>;
+export const <span class="fstat-no" title="function not covered" >addBooking   = (b</span>) =&gt; { const arr = <span class="cstat-no" title="statement not covered" >getBookings(); <span class="cstat-no" title="statement not covered" >s</span>aveBookings([...arr.<span class="fstat-no" title="function not covered" >filter(x</span>=&gt;<span class="cstat-no" title="statement not covered" >x.id!==b.id)</span>, b]); }</span>;
+export const <span class="fstat-no" title="function not covered" >updateBooking = (i</span>d, patch) =&gt; { <span class="cstat-no" title="statement not covered" >saveBookings(getBookings().<span class="fstat-no" title="function not covered" >map(b</span>=&gt;<span class="cstat-no" title="statement not covered" >b.id===id?{...b,...patch}:b)</span>); }</span>;
+export const <span class="fstat-no" title="function not covered" >getThreads   = () =&gt; {</span> <span class="cstat-no" title="statement not covered" >try { <span class="cstat-no" title="statement not covered" >return JSON.parse(localStorage.getItem(THREADS_KEY)||"[]"); }</span> catch { <span class="cstat-no" title="statement not covered" >return []; }</span> }</span>;
+export const <span class="fstat-no" title="function not covered" >addThread    = (t</span>) =&gt; { const arr = <span class="cstat-no" title="statement not covered" >getThreads(); <span class="cstat-no" title="statement not covered" >i</span>f(!arr.<span class="fstat-no" title="function not covered" >find(x</span>=&gt;<span class="cstat-no" title="statement not covered" >x.id===t.id)</span>) { <span class="cstat-no" title="statement not covered" >localStorage.setItem(THREADS_KEY, JSON.stringify([t,...arr])); }</span> }</span>;
+&nbsp;
+export const EXPERTS = [
+  {
+    id:1, initials:"CR", name:"Clément Rousseau", country:"🇫🇷",
+    role:"Passionné Paris · ex-guide touristique certifié ANCT",
+    tagline:"A Paris, sans conseil local, tu paieras trop cher pour un hotel mal place. Dis-moi ton budget — je t\'envoie mes 3 meilleures adresses.",
+    location:"Paris", langs:["FR","EN"], rating:4.9, reviews:127, sales:312,
+    color:"#8B6330", bg:"#F5EDD8", cat:"vie", verified:true,
+    metrics:[
+      {icon:"🗼", value:"+100", label:"séjours à Paris"},
+      {icon:"🏨", value:"20",   label:"hôtels testés perso"},
+      {icon:"⭐", value:"4.9",  label:"sur 127 avis"},
+      {icon:"⚡", value:"&lt; 2h", label:"temps de réponse"},
+    ],
+    phases:[
+      {id:1,name:"Recommandation hôtel écrite",   what:"L\'hôtel parfait selon votre budget et vos dates",   format:"Réponse écrite · 24h",  price:5,  tag:"⚡ Rapide",     inc:["1 recommandation personnalisée","Quartier, prix, lien direct","Alternatives si complet"]},
+      {id:2,name:"Session vidéo · planification", what:"On planifie ensemble votre séjour de A à Z",         format:"Vidéo 1h",              price:10, tag:"⭐ Populaire",  inc:["Hôtel + restaurants + transports","Itinéraire PDF envoyé","Bons plans locaux"]},
+      {id:3,name:"Pack séjour Paris complet",     what:"Tout pour un séjour parfait, billets musées inclus", format:"3 sessions + guides",   price:25, tag:"🎯 Tout inclus",inc:["Hôtels · restos · musées","Billets Louvre sans queue","Messagerie 7 jours"]},
+    ],
+    creds:["Visité Paris +100 fois en 15 ans","20 hôtels testés personnellement","Ex-guide certifié ANCT 2012–2018","Blog voyage · 50 000 abonnés Instagram"],
+    bio:"Je vis Paris depuis 15 ans. Je vous dis exactement où aller — pas de recommandations génériques, que du vécu.",
+    sys:"Tu es Clément Rousseau, expert séjours Paris. Direct, pratique, chaleureux. Max 3 phrases. UNE question à la fois.",
+  },
+  {
+    id:2, initials:"MA", name:"Marie Aubert", country:"🇫🇷",
+    role:"Chef pâtissière · Diplômée Ferrandi · Paris",
+    tagline:"Les recettes en ligne oublient l\'essentiel. Ce que j\'ai appris a Ferrandi, je te le donne — meme si tu n\'as jamais fait de patisserie.",
+    location:"Paris", langs:["FR","EN"], rating:5.0, reviews:94, sales:234,
+    color:"#7C2D12", bg:"#FFEDD5", cat:"cuisine", verified:true,
+    metrics:[
+      {icon:"🍰", value:"+100",    label:"recettes maîtrisées"},
+      {icon:"🎓", value:"Ferrandi", label:"diplômée Paris"},
+      {icon:"⭐", value:"5.0",     label:"sur 94 missions"},
+      {icon:"⚡", value:"&lt; 4h",    label:"temps de réponse"},
+    ],
+    phases:[
+      {id:1,name:"La recette exacte + astuces",     what:"Ma recette avec tous les secrets du pro",               format:"PDF illustré · 24h",    price:10, tag:"⚡ Rapide",     inc:["Recette PDF détaillée","Erreurs à éviter","3 questions incluses"]},
+      {id:2,name:"On cuisine ensemble en vidéo",    what:"Je guide chaque geste en direct — impossible de rater", format:"Vidéo 1h en direct",    price:20, tag:"⭐ Populaire",  inc:["Visio 1h en direct","Recette PDF incluse","Enregistrement 7 jours"]},
+      {id:3,name:"Liste fournisseurs &amp; où acheter", what:"Quoi acheter et où, dans votre pays",                   format:"PDF par pays · 24h",    price:15, tag:"🛒 Malin",      inc:["Marques recommandées","Liens d\'achat en ligne","Grande surface + pro"]},
+      {id:4,name:"Pack complet",                    what:"Recette + cours vidéo + guide fournisseurs",            format:"Tout inclus",           price:40, tag:"🎯 Tout inclus",inc:["Phases 1+2+3","Économie 5€","Suivi messagerie 7 jours"]},
+    ],
+    creds:["Diplômée pâtisserie École Ferrandi Paris","+100 recettes maîtrisées et testées","Fournisseurs France, Belgique, Suisse","94 missions — 100% avis 5 étoiles"],
+    bio:"Chef pâtissière diplômée Ferrandi. Je vous donne mes vraies recettes de labo et je vous dis exactement où acheter les ingrédients.",
+    sys:"Tu es Marie Aubert, chef pâtissière diplômée Ferrandi. Chaleureuse et pédagogique. Max 3 phrases. En français. UNE question à la fois.",
+  },
+  {
+    id:3, initials:"PG", name:"Patrick Gazet", country:"🇫🇷",
+    role:"Expert optimisation production · laboratoires pâtisserie",
+    tagline:"Un labo qui perd du temps, c\'est souvent 3 problemes que personne n\'a ose corriger. Je les trouve en 30 min — et je te dis quoi faire.",
+    location:"Lyon", langs:["FR"], rating:4.9, reviews:61, sales:143,
+    color:"#065F46", bg:"#D1FAE5", cat:"cuisine", verified:true,
+    metrics:[
+      {icon:"🏭", value:"35 ans",  label:"en laboratoires artisanaux"},
+      {icon:"📈", value:"+35%",    label:"de productivité en moyenne"},
+      {icon:"⭐", value:"4.9",     label:"sur 61 audits réalisés"},
+      {icon:"💰", value:"−28%",    label:"de coûts de production"},
+    ],
+    phases:[
+      {id:1,name:"Question pâtisserie écrite",         what:"Je réponds à votre question technique ou organisationnelle en détail", format:"Réponse écrite · 24h",    price:20,  tag:"⚡ Rapide",     inc:["Réponse complète et détaillée","Sources et références","1 question de suivi offerte"]},
+      {id:2,name:"Consultation vidéo · conseil",       what:"On analyse ensemble votre situation et je vous donne un plan d\'action concret", format:"Vidéo 1h",      price:50,  tag:"⭐ Populaire",  inc:["Analyse de votre situation","Plan d\'action prioritaire","Compte-rendu PDF"]},
+      {id:3,name:"Audit laboratoire complet",          what:"J\'audite votre labo en détail et vous livre un rapport avec toutes mes recommandations", format:"Vidéo 2h + rapport PDF", price:150, tag:"🔍 Audit pro",   inc:["Questionnaire pré-audit détaillé","Rapport PDF complet","Plan d\'action chiffré","Suivi messagerie 15 jours"]},
+      {id:4,name:"Accompagnement optimisation · mensuel", what:"Je pilote votre transformation sur 4 semaines avec des résultats mesurables", format:"4 semaines · suivi hebdo", price:400, tag:"🚀 Transformation",inc:["4 sessions vidéo hebdomadaires","Messagerie illimitée","Tableaux de bord Excel fournis","Rapport final avec résultats chiffrés"]},
+    ],
+    creds:["35 ans de terrain en laboratoires pâtisserie artisanale","61 audits de production réalisés en France","Spécialiste lean manufacturing appliqué à la pâtisserie","Formateur certifié organisation et process labo"],
+    bio:"35 ans à optimiser des laboratoires pâtisserie. Je transforme votre organisation pour que vous produisiez plus, mieux, et avec moins de pertes.",
+    sys:"Tu es Patrick Gazet, expert optimisation de production en laboratoires de pâtisserie. Précis, concret, orienté résultats. Max 3 phrases. UNE question à la fois.",
+  },
+  {
+    id:4, initials:"AM", name:"Antoine Mercier", country:"🇫🇷",
+    role:"Supply chain · 12 ans en laboratoire artisanal",
+    tagline:"Si ta logistique coute plus cher que prevu, c\'est rarement un hasard. 12 ans chez Renault et Decathlon — dis-moi ton probleme.",
+    location:"Paris", langs:["FR","EN"], rating:4.9, reviews:38, sales:89,
+    color:"#0F2744", bg:"#DBEAFE", cat:"business", verified:true,
+    metrics:[
+      {icon:"📦", value:"8",     label:"PME structurées"},
+      {icon:"💰", value:"≤ 40%", label:"d\'économies obtenues"},
+      {icon:"⭐", value:"4.9",   label:"sur 38 missions"},
+      {icon:"⚡", value:"&lt; 6h",  label:"temps de réponse"},
+    ],
+    phases:[
+      {id:1,name:"Diagnostic de votre situation", what:"J\'analyse vos flux et vous donne vos 3 priorités d\'action", format:"Rapport + appel 30 min", price:80,  tag:"📋 Débuter",    inc:["Questionnaire pré-session","Rapport PDF avec plan d\'action","Appel vidéo 30 min"]},
+      {id:2,name:"Mise en place des processus",   what:"Je construis vos outils Excel et vous forme",                 format:"3 sessions vidéo 1h",   price:350, tag:"⭐ Populaire",  inc:["3 sessions vidéo 1h","Excel : stocks · marges · commandes","Messagerie entre sessions"]},
+      {id:3,name:"Accompagnement mensuel",        what:"Je pilote avec vous pendant 4 semaines",                      format:"4 semaines · suivi",    price:600, tag:"🚀 Complet",    inc:["4 sessions hebdomadaires","Messagerie illimitée","Rapport final + recommandations"]},
+    ],
+    creds:["12 ans supply chain laboratoires artisanaux Paris","8 PME structurées de 0 à 500 k€ CA","Excel avancé · COGS · planification · stocks","Templates prêts à l\'emploi livrés"],
+    bio:"Expert supply chain de laboratoire pâtisserie. Des outils concrets pour avoir enfin de la visibilité sur vos marges et vos stocks.",
+    sys:"Tu es Antoine Mercier, expert supply chain pâtisserie. Professionnel et concret. Max 3 phrases. UNE question à la fois.",
+  },
+  {
+    id:5, initials:"LV", name:"Luis Villamil", country:"🇨🇴🇫🇷",
+    role:"Expert import voitures Colombie · 6 ans terrain",
+    tagline:"Importer une voiture de Colombie sans savoir exactement quoi faire, c\'est perdre entre 2 000€ et 10 000€ sans s\'en rendre compte. Je l\'ai fait 12 fois — je t\'explique chaque étape.",
+    location:"Bogotá / Paris", langs:["FR","ES"], rating:4.9, reviews:34, sales:28,
+    color:"#854D0E", bg:"#FEF9C3", cat:"business", verified:true,
+    metrics:[
+      {icon:"🚗", value:"12+",    label:"voitures importées"},
+      {icon:"💡", value:"6 ans",  label:"d\'expérience terrain"},
+      {icon:"🇨🇴", value:"100%", label:"expérience réelle"},
+      {icon:"⚡", value:"&lt; 4h",   label:"réponse moyenne"},
+    ],
+    phases:[
+      {id:1, name:"Étape 1 — Viabilité",    what:"Impôts réels, marges honnêtes et coûts cachés que personne ne te dit. Avant de dépenser un centime.",  format:"🎥 Vidéo",    price:15,  tag:"✅ Par ici pour commencer", inc:["Impôts et taxes réels","Marges honnêtes","Coûts cachés détaillés"]},
+      {id:2, name:"Étape 2 — Transport",    what:"Maritime ou terrestre ? Quels agents sont fiables ? Vrais délais. Mes contacts et mes erreurs passées.", format:"🎥 Vidéo",    price:30,  tag:"🚢 Concret &amp; précis",       inc:["Comparatif maritime/terrestre","Agents fiables recommandés","Délais réels"]},
+      {id:3, name:"Étape 3 — Aduanas",      what:"C\'est là où les gens perdent de l\'argent. Documentation complète, erreurs courantes, coûts inattendus.", format:"📄 Document", price:45,  tag:"📋 Le plus important",      inc:["Documentation complète","Erreurs courantes à éviter","Coûts cachés douane"]},
+      {id:4, name:"Étape 4 — Vente finale", what:"Matricule, revente, légalisation. Comment sortir ton argent proprement et légalement.",                   format:"🎥 Vidéo",    price:60,  tag:"🏁 Jusqu\'au bout",         inc:["Processus matricule complet","Stratégie revente","Légalisation étape par étape"]},
+      {id:5, name:"J\'importe avec toi, de A à Z", kind:"parcours", price:350, formats:["video"], durationMin:60, sessionsIncluded:4, durationWeeks:6, outcome:"Ta première importation menée jusqu\'au bout — fournisseur choisi, transport réservé, douane passée, marchandise vendue — sans les erreurs qui coûtent des milliers d\'euros.", deliverables:"Comparatif de transporteurs, checklist douane, modèles de documents, mes contacts d\'agents fiables"},
+    ],
+    creds:["12+ voitures importées de Colombie vers l\'Europe","Maîtrise douanes France-Colombie","Réseau d\'agents et transitaires fiables"],
+    bio:"6 ans d\'expérience dans l\'importation de voitures depuis la Colombie. 12+ véhicules importés, erreurs comprises.",
+    sys:"Tu es Luis Villamil, expert import voitures Colombie. Direct, honnête, expérience terrain. Max 3 phrases. UNE question à la fois.",
+  },
+  {
+    id:6, initials:"AR", name:"Ahmed Rashidi", country:"🇳🇱",
+    role:"Ingénieur tuyauterie · Shell, BP, Aramco · 28 ans",
+    tagline:"J\'identifie les erreurs de design avant qu\'elles vous coûtent des millions",
+    location:"Pays-Bas", langs:["EN","FR","AR"], rating:5.0, reviews:44, sales:67,
+    color:"#8B6330", bg:"#F5EDD8", cat:"industrie", verified:true, nda:true,
+    metrics:[
+      {icon:"🏭", value:"28 ans",  label:"Shell, BP, Aramco"},
+      {icon:"💼", value:"+500 M€", label:"de projets supervisés"},
+      {icon:"⭐", value:"5.0",     label:"sur 44 projets"},
+      {icon:"⚡", value:"&lt; 24h",   label:"temps de réponse"},
+    ],
+    phases:[
+      {id:1,name:"Consultation technique · 1h",    what:"Je révise votre design et identifie les non-conformités",      format:"Vidéo sécurisée + rapport",  price:800,  tag:"🔍 Revue",      inc:["Analyse ASME B31.3","Rapport technique PDF","Recommandations matériaux"]},
+      {id:2,name:"Révision projet · demi-journée", what:"Analyse complète des isométriques, matériaux et spécifications",format:"Session 4h + rapport",       price:2800, tag:"📐 Complet",    inc:["Analyse isométriques CAESAR II","Revue matériaux et joints","Rapport de déviations"]},
+      {id:3,name:"Consulting projet · forfait",    what:"Accompagnement technique tout au long du projet",              format:"Devis selon périmètre",      price:null, tag:"🤝 Partenariat", inc:["Périmètre défini ensemble","NDA renforcé + contrat Savvy","80% expert · 20% Savvy"]},
+    ],
+    creds:["28 ans Shell, BP et Aramco — tuyauterie haute pression","Projets EPC +500 M€ au Qatar et Pays-Bas","Certifié ASME B31.3 · CAESAR II · AutoPIPE","MSc Génie Mécanique TU Delft 1995"],
+    bio:"28 ans de tuyauterie industrielle. Je détecte les problèmes de design avant qu\'ils bloquent votre chantier.",
+    sys:"Tu es Ahmed Rashidi, ingénieur tuyauterie pétrolière senior. Technique, précis. Max 3 phrases. NDA requis avant partage de données.",
+  },
+  {
+    id:7, initials:"LK", name:"Lars Koenig", country:"🇩🇪",
+    role:"Conception mécanique · SolidWorks · Munich",
+    tagline:"De vos calculs jusqu\'au prototype fonctionnel, étape par étape",
+    location:"Munich", langs:["DE","EN","FR"], rating:5.0, reviews:51, sales:112,
+    color:"#065F46", bg:"#D1FAE5", cat:"industrie", verified:true, nda:true,
+    metrics:[
+      {icon:"⚙️", value:"12",     label:"startups accompagnées"},
+      {icon:"🏆", value:"20 ans", label:"conception méc. ind."},
+      {icon:"⭐", value:"5.0",    label:"sur 51 projets"},
+      {icon:"⚡", value:"&lt; 12h",  label:"temps de réponse"},
+    ],
+    phases:[
+      {id:1,name:"Validation des calculs",         what:"Je vérifie vos hypothèses et dimensionne vos pièces clés",    format:"FEA + rapport technique",    price:200,  tag:"📊 Valider",    inc:["Analyse charges + FEA","Rapport dimensionnement PDF","Recommandations matériaux"]},
+      {id:2,name:"Modélisation SolidWorks",        what:"Modèle 3D complet avec plans prêts pour la fabrication",      format:"Fichiers natifs + plans",    price:500,  tag:"⚙️ Design",     inc:["Modèle 3D SolidWorks (fichiers natifs)","Plans cotés PDF + DWG · 2 révisions","Nomenclature des pièces"]},
+      {id:3,name:"Accompagnement mise en service", what:"Je suis avec vous pendant fabrication et tests prototype",     format:"Sessions vidéo + messagerie",price:800,  tag:"🚀 Au bout",    inc:["Sessions vidéo suivi fabrication","Messagerie illimitée","Rapport final validation"]},
+      {id:4,name:"Pack projet complet",            what:"De la feuille blanche au prototype validé",                   format:"Phases 1+2+3",               price:1200, tag:"🎯 Tout inclus", inc:["Calculs + SolidWorks + Mise en service","Priorité agenda","Économie 300€"]},
+    ],
+    creds:["20 ans de conception mécanique industrielle","Expert SolidWorks, ANSYS, FEA","12 startups hardware de l\'idée au prototype","Dipl.-Ing. Maschinenbau TU München"],
+    bio:"20 ans de conception mécanique. Je fais de vos idées des pièces réelles — du calcul au prototype fonctionnel.",
+    sys:"Tu es Lars Koenig, ingénieur conception mécanique. Technique et structuré. Max 3 phrases.",
+  },
+  {
+    id:9, initials:"SM2", name:"Sara Moreno", country:"🇫🇷🇪🇸",
+    role:"Vie en France · Logement pour étrangers · CROUS",
+    tagline:"Sans garant, presque tous les appartements te refuseront. Commence par le CROUS ou les résidences pour étrangers — je t\'explique tout.",
+    location:"Paris", langs:["FR","ES","EN"], rating:4.8, reviews:41, sales:35,
+    color:"#6D28D9", bg:"#EDE9FE", cat:"vie", verified:true,
+    metrics:[
+      {icon:"🏠", value:"40+",   label:"étudiants logés"},
+      {icon:"📋", value:"40+",   label:"dossiers montés"},
+      {icon:"⭐", value:"97%",   label:"satisfaction"},
+      {icon:"⚡", value:"&lt; 3h",  label:"réponse moyenne"},
+    ],
+    phases:[
+      {id:1, name:"Le CROUS — comment ça marche",   what:"Ce que c\'est, qui peut en bénéficier, comment candidater, les vrais délais et les erreurs qui font rater sa chambre.",    format:"🎥 Vidéo",    price:15,  tag:"✅ Par ici pour commencer", inc:["Qui peut accéder au CROUS","Comment soumettre un dossier béton","Les erreurs qui font rater la chambre"]},
+      {id:2, name:"Résidences spéciales étrangers", what:"Il existe des résidences faites pour toi. Meilleures options, critères, prix réels et comment augmenter tes chances.",       format:"🎥 Vidéo",    price:25,  tag:"🏠 Souvent ignoré",          inc:["Liste des meilleures résidences","Critères d\'acceptation réels","Astuces pour augmenter ses chances"]},
+      {id:3, name:"Le problème du garant",          what:"Visale, garant physique, garant étranger, caution bancaire — chaque option expliquée honnêtement pour un dossier béton.",   format:"📄 Document", price:30,  tag:"🔑 Le vrai blocage",         inc:["Visale — comment l\'obtenir","Alternatives sans garant français","Dossier locataire béton"]},
+      {id:4, name:"Trouver un appartement privé",   what:"Quelles plateformes, comment convaincre un propriétaire sans garant français. J\'ai aidé 40+ personnes avec ça.",          format:"🎥 Vidéo",    price:45,  tag:"🎯 Niveau avancé",           inc:["Meilleures plateformes 2025","Script pour convaincre le propriétaire","Astuces qui marchent vraiment"]},
+    ],
+    creds:["40+ étudiants et travailleurs étrangers aidés à se loger","Maîtrise complète du processus CROUS","Expérience personnelle du logement en France en tant qu\'étrangère"],
+    bio:"Passée par le système de logement étudiant en France en tant qu\'étrangère. Depuis 4 ans j\'aide les nouveaux arrivants à se loger.",
+    sys:"Tu es Sara Moreno, experte logement pour étrangers en France. Pratique, bienveillante, résultats concrets. Max 3 phrases. UNE question à la fois.",
+  },
+  {
+   id:8, initials:"GQ", name:"German Quintana",
+    role:"Industrie · Inventaires &amp; KPIs Excel · 4 ans terrain",
+    location:"Paris", country:"France", langs:["FR","EN","ES"],
+    rating:4.9, reviews:14, verified:true,
+    tagline:"Un stock mal géré fait perdre de l\'argent chaque mois sans qu\'on sache pourquoi. En 4 ans et 40 inventaires dans un labo de production, j\'ai trouvé ce qui fonctionne — je te le donne.",
+    color:"#0369A1", bg:"#E0F2FE",
+    trustComponents:{ experience:19, structure:22, reputation:0, consistance:14, activite:9, risque:2 },
+    metrics:[
+      {icon:"📦", label:"Inventaires réalisés", value:"40+"},
+      {icon:"📅", label:"Années de pratique",   value:"4 ans"},
+      {icon:"📊", label:"KPIs &amp; Excel",          value:"✓ Maîtrisé"},
+      {icon:"⚡", label:"Temps de réponse",       value:"&lt; 3h"},
+    ],
+    nda:false,
+    phases:[
+      {id:"p0", name:"Méthode inventaire 1h",    price:60,  format:"🎥 Vidéo",    tag:"Le plus demandé",    what:"Méthode rapide d\'inventaire mensuel + tableau Excel prêt à utiliser dès le lendemain."},
+      {id:"p1", name:"Tableau Excel KPIs",        price:40,  format:"📄 Document", tag:"Livrable clé en main",what:"Tableau Excel personnalisé avec KPIs automatiques et graphiques pour piloter ton stock."},
+      {id:"p2", name:"Accompagnement complet",    price:150, format:"🎥 Vidéo",    tag:"Résultat garanti",   what:"Audit + méthode + tableau personnalisé + 2 sessions de suivi. Opérationnel en une semaine."},
+    ],
+    bio:"4 ans de gestion de production en laboratoire de pâtisserie. 40 inventaires mensuels réalisés. Expert Excel KPIs et trazabilité.",
+    sys:"Tu es German Quintana, expert en gestion de production et inventaires Excel. Pratique et concret. Max 3 phrases.",
+    creds:["40 inventaires mensuels sur 4 ans en laboratoire de production","Tableaux Excel avec KPIs automatiques et graphiques de tendance","Analyse mensuelle des écarts de stock et recommandations d\'amélioration"],
+  },
+];
+&nbsp;
+export const CAT_MAP = {
+  vie:       [9],
+  tourisme:  [1,2],
+  business:  [4,5],
+  industrie: [3,6,8],
+  techno:    [7],
+  finances:  [],
+};
+&nbsp;
+export const DEMO_MSGS = [
+  { id:1, eid:0, lastMsg:"Super, votre hôtel est réservé ! Vous allez adorer le quartier Marais.", time:"09:30", unread:0, session:{format:"📄 Document",dur:"1h",price:"10€",date:"Demain 10h00"} },
+  { id:2, eid:1, lastMsg:"Pour le macaron, la clé c\'est la tant-pour-tant bien tamisée.",         time:"Hier",  unread:0, session:{format:"📹 Vidéo",dur:"1h",price:"25€",date:"Mar. 3 juin 11h00"} },
+  { id:3, eid:2, lastMsg:"Votre labo peut gagner 30% de productivité avec 3 ajustements simples.", time:"Lun",   unread:1, session:{format:"📹 Vidéo",dur:"2h",price:"150€",date:"Sam. 31 mai 14h00"} },
+];
+&nbsp;
+&nbsp;
+/**
+ * Étiquette de compte à rebours.
+ *
+ * `startTs` est requis pour « Aujourd'hui » / « Demain » : ces deux libellés
+ * désignent des JOURS, pas des durées. On les déduisait de `hoursUntil &lt; 24`,
+ * si bien qu'une session demain 10:30 vue aujourd'hui à 14:00 (20 h d'écart)
+ * s'affichait « Aujourd'hui ». Sans startTs, on s'en tient aux durées.
+ */
+export function getCountdown(hoursUntil, startTs = null) {
+  if (hoursUntil == null) return null;
+  if (hoursUntil &lt;= 0)   return { label:"En cours ●", color:"#10B981", pulse:true };
+  if (hoursUntil &lt; 1)    return { label:"Dans moins d'1h", color:"#EF4444", pulse:true };
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (hoursUntil &lt; 3)    return { label:`Dans ${Math.round(hoursUntil)}h`, color:"#EF4444", pulse:false };
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (startTs) {
+    const <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >day = (t</span>) =&gt; { const d = <span class="cstat-no" title="statement not covered" >new Date(t); <span class="cstat-no" title="statement not covered" >d</span>.setHours(0,0,0,0); <span class="cstat-no" title="statement not covered" >r</span>eturn d.getTime(); }</span>;</span>
+    const diff = <span class="cstat-no" title="statement not covered" >Math.round((day(startTs) - day(Date.now())) / 86400000);</span>
+<span class="cstat-no" title="statement not covered" >    if (diff === 0) <span class="cstat-no" title="statement not covered" >return { label:"Aujourd'hui", color:"#F59E0B", pulse:false };</span></span>
+<span class="cstat-no" title="statement not covered" >    if (diff === 1) <span class="cstat-no" title="statement not covered" >return { label:"Demain",      color:"#6366F1", pulse:false };</span></span>
+<span class="cstat-no" title="statement not covered" >    return null;</span>
+  }
+  if (hoursUntil &lt; 24)   return { label:"Aujourd'hui", color:"#F59E0B", pulse:false };
+  if (hoursUntil &lt; 48)   return { label:"Demain", color:"#6366F1", pulse:false };
+  return null;
+}
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-07-28T08:31:16.574Z
+            </div>
+        <script src="prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="sorter.js"></script>
+        <script src="block-navigation.js"></script>
+    </body>
+</html>
+    
