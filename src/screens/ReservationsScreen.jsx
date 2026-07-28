@@ -860,7 +860,12 @@ export function SessionCard({ s, onMsg, onCancel, onExpert, onPay, onRespondResc
             </div>
           );
         })()}
-        <div style={{ background:C.cream2, borderRadius:10, padding:"9px 12px", marginBottom:12, borderLeft:`2px solid ${expert.color}` }}>
+        {s.kind === "parcours" && (
+          <span style={{ display:"inline-block", fontSize:9.5, fontWeight:800, letterSpacing:.4, color:C.gold, background:C.goldL, borderRadius:20, padding:"2px 9px", marginBottom:9 }}>
+            PARCOURS · {s.parcoursSessions||"?"} RDV{s.parcoursWeeks?` · ${s.parcoursWeeks} sem.`:""}
+          </span>
+        )}
+        <div style={{ background:C.cream2, borderRadius:10, padding:"9px 12px", marginBottom:12, borderLeft:`2px solid ${s.kind==="parcours"?C.gold:expert.color}` }}>
           <div style={{ fontSize:12, color:C.soft, lineHeight:1.5 }}>{s.topic}</div>
         </div>
         <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:14 }}>
@@ -1159,6 +1164,11 @@ function ReservationsScreen({ onExpert, onMsg, isLoggedIn, onLogin, onNavigate, 
           annuledBy: b.cancelled_by || null,
           _fromSB: true,
           expertName: exp.name || "Expert",
+          // Le client a payé un parcours (plusieurs RDV) : sa réservation doit
+          // le rappeler, pas l'afficher comme une session isolée.
+          kind: b.phase_kind || "session",
+          parcoursSessions: b.phase_sessions || null,
+          parcoursWeeks: b.phase_weeks || null,
         };
       });
       // Détecter les changements de statut → notification
