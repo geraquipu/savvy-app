@@ -7,6 +7,10 @@ const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+/** Échappe l'injection HTML dans les e-mails (noms, titres). Voir notify-booking. */
+const esc = (s: unknown) =>
+  String(s ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
 
 /**
  * Appel interne uniquement.
@@ -49,19 +53,19 @@ serve(async (req) => {
   for (const b of bookings) {
     const date = new Date(b.date_session).toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long", timeZone:"Europe/Paris" });
     const time = new Date(b.date_session).toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit", timeZone:"Europe/Paris" });
-    const phase = b.phase_name || "Session";
+    const phase = esc(b.phase_name || "Session");
     const price = b.phase_price || 0;
     const roomId = b.id.replace(/-/g,"").slice(0,16);
 
     // Resolve expert meet_link and names
     const { data: expRow } = await supabase.from("experts").select("user_id, meet_link, name").eq("id", b.expert_id).single();
     const meetUrl = expRow?.meet_link || `https://meet.jit.si/savvy-${roomId}`;
-    const expertName = expRow?.name || "Votre expert";
+    const expertName = esc(expRow?.name || "Votre expert");
 
     const { data: clientAuth } = expRow?.user_id ? await supabase.auth.admin.getUserById(b.client_id) : { data: null };
     const clientEmail = clientAuth?.user?.email;
     const { data: cliProf } = await supabase.from("profiles").select("name").eq("id", b.client_id).single();
-    const clientName = cliProf?.name || "Client";
+    const clientName = esc(cliProf?.name || "Client");
 
     const { data: expAuth } = expRow?.user_id ? await supabase.auth.admin.getUserById(expRow.user_id) : { data: null };
     const expertEmail = expAuth?.user?.email;

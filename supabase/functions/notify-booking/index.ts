@@ -7,6 +7,19 @@ const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+/**
+ * Neutralise l'injection HTML dans les e-mails.
+ *
+ * Les noms et titres d'offre sont saisis par l'utilisateur et partaient tels
+ * quels dans le HTML, envoyé depuis notre domaine vérifié : un nom comme
+ * `Marie</p><a href="…">cliquez</a>` s'affichait comme un vrai lien — un
+ * hameçonnage estampillé Savvy. On échappe `< > "` (les trois caractères
+ * nécessaires pour ouvrir une balise ou un attribut) ; on laisse `&` pour ne
+ * pas abîmer « Import & Export » dans un sujet ou un titre.
+ */
+const esc = (s: unknown) =>
+  String(s ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -77,7 +90,7 @@ serve(async (req) => {
   const status = booking.status;
   const date = booking.date_session ? new Date(booking.date_session).toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long", timeZone:"Europe/Paris" }) : "À confirmer";
   const time = booking.date_session ? new Date(booking.date_session).toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit", timeZone:"Europe/Paris" }) : "";
-  const phase = booking.phase_name || "Session";
+  const phase = esc(booking.phase_name || "Session");
   const price = booking.phase_price || 0;
 
   // Resolve the expert's auth user id and meet_link from experts.id
@@ -96,8 +109,8 @@ serve(async (req) => {
   // Get names from profiles
   const { data: expProf } = expertUserId ? await supabase.from("profiles").select("name").eq("id", expertUserId).single() : { data: null };
   const { data: cliProf } = await supabase.from("profiles").select("name").eq("id", clientId).single();
-  const expertName = expProf?.name || "Expert";
-  const clientName = cliProf?.name || "Client";
+  const expertName = esc(expProf?.name || "Expert");
+  const clientName = esc(cliProf?.name || "Client");
 
   // ── Nouvelle réservation → notifier l'expert (email + push) ──
   if (type === "INSERT" && status === "pending") {

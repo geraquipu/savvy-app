@@ -18,7 +18,10 @@ const isInternal = (req: Request) =>
 
 serve(async (req) => {
   if (!isInternal(req)) return new Response("Non autorisé", { status: 403 });
-  const { expertUserId, expertName } = await req.json();
+  const { expertUserId, expertName: rawExpertName } = await req.json();
+  // Échappe l'injection HTML (nom saisi par l'utilisateur, e-mail depuis notre
+  // domaine vérifié). Voir notify-booking.
+  const expertName = String(rawExpertName ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   if (!expertUserId) return new Response("missing expertUserId", { status: 400 });
 
   const { data: userObj } = await supabase.auth.admin.getUserById(expertUserId);

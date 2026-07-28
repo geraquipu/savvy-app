@@ -64,11 +64,15 @@ async function parties(booking: Record<string, any>) {
     .from("profiles").select("name").eq("id", booking.client_id).single();
   const expUser = expertRow?.user_id
     ? (await supabase.auth.admin.getUserById(expertRow.user_id)).data : null;
+  // Échappe l'injection HTML dès la source (noms saisis par l'utilisateur,
+  // insérés dans des e-mails envoyés depuis notre domaine). Voir notify-booking.
+  const esc = (s: unknown) =>
+    String(s ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   return {
-    expertName: expertRow?.name || "Ton conseiller",
+    expertName: esc(expertRow?.name || "Ton conseiller"),
     expertEmail: expUser?.user?.email || null,
     expertUserId: expertRow?.user_id || null,
-    clientName: cliProf?.name || "Client",
+    clientName: esc(cliProf?.name || "Client"),
     clientEmail: cli?.user?.email || null,
   };
 }
