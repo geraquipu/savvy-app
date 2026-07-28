@@ -282,57 +282,10 @@ function BookingScreen({ e, ph, onBack, onConfirm }) {
   }, [selectedPhase]);
   const [booking, setBooking] = useState({ date:null, slot:null });
   const [note, setNote] = useState("");
-  // Payment states at component level (React hooks rules)
-  const [payMethod, setPayMethod] = useState("card");
-  const [cardNum, setCardNum] = useState("");
-  const [cardExp, setCardExp] = useState("");
-  const [cardCvv, setCardCvv] = useState("");
-  const [cardName, setCardName] = useState("");
-  const [paying, setPaying] = useState(false);
-  const [cardFlipped, setCardFlipped] = useState(false);
-  const [payDone, setPayDone] = useState(false);
+  // Envoi de la demande (le paiement réel se fait ensuite via Stripe Checkout,
+  // écran Réservations). Aucun formulaire de carte ici : Savvy ne touche jamais
+  // les données bancaires — c'est Stripe qui les collecte, sur sa page.
   const [sending, setSending] = useState(false);
-
-  // Card type detection
-  const getCardType = num => {
-    const n = num.replace(/\s/g,"");
-    if (/^4/.test(n)) return "visa";
-    if (/^5[1-5]/.test(n) || /^2[2-7]/.test(n)) return "mastercard";
-    if (/^3[47]/.test(n)) return "amex";
-    return null;
-  };
-  const cardType = getCardType(cardNum);
-  const CardTypeLogo = ({type, active}) => {
-    if (!type) return null;
-    const logos = {
-      visa: <svg width={38} height={12} viewBox="0 0 38 12"><text x="0" y="11" fill={active?"white":"rgba(255,255,255,.4)"} fontSize="13" fontWeight="800" fontFamily="Arial,sans-serif">VISA</text></svg>,
-      mastercard: (
-        <svg width={32} height={20} viewBox="0 0 32 20">
-          <circle cx={11} cy={10} r={10} fill={active?"#EB001B":"rgba(235,0,27,.4)"}/>
-          <circle cx={21} cy={10} r={10} fill={active?"#F79E1B":"rgba(247,158,27,.4)"}/>
-          <path d="M16 3.5a10 10 0 0 1 0 13 10 10 0 0 1 0-13z" fill={active?"#FF5F00":"rgba(255,95,0,.4)"}/>
-        </svg>
-      ),
-      amex: <svg width={36} height={12} viewBox="0 0 36 12"><text x="0" y="11" fill={active?"white":"rgba(255,255,255,.4)"} fontSize="11" fontWeight="800" fontFamily="Arial,sans-serif">AMEX</text></svg>,
-    };
-    return logos[type]||null;
-  };
-
-  // Payment helpers at component level
-  const formatCard = v => {
-    const n = v.replace(/[^0-9]/g,"");
-    const isAmex = /^3[47]/.test(n);
-    if (isAmex) return n.slice(0,15).replace(/^(\d{4})(\d{0,6})(\d{0,5})/,"$1 $2 $3").trim();
-    return n.slice(0,16).replace(/(.{4})/g,"$1 ").trim();
-  };
-  const formatExp  = v => { const d=v.replace(/[^0-9]/g,"").slice(0,4); return d.length>2?d.slice(0,2)+"/"+d.slice(2):d; };
-  const isCardValid = cardNum.replace(/\s/g,"").length>=15 && cardExp.length===5 && cardCvv.length>=3 && cardName.length>2;
-  const handlePay = async () => {
-    if (payMethod==="apple") { setPaying(true); await new Promise(r=>setTimeout(r,1500)); setPayDone(true); await new Promise(r=>setTimeout(r,900)); onConfirm({date:booking.date, slot:booking.slot, note, format:chosenFormat, duree:chosenDuree}); return; }
-    if (!isCardValid) { alert("Vérifie les informations de ta carte."); return; }
-    setPaying(true); await new Promise(r=>setTimeout(r,1800)); setPayDone(true); await new Promise(r=>setTimeout(r,900));
-    onConfirm({date:booking.date, slot:booking.slot, note, format:chosenFormat, duree:chosenDuree});
-  };
 
   // Offre normalisée = source de vérité unique (durée, formats, prix).
   const offer = selectedPhase ? normalizeOffer(selectedPhase) : null;
